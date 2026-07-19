@@ -26,17 +26,6 @@ export function Hero() {
 
       <div className="relative mx-auto grid w-full max-w-6xl items-center gap-16 px-4 pt-24 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-32 lg:pb-28">
         <div className="flex flex-col items-start gap-7">
-          <motion.p
-            {...enter(0)}
-            className="flex items-center gap-2.5 font-mono text-muted-foreground text-xs uppercase tracking-[0.25em]"
-          >
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-solana-green/60" />
-              <span className="relative inline-flex size-2 rounded-full bg-solana-green" />
-            </span>
-            living loyalty protocol · solana devnet
-          </motion.p>
-
           <motion.h1
             {...enter(0.08)}
             className="text-balance font-heading font-semibold text-5xl leading-[1.04] tracking-tight md:text-6xl xl:text-7xl"
