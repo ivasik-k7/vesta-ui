@@ -23,10 +23,6 @@ export function Hero() {
       </div>
 
       <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-7 px-4 pt-24 pb-28 text-center md:pt-32">
-        <motion.p {...enter(0)} className="font-medium text-[13px] text-muted-foreground">
-          The living loyalty protocol on Solana
-        </motion.p>
-
         <motion.h1
           {...enter(0.06)}
           className="max-w-3xl text-balance font-heading text-6xl leading-[1.04] tracking-tight md:text-7xl"

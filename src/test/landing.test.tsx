@@ -18,7 +18,16 @@ test('landing renders the VESTA hero', async () => {
   expect(screen.getAllByText('vesta_core').length).toBeGreaterThan(0)
 })
 
-test('customer app route renders its placeholder', async () => {
+test('customer app preview renders wallet and badges', async () => {
   renderAt('/app')
-  expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(/customer app/i)
+  expect(await screen.findByText(/your loyalty/i)).toBeInTheDocument()
+  expect(screen.getByText('Kavarna')).toBeInTheDocument()
+  expect(screen.getByText('First Flame')).toBeInTheDocument()
+})
+
+test('merchant preview renders onboarding economics', async () => {
+  renderAt('/merchant')
+  expect(await screen.findByText(/runs itself/i)).toBeInTheDocument()
+  expect(screen.getByText(/0.012 SOL/)).toBeInTheDocument()
+  expect(screen.getByText(/what you can never do/i)).toBeInTheDocument()
 })
