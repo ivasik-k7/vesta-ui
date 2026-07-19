@@ -13,16 +13,28 @@ On-chain calls go through a thin TypeScript client generated from the Anchor IDL
 
 ## Stack
 
-Vite · React · TypeScript · Tailwind CSS v4 · shadcn/ui · `@solana/wallet-adapter` · TanStack Query · Zustand
+- **Core**: Vite (`@vitejs/plugin-react-swc`) · React 19 · TypeScript (strict) · pnpm
+- **UI**: Tailwind CSS v4 · shadcn/ui (radix, nova preset) · lucide-react · `cn` helper (clsx + tailwind-merge)
+- **Routing/State**: TanStack Router (file-based, type-safe) · TanStack Query
+- **Forms**: React Hook Form · Zod · @hookform/resolvers
+- **Quality**: Biome (lint + format, one fast tool) · Husky + lint-staged · Vitest + React Testing Library
+- **Env**: typed and validated via `@t3-oss/env-core` + Zod (`src/env.ts`, see `.env.example`)
+
+Path alias `@/` → `src/`. Routes live in `src/routes/` (`routeTree.gen.ts` is generated — committed, excluded from lint).
 
 ## Development
 
 ```bash
-npm install
-npm run dev       # local dev server
-npm run lint && npm run build
+pnpm install
+pnpm dev          # local dev server
+pnpm lint         # biome check
+pnpm typecheck    # tsc -b
+pnpm test         # vitest + RTL
+pnpm build        # production build
 ```
+
+Husky runs `lint-staged` (Biome with autofix) on every commit.
 
 ## Status
 
-Phase 0 scaffold. Screens land in phase 5 (parallel with on-chain phases 1–4); public deployment link will be added here.
+Landing page live; customer app and merchant dashboard land in phase 5 (parallel with on-chain phases 1–4). Public deployment link will be added here.
