@@ -56,8 +56,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: #c23a05;
+  --primary-foreground: #fff7f2;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -85,24 +85,25 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* REFERENCES.md §3.1 — warm near-blacks + sicilian orange, dark-first */
+  --background: #0c0b0a;
+  --foreground: #f5efe9;
+  --card: #151311;
+  --card-foreground: #f5efe9;
+  --popover: #151311;
+  --popover-foreground: #f5efe9;
+  --primary: #e2470a;
+  --primary-foreground: #180b04;
+  --secondary: #1e1b18;
+  --secondary-foreground: #f5efe9;
+  --muted: #1e1b18;
+  --muted-foreground: #a79e96;
+  --accent: #1e1b18;
+  --accent-foreground: #f5efe9;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: #2a2622;
+  --input: #2a2622;
+  --ring: #e2470a;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -130,8 +131,12 @@
   }
 }
 @theme {
-    --color-solana-purple: #9945ff;
-    --color-solana-green: #14f195;
+    /* sicilian orange scale (REFERENCES.md §3.1) */
+    --color-flame: #e2470a;
+    --color-flame-hover: #f25c1f;
+    --color-flame-active: #c23a05;
+    --color-flame-deep: #7a2604;
+    --color-line-strong: #3a342e;
     --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
     --animate-flicker: flicker 2.6s ease-in-out infinite;
     --animate-aurora: aurora 16s ease-in-out infinite alternate;

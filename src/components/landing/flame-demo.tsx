@@ -38,16 +38,16 @@ export function FlameDemo() {
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-white/[0.05] to-transparent p-6 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] backdrop-blur md:p-8">
-      <p className="flex items-center justify-between font-mono text-[11px] text-muted-foreground uppercase tracking-[0.22em]">
-        live mechanic
-        <span className="text-solana-green/80">token-2022 · interest-bearing</span>
+      <p className="flex items-center justify-between font-medium text-[13px] text-muted-foreground">
+        Live mechanic
+        <span className="text-flame/80">token-2022 · interest-bearing</span>
       </p>
 
       <div className="mt-6 flex items-center gap-6">
         <div className="relative grid size-24 shrink-0 place-items-center">
           <div
             aria-hidden
-            className="absolute inset-0 rounded-full bg-solana-purple/25 blur-2xl transition-opacity duration-500"
+            className="absolute inset-0 rounded-full bg-flame/25 blur-2xl transition-opacity duration-500"
             style={{ opacity: 0.25 + health * 0.75 }}
           />
           <motion.div
@@ -57,7 +57,7 @@ export function FlameDemo() {
             style={{ opacity: 0.45 + health * 0.55 }}
           >
             <Flame
-              className="size-14 text-solana-green drop-shadow-[0_0_18px_rgb(20_241_149/0.45)]"
+              className="size-14 text-flame drop-shadow-[0_0_18px_rgb(226_71_10/0.45)]"
               aria-hidden
             />
           </motion.div>
@@ -65,7 +65,7 @@ export function FlameDemo() {
             <motion.div
               key={burstKey}
               aria-hidden
-              className="absolute inset-0 rounded-full border border-solana-green/50"
+              className="absolute inset-0 rounded-full border border-flame/50"
               initial={{ opacity: 0.7, scale: 0.6 }}
               animate={{ opacity: 0, scale: 1.5 }}
               transition={{ duration: 0.8 }}
@@ -74,9 +74,7 @@ export function FlameDemo() {
         </div>
 
         <div className="min-w-0">
-          <p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.22em]">
-            your flame
-          </p>
+          <p className="font-medium text-[13px] text-muted-foreground">Your flame</p>
           <p className="font-mono text-5xl text-foreground tabular-nums tracking-tight">
             {balance.toFixed(1)}
           </p>
@@ -96,7 +94,7 @@ export function FlameDemo() {
               viewport={{ once: true }}
               transition={{ delay: 0.35 + day * 0.06, duration: 0.5 }}
               className={`w-2.5 origin-bottom rounded-full ${
-                day === WEEK.length - 1 ? 'bg-solana-green' : 'bg-muted-foreground/25'
+                day === WEEK.length - 1 ? 'bg-flame' : 'bg-muted-foreground/25'
               }`}
               style={{ height: `${12 + height * 30}px` }}
             />
@@ -105,7 +103,7 @@ export function FlameDemo() {
         <div className="text-right">
           <p className="font-mono text-muted-foreground text-xs tabular-nums">
             streak <span className="text-foreground">{streak}d</span> · multiplier{' '}
-            <span className="text-solana-green">×{multiplier.toFixed(2)}</span>
+            <span className="text-flame">×{multiplier.toFixed(2)}</span>
           </p>
           <Button onClick={checkIn} size="sm" className="group mt-3 active:scale-[0.97]">
             <Plus className="size-4 transition-transform group-hover:rotate-90" />

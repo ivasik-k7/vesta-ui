@@ -2,70 +2,69 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
+import { FlameDemo } from '@/components/landing/flame-demo'
 import { EASE } from '@/components/landing/reveal'
 import { Button } from '@/components/ui/button'
-
-import { FlameDemo } from './flame-demo'
 
 export function Hero() {
   const reduce = useReducedMotion()
   const enter = (delay: number) => ({
-    initial: reduce ? false : { opacity: 0, y: 24 },
+    initial: reduce ? false : { opacity: 0, y: 16 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.8, delay, ease: EASE },
+    transition: { duration: 0.45, delay, ease: EASE },
   })
 
   return (
     <section className="relative overflow-hidden">
-      {/* ambient layers */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-grid-fade" />
-        <div className="-top-40 -left-32 absolute size-[42rem] rounded-full bg-solana-purple/20 blur-[140px] motion-safe:animate-aurora" />
-        <div className="-right-40 absolute top-24 size-[36rem] rounded-full bg-solana-green/10 blur-[140px] motion-safe:animate-aurora-slow" />
+        {/* ambient flame glow behind the product visual (§3.2) */}
+        <div className="-translate-x-1/2 absolute top-[46%] left-1/2 h-[40rem] w-[64rem] rounded-full bg-[radial-gradient(ellipse_at_center,rgb(122_38_4/0.35),transparent_65%)]" />
       </div>
 
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-16 px-4 pt-24 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-32 lg:pb-28">
-        <div className="flex flex-col items-start gap-7">
-          <motion.h1
-            {...enter(0.08)}
-            className="text-balance font-heading font-semibold text-5xl leading-[1.04] tracking-tight md:text-6xl xl:text-7xl"
-          >
-            Loyalty that burns{' '}
-            <span className="bg-[length:200%_auto] bg-clip-text bg-gradient-to-r from-solana-purple via-solana-green to-solana-purple text-transparent motion-safe:animate-gradient-pan">
-              brighter
-            </span>{' '}
-            the more you show up
-          </motion.h1>
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-7 px-4 pt-24 pb-28 text-center md:pt-32">
+        <motion.p {...enter(0)} className="font-medium text-[13px] text-muted-foreground">
+          The living loyalty protocol on Solana
+        </motion.p>
 
-          <motion.p
-            {...enter(0.16)}
-            className="max-w-xl text-pretty text-lg text-muted-foreground leading-relaxed"
-          >
-            VESTA makes points a living asset: value cools when ignored, compounds with streaks,
-            swaps across merchants, and mints proof of devotion no one can buy.
-          </motion.p>
-
-          <motion.div {...enter(0.24)} className="flex flex-wrap items-center gap-3">
-            <Button asChild size="lg" className="group">
-              <Link to="/app">
-                Launch the app
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="ghost" className="group text-muted-foreground">
-              <a href="https://github.com/ivasik-k7/vesta-core" target="_blank" rel="noreferrer">
-                Explore the architecture
-                <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
-            </Button>
-          </motion.div>
-        </div>
-
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 32, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
+        <motion.h1
+          {...enter(0.06)}
+          className="max-w-3xl text-balance font-heading text-6xl leading-[1.04] tracking-tight md:text-7xl"
         >
+          <span className="font-normal text-foreground/90">Loyalty that burns</span>
+          <br />
+          <span className="font-bold text-flame">brighter every visit</span>
+        </motion.h1>
+
+        <motion.p
+          {...enter(0.12)}
+          className="max-w-xl text-lg text-muted-foreground leading-relaxed"
+        >
+          VESTA turns points into a living asset — value cools when ignored, compounds with streaks,
+          and moves freely across merchants.
+        </motion.p>
+
+        <motion.div {...enter(0.18)} className="flex flex-wrap items-center justify-center gap-3">
+          <Button asChild size="lg" className="group">
+            <Link to="/app">
+              Launch app
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="group border-line-strong">
+            <a
+              href="https://github.com/ivasik-k7/vesta-core/blob/main/docs/TECHNICAL_SPEC.md"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Read the architecture
+              <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          </Button>
+        </motion.div>
+
+        {/* the product visual slot (§1.2): our product shot is alive */}
+        <motion.div {...enter(0.26)} className="mt-10 w-full max-w-2xl">
           <FlameDemo />
         </motion.div>
       </div>

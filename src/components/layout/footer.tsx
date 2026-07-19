@@ -8,22 +8,26 @@ const EXPLORER = 'https://explorer.solana.com'
 
 const COLUMNS = [
   {
-    heading: 'protocol',
+    heading: 'Protocol',
     links: [
       { label: 'Customer app', to: '/app' },
       { label: 'Merchant dashboard', to: '/merchant' },
     ],
   },
   {
-    heading: 'developers',
+    heading: 'Developers',
     links: [
       { label: 'vesta-core · Rust', href: 'https://github.com/ivasik-k7/vesta-core' },
       { label: 'vesta-sdk · Python', href: 'https://github.com/ivasik-k7/vesta-sdk' },
       { label: 'vesta-ui · React', href: 'https://github.com/ivasik-k7/vesta-ui' },
+      {
+        label: 'Technical spec',
+        href: 'https://github.com/ivasik-k7/vesta-core/blob/main/docs/TECHNICAL_SPEC.md',
+      },
     ],
   },
   {
-    heading: 'on-chain',
+    heading: 'On-chain',
     links: [
       {
         label: 'vesta_core',
@@ -57,34 +61,44 @@ function FooterLink({ href, to, children }: { href?: string; to?: string; childr
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden border-border/40 border-t">
+    <footer className="relative overflow-hidden border-border border-t">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 select-none text-center font-heading font-bold text-[clamp(6rem,18vw,16rem)] leading-[0.75] tracking-tight"
+        className="pointer-events-none absolute inset-x-0 bottom-0 select-none text-center font-bold font-heading text-[clamp(6rem,18vw,16rem)] leading-[0.75] tracking-tight"
       >
-        <span className="bg-clip-text bg-gradient-to-b from-white/[0.06] to-transparent text-transparent">
+        <span className="bg-clip-text bg-gradient-to-b from-white/[0.05] to-transparent text-transparent">
           VESTA
         </span>
       </div>
 
       <div className="relative mx-auto w-full max-w-6xl px-4 pt-16 pb-28">
-        <div className="grid gap-12 md:grid-cols-[1.2fr_repeat(3,0.6fr)]">
+        <div className="grid gap-12 md:grid-cols-[1.2fr_repeat(3,0.7fr)]">
           <div className="flex flex-col items-start gap-4">
             <p className="flex items-center gap-2 font-semibold tracking-tight">
-              <Flame className="size-5 text-solana-green" aria-hidden />
+              <Flame className="size-5 text-flame" aria-hidden />
               VESTA
             </p>
             <p className="max-w-xs text-muted-foreground text-sm leading-relaxed">
-              Living loyalty protocol on Solana — points that stay alive while customers keep the
+              The living loyalty protocol on Solana — points that stay alive while you keep the
               flame burning.
             </p>
+            <a
+              href="https://github.com/ivasik-k7"
+              target="_blank"
+              rel="noreferrer"
+              className="group inline-flex items-center gap-1 text-muted-foreground text-sm transition-colors hover:text-foreground"
+            >
+              GitHub
+              <ArrowUpRight
+                className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                aria-hidden
+              />
+            </a>
           </div>
 
           {COLUMNS.map((column) => (
             <div key={column.heading} className="flex flex-col gap-3">
-              <p className="font-mono text-[11px] text-muted-foreground/70 uppercase tracking-[0.22em]">
-                {column.heading}
-              </p>
+              <p className="font-medium text-[13px] text-muted-foreground/70">{column.heading}</p>
               {column.links.map((link) => (
                 <FooterLink
                   key={link.label}
@@ -98,13 +112,10 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-16 flex flex-col items-start justify-between gap-2 border-border/40 border-t pt-6 font-mono text-muted-foreground/70 text-xs sm:flex-row sm:items-center">
+        <div className="mt-16 flex flex-col items-start justify-between gap-2 border-border border-t pt-6 text-muted-foreground/70 text-xs sm:flex-row sm:items-center">
           <span>© 2026 VESTA · MIT license</span>
           <span>
-            built on{' '}
-            <span className="bg-clip-text bg-gradient-to-r from-solana-purple to-solana-green font-medium text-transparent">
-              Solana
-            </span>
+            built on <span className="font-medium text-flame">Solana</span> · devnet
           </span>
         </div>
       </div>
