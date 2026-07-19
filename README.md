@@ -2,7 +2,7 @@
 
 Web client for **VESTA** — a living loyalty protocol on Solana where points decay like an untended flame unless customers stay engaged.
 
-> Part of the VESTA ecosystem: [`vesta-program`](../vesta-program) (on-chain, Rust/Anchor) · [`vesta-sdk`](../vesta-sdk) (Python client for integrators) · `vesta-ui` (this repo).
+> Part of the VESTA ecosystem: [`vesta-core`](https://github.com/ivasik-k7/vesta-core) (on-chain, Rust/Anchor) · [`vesta-sdk`](https://github.com/ivasik-k7/vesta-sdk) (Python client for integrators) · `vesta-ui` (this repo).
 
 Two faces, one app:
 
