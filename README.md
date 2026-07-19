@@ -35,6 +35,10 @@ pnpm build        # production build
 
 Husky runs `lint-staged` (Biome with autofix) on every commit.
 
+## Deployment
+
+Deployed on **Netlify** — config lives in [netlify.toml](netlify.toml): `pnpm build` → `dist`, SPA redirects for client-side routing, security headers (CSP, nosniff, frame-ancestors), immutable caching for hashed assets. Connect the GitHub repo in Netlify and every push to `main` ships automatically; `packageManager` in package.json pins pnpm via corepack.
+
 ## Status
 
 Landing page live; customer app and merchant dashboard land in phase 5 (parallel with on-chain phases 1–4). Public deployment link will be added here.

@@ -1,0 +1,28 @@
+[build]
+command = "pnpm build"
+publish = "dist"
+
+[build.environment]
+NODE_VERSION = "22"
+
+# SPA: every route resolves to index.html, TanStack Router takes over
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+[[headers]]
+for = "/*"
+[headers.values]
+X-Content-Type-Options = "nosniff"
+X-Frame-Options = "DENY"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+# connect-src stays scheme-wide so swapping RPC providers (Helius etc.) never silently breaks
+Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+# hashed filenames from Vite are safe to cache forever
+[[headers]]
+for = "/assets/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
