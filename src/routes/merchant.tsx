@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ArrowUpRight, Store, Ticket } from 'lucide-react'
+import { ArrowUpRight, Search, Store, Ticket } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
@@ -16,6 +17,19 @@ const explorer = (k: string) => `https://explorer.solana.com/address/${k}?cluste
 
 function MerchantDirectory() {
   const merchants = useMerchants()
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const all = merchants.data ?? []
+    const q = query.trim().toLowerCase()
+    if (!q) return all
+    return all.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        m.pointMint.toBase58().toLowerCase().includes(q) ||
+        m.address.toBase58().toLowerCase().includes(q),
+    )
+  }, [merchants.data, query])
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-16 md:py-24">
@@ -26,12 +40,22 @@ function MerchantDirectory() {
         sub="This is not a mock list — it's a getProgramAccounts scan of live Merchant PDAs. Each carries a Token-2022 mint with decay, a transfer guard, and a clawback delegate."
       />
 
-      <div className="mt-12">
+      <div className="mt-8 flex items-center gap-2 rounded-lg border border-border bg-card px-3 md:max-w-sm">
+        <Search className="size-4 text-muted-foreground" aria-hidden />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by name or address"
+          className="w-full bg-transparent py-2 text-sm outline-none"
+        />
+      </div>
+
+      <div className="mt-6">
         {merchants.isLoading ? (
           <p className="text-muted-foreground text-sm">Scanning the program…</p>
-        ) : merchants.data && merchants.data.length > 0 ? (
+        ) : filtered.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
-            {merchants.data.map((merchant, i) => (
+            {filtered.map((merchant, i) => (
               <Reveal key={merchant.address.toBase58()} delay={0.04 * i}>
                 <MerchantCard merchant={merchant} />
               </Reveal>

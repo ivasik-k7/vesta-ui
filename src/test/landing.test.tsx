@@ -3,12 +3,19 @@ import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/rea
 import { render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 
+import { VestaAuthProvider } from '@/lib/auth/context'
 import { routeTree } from '@/routeTree.gen'
 
 // Wallet-adapter hooks need a provider; stub them so route rendering is
-// exercised without a real wallet/RPC in jsdom.
+// exercised without a real wallet/RPC in jsdom (disconnected state).
 vi.mock('@solana/wallet-adapter-react', () => ({
-  useWallet: () => ({ publicKey: null, connecting: false, disconnect: vi.fn() }),
+  useWallet: () => ({
+    publicKey: null,
+    connecting: false,
+    connected: false,
+    disconnect: vi.fn(),
+    signMessage: undefined,
+  }),
   useConnection: () => ({ connection: {} }),
 }))
 vi.mock('@solana/wallet-adapter-react-ui', () => ({
@@ -22,9 +29,11 @@ function renderAt(path: string) {
   })
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
-    <QueryClientProvider client={client}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
+    <VestaAuthProvider>
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </VestaAuthProvider>,
   )
 }
 
@@ -34,10 +43,10 @@ test('landing renders the VESTA hero', async () => {
   expect(screen.getAllByText('vesta_core').length).toBeGreaterThan(0)
 })
 
-test('customer app overview prompts to connect a wallet', async () => {
+test('protected app route shows the auth wall when disconnected', async () => {
   renderAt('/app')
-  expect(await screen.findByRole('heading', { name: /overview/i })).toBeInTheDocument()
-  expect(screen.getByText(/connect a devnet wallet/i)).toBeInTheDocument()
+  expect(await screen.findByRole('heading', { name: /connect to continue/i })).toBeInTheDocument()
+  expect(screen.getByText(/the dashboard is protected/i)).toBeInTheDocument()
 })
 
 test('merchant directory renders its live-scan header', async () => {

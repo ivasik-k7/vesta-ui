@@ -234,3 +234,97 @@ export function createOfferIx(params: {
     ]),
   })
 }
+
+function i64(n: bigint): Buffer {
+  const b = new Uint8Array(8)
+  new DataView(b.buffer).setBigInt64(0, n, true)
+  return Buffer.from(b)
+}
+function u16(n: number): Buffer {
+  const b = new Uint8Array(2)
+  new DataView(b.buffer).setUint16(0, n, true)
+  return Buffer.from(b)
+}
+
+/** Close an offer (merchant signs; rent returns to the merchant authority). */
+export function closeOfferIx(authority: PublicKey, offerId: bigint): TransactionInstruction {
+  const merchant = pdas.merchant(authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(authority, true, true),
+      m(merchant, false, false),
+      m(pdas.offer(merchant, offerId), false, true),
+    ],
+    data: disc('close_offer'),
+  })
+}
+
+/** Create a time-boxed earn-multiplier campaign (merchant signs). */
+export function createCampaignIx(params: {
+  authority: PublicKey
+  id: bigint
+  multiplierBps: number
+  startsAt: bigint
+  endsAt: bigint
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, true),
+      m(merchant, false, false),
+      m(pdas.campaign(merchant, params.id), false, true),
+      m(pdas.config(), false, false),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: Buffer.concat([
+      disc('create_campaign'),
+      u64(params.id),
+      u16(params.multiplierBps),
+      i64(params.startsAt),
+      i64(params.endsAt),
+    ]),
+  })
+}
+
+/** Create a koinon alliance (creator signs; becomes alliance authority). */
+export function createAllianceIx(params: {
+  creator: PublicKey
+  id: bigint
+  name: string
+}): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.creator, true, true),
+      m(pdas.alliance(params.creator, params.id), false, true),
+      m(pdas.config(), false, false),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: Buffer.concat([disc('create_alliance'), u64(params.id), borshString(params.name)]),
+  })
+}
+
+/** Self-join an alliance you created (merchant == alliance authority). */
+export function joinOwnAllianceIx(params: {
+  authority: PublicKey
+  alliance: PublicKey
+  rateBps: number
+  swapInBudgetRaw: bigint
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, true),
+      m(params.authority, true, false), // alliance_authority = same signer (self-join)
+      m(merchant, false, true),
+      m(params.alliance, false, true),
+      m(pdas.member(params.alliance, merchant), false, true),
+      m(pdas.config(), false, false),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: Buffer.concat([disc('join_alliance'), u32(params.rateBps), u64(params.swapInBudgetRaw)]),
+  })
+}

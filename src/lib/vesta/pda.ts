@@ -26,6 +26,8 @@ export const pdas = {
   customerProfile: (merchant: PublicKey, wallet: PublicKey) =>
     derive([s('customer'), merchant.toBytes(), wallet.toBytes()]),
   offer: (merchant: PublicKey, id: bigint) => derive([s('offer'), merchant.toBytes(), u64le(id)]),
+  campaign: (merchant: PublicKey, id: bigint) =>
+    derive([s('campaign'), merchant.toBytes(), u64le(id)]),
   receipt: (offer: PublicKey, customer: PublicKey, redemptionIndex: number) =>
     derive([s('receipt'), offer.toBytes(), customer.toBytes(), u32le(redemptionIndex)]),
   alliance: (creator: PublicKey, id: bigint) =>
