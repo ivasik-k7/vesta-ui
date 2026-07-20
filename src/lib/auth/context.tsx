@@ -16,12 +16,11 @@ import {
   sessionMessage,
   verifySignature,
 } from './message'
-
-const SESSION_KEY = 'vesta.session'
-const BOOK_KEY = 'vesta.wallet-book'
+import { clearSession, readBook, readStoredSession, writeBook, writeSession } from './session-store'
 
 export type AuthStatus =
   | 'disconnected' // no wallet connected
+  | 'restoring' // stored session + wallet reconnecting (autoConnect)
   | 'unauthenticated' // wallet connected, not signed in
   | 'authenticating' // sign-in in progress
   | 'authenticated' // valid signed session
@@ -29,7 +28,6 @@ export type AuthStatus =
 interface AuthState {
   status: AuthStatus
   session: SessionPayload | null
-  /** Previously authenticated addresses, most-recent first. */
   walletBook: string[]
   signIn: () => Promise<void>
   signOut: () => void
@@ -39,49 +37,27 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null)
 
-function loadSession(): SessionPayload | null {
-  try {
-    const raw = localStorage.getItem(SESSION_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as SessionPayload
-    return isExpired(parsed) ? null : parsed
-  } catch {
-    return null
-  }
-}
-
-function loadBook(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(BOOK_KEY) ?? '[]') as string[]
-  } catch {
-    return []
-  }
-}
-
 export function VestaAuthProvider({ children }: { children: ReactNode }) {
-  const { publicKey, signMessage, disconnect, connected } = useWallet()
+  const { publicKey, signMessage, disconnect, connected, connecting } = useWallet()
   const [session, setSession] = useState<SessionPayload | null>(() =>
-    typeof window === 'undefined' ? null : loadSession(),
+    typeof window === 'undefined' ? null : readStoredSession(),
   )
   const [walletBook, setWalletBook] = useState<string[]>(() =>
-    typeof window === 'undefined' ? [] : loadBook(),
+    typeof window === 'undefined' ? [] : readBook(),
   )
   const [authenticating, setAuthenticating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const address = publicKey?.toBase58() ?? null
 
-  // A session is only valid for the currently connected key and not expired.
   const validSession =
     session && address && session.address === address && !isExpired(session) ? session : null
 
-  // Drop a stale session when the connected wallet changes or disconnects.
+  // Clear a session whose key no longer matches the connected wallet.
   useEffect(() => {
-    if (session && (!address || session.address !== address || isExpired(session))) {
-      if (!address || session.address !== address) {
-        localStorage.removeItem(SESSION_KEY)
-        setSession(null)
-      }
+    if (session && address && session.address !== address) {
+      clearSession()
+      setSession(null)
     }
   }, [address, session])
 
@@ -97,24 +73,24 @@ export function VestaAuthProvider({ children }: { children: ReactNode }) {
       const message = sessionMessage(payload)
       const signature = await signMessage(new TextEncoder().encode(message))
       if (!verifySignature(message, signature, publicKey)) {
-        throw new Error('Signature verification failed.')
+        throw new Error('auth.verifyFailed')
       }
-      localStorage.setItem(SESSION_KEY, JSON.stringify(payload))
+      writeSession(payload)
       setSession(payload)
       setWalletBook((prev) => {
         const next = [payload.address, ...prev.filter((a) => a !== payload.address)].slice(0, 6)
-        localStorage.setItem(BOOK_KEY, JSON.stringify(next))
+        writeBook(next)
         return next
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign-in rejected.')
+      setError(err instanceof Error && err.message ? err.message : 'auth.rejected')
     } finally {
       setAuthenticating(false)
     }
   }, [publicKey, signMessage])
 
   const signOut = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY)
+    clearSession()
     setSession(null)
     void disconnect()
   }, [disconnect])
@@ -122,18 +98,21 @@ export function VestaAuthProvider({ children }: { children: ReactNode }) {
   const forgetWallet = useCallback((addr: string) => {
     setWalletBook((prev) => {
       const next = prev.filter((a) => a !== addr)
-      localStorage.setItem(BOOK_KEY, JSON.stringify(next))
+      writeBook(next)
       return next
     })
   }, [])
 
-  const status: AuthStatus = !connected
-    ? 'disconnected'
+  const status: AuthStatus = validSession
+    ? 'authenticated'
     : authenticating
       ? 'authenticating'
-      : validSession
-        ? 'authenticated'
-        : 'unauthenticated'
+      : connected
+        ? 'unauthenticated'
+        : // stored session but wallet still reconnecting → restoring, not a hard wall
+          session && connecting
+          ? 'restoring'
+          : 'disconnected'
 
   const value = useMemo<AuthState>(
     () => ({ status, session: validSession, walletBook, signIn, signOut, forgetWallet, error }),

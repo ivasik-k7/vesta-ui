@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "overview": "Resumen",
+    "wallet": "Cartera",
+    "activity": "Actividad",
+    "alliances": "Alianzas",
+    "console": "Consola de comercio",
+    "admin": "Admin",
+    "settings": "Ajustes"
+  },
+  "auth": {
+    "title": "Iniciar sesión en VESTA",
+    "subtitle": "El protocolo de fidelidad vivo en Solana. Conecta una cartera devnet y demuestra la propiedad con una firma sin comisiones — sin transacción ni tarifas.",
+    "connect": "Conectar cartera",
+    "connecting": "Conectando…",
+    "signIn": "Iniciar sesión con Solana",
+    "signingIn": "Revisa tu cartera…",
+    "signOut": "Cerrar sesión",
+    "connectFirst": "Conecta una cartera para continuar",
+    "step1": "Conecta tu cartera Phantom, Solflare o Backpack",
+    "step2": "Firma un mensaje único para abrir una sesión segura",
+    "step3": "Gestiona tu fidelidad, comercios y alianzas",
+    "secureNote": "Verificamos tu firma criptográficamente (ed25519). La sesión está ligada a tu clave y expira automáticamente.",
+    "networkNote": "VESTA funciona en la devnet de Solana. Tu cartera puede mostrar una advertencia de red — es normal; todas las transacciones se enrutan a devnet.",
+    "rejected": "Inicio de sesión rechazado. Inténtalo de nuevo.",
+    "verifyFailed": "No se pudo verificar la firma.",
+    "backHome": "Volver al inicio"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "subtitle": "Preferencias, apariencia y tu cuenta devnet.",
+    "appearance": "Apariencia",
+    "theme": "Tema",
+    "language": "Idioma",
+    "account": "Cuenta devnet",
+    "balance": "Saldo SOL"
+  },
+  "theme": { "light": "Claro", "dark": "Oscuro", "system": "Sistema" },
+  "balance": { "airdrop": "Solicitar 1 SOL", "airdropping": "Solicitando…" },
+  "common": {
+    "connectPrompt": "Conecta una cartera devnet para continuar.",
+    "loading": "Cargando…",
+    "devnet": "Devnet"
+  }
+}

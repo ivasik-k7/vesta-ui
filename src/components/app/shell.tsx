@@ -1,13 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import { Activity, LayoutDashboard, Settings, Shield, Store, Users, Wallet } from 'lucide-react'
 import type { ComponentType } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { BalanceChip } from '@/components/app/balance'
 import { ConnectButton } from '@/components/wallet/connect-button'
-import type { TranslationKey } from '@/lib/i18n/dict'
-import { useSettings } from '@/lib/settings/context'
 
-const NAV: { to: string; key: TranslationKey; icon: ComponentType<{ className?: string }> }[] = [
+const NAV: { to: string; key: string; icon: ComponentType<{ className?: string }> }[] = [
   { to: '/app', key: 'nav.overview', icon: LayoutDashboard },
   { to: '/app/wallet', key: 'nav.wallet', icon: Wallet },
   { to: '/app/activity', key: 'nav.activity', icon: Activity },
@@ -19,7 +18,7 @@ const NAV: { to: string; key: TranslationKey; icon: ComponentType<{ className?: 
 
 /** Enterprise dashboard shell: persistent sidebar + content area. */
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { t } = useSettings()
+  const { t } = useTranslation()
 
   return (
     <div className="mx-auto flex w-full max-w-6xl gap-8 px-4 py-10 md:py-14">

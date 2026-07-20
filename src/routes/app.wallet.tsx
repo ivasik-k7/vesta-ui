@@ -23,7 +23,7 @@ function WalletPage() {
       />
       {!publicKey ? (
         <ConnectPrompt message="Connect a devnet wallet to manage your points." />
-      ) : holdings.data && holdings.data[0] ? (
+      ) : holdings.data?.[0] ? (
         <div className="space-y-10">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {holdings.data.map((h) => (

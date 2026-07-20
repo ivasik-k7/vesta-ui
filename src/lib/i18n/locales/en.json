@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "wallet": "Wallet",
+    "activity": "Activity",
+    "alliances": "Alliances",
+    "console": "Merchant console",
+    "admin": "Admin",
+    "settings": "Settings"
+  },
+  "auth": {
+    "title": "Sign in to VESTA",
+    "subtitle": "The living loyalty protocol on Solana. Connect a devnet wallet and prove ownership with a gasless signature — no transaction, no fees.",
+    "connect": "Connect wallet",
+    "connecting": "Connecting…",
+    "signIn": "Sign in with Solana",
+    "signingIn": "Check your wallet…",
+    "signOut": "Sign out",
+    "connectFirst": "Connect a wallet to continue",
+    "step1": "Connect your Phantom, Solflare, or Backpack wallet",
+    "step2": "Sign a one-time message to open a secure session",
+    "step3": "Manage your loyalty, merchants, and alliances",
+    "secureNote": "We verify your signature cryptographically (ed25519). The session is bound to your key and expires automatically.",
+    "networkNote": "VESTA runs on Solana devnet. Your wallet may show a network warning — that is expected; all transactions are routed to devnet.",
+    "rejected": "Sign-in was rejected. Please try again.",
+    "verifyFailed": "Signature could not be verified.",
+    "backHome": "Back to home"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Preferences, appearance, and your devnet account.",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "language": "Language",
+    "account": "Devnet account",
+    "balance": "SOL balance"
+  },
+  "theme": { "light": "Light", "dark": "Dark", "system": "System" },
+  "balance": { "airdrop": "Request 1 SOL", "airdropping": "Requesting…" },
+  "common": {
+    "connectPrompt": "Connect a devnet wallet to continue.",
+    "loading": "Loading…",
+    "devnet": "Devnet"
+  }
+}

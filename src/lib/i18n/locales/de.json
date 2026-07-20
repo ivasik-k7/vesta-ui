@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "overview": "Übersicht",
+    "wallet": "Wallet",
+    "activity": "Aktivität",
+    "alliances": "Allianzen",
+    "console": "Händlerkonsole",
+    "admin": "Admin",
+    "settings": "Einstellungen"
+  },
+  "auth": {
+    "title": "Bei VESTA anmelden",
+    "subtitle": "Das lebende Treueprotokoll auf Solana. Verbinde eine Devnet-Wallet und weise den Besitz mit einer gebührenfreien Signatur nach — keine Transaktion, keine Gebühren.",
+    "connect": "Wallet verbinden",
+    "connecting": "Verbinden…",
+    "signIn": "Mit Solana anmelden",
+    "signingIn": "Prüfe deine Wallet…",
+    "signOut": "Abmelden",
+    "connectFirst": "Verbinde eine Wallet, um fortzufahren",
+    "step1": "Verbinde deine Phantom-, Solflare- oder Backpack-Wallet",
+    "step2": "Signiere eine einmalige Nachricht für eine sichere Sitzung",
+    "step3": "Verwalte Treue, Händler und Allianzen",
+    "secureNote": "Wir verifizieren deine Signatur kryptografisch (ed25519). Die Sitzung ist an deinen Schlüssel gebunden und läuft automatisch ab.",
+    "networkNote": "VESTA läuft auf dem Solana-Devnet. Deine Wallet zeigt möglicherweise eine Netzwerkwarnung — das ist normal; alle Transaktionen laufen über das Devnet.",
+    "rejected": "Anmeldung abgelehnt. Bitte versuche es erneut.",
+    "verifyFailed": "Signatur konnte nicht verifiziert werden.",
+    "backHome": "Zurück zur Startseite"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Präferenzen, Erscheinungsbild und dein Devnet-Konto.",
+    "appearance": "Erscheinungsbild",
+    "theme": "Design",
+    "language": "Sprache",
+    "account": "Devnet-Konto",
+    "balance": "SOL-Guthaben"
+  },
+  "theme": { "light": "Hell", "dark": "Dunkel", "system": "System" },
+  "balance": { "airdrop": "1 SOL anfordern", "airdropping": "Anfordern…" },
+  "common": {
+    "connectPrompt": "Verbinde eine Devnet-Wallet, um fortzufahren.",
+    "loading": "Wird geladen…",
+    "devnet": "Devnet"
+  }
+}

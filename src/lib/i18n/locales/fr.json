@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "overview": "Aperçu",
+    "wallet": "Portefeuille",
+    "activity": "Activité",
+    "alliances": "Alliances",
+    "console": "Console marchand",
+    "admin": "Admin",
+    "settings": "Paramètres"
+  },
+  "auth": {
+    "title": "Connexion à VESTA",
+    "subtitle": "Le protocole de fidélité vivant sur Solana. Connectez un portefeuille devnet et prouvez la propriété avec une signature sans frais — aucune transaction, aucuns frais.",
+    "connect": "Connecter le portefeuille",
+    "connecting": "Connexion…",
+    "signIn": "Se connecter avec Solana",
+    "signingIn": "Vérifiez votre portefeuille…",
+    "signOut": "Se déconnecter",
+    "connectFirst": "Connectez un portefeuille pour continuer",
+    "step1": "Connectez votre portefeuille Phantom, Solflare ou Backpack",
+    "step2": "Signez un message unique pour ouvrir une session sécurisée",
+    "step3": "Gérez votre fidélité, vos marchands et vos alliances",
+    "secureNote": "Nous vérifions votre signature par cryptographie (ed25519). La session est liée à votre clé et expire automatiquement.",
+    "networkNote": "VESTA fonctionne sur le devnet Solana. Votre portefeuille peut afficher un avertissement réseau — c'est normal ; toutes les transactions passent par le devnet.",
+    "rejected": "Connexion refusée. Veuillez réessayer.",
+    "verifyFailed": "La signature n'a pas pu être vérifiée.",
+    "backHome": "Retour à l'accueil"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Préférences, apparence et votre compte devnet.",
+    "appearance": "Apparence",
+    "theme": "Thème",
+    "language": "Langue",
+    "account": "Compte devnet",
+    "balance": "Solde SOL"
+  },
+  "theme": { "light": "Clair", "dark": "Sombre", "system": "Système" },
+  "balance": { "airdrop": "Demander 1 SOL", "airdropping": "Demande…" },
+  "common": {
+    "connectPrompt": "Connectez un portefeuille devnet pour continuer.",
+    "loading": "Chargement…",
+    "devnet": "Devnet"
+  }
+}

@@ -3,8 +3,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Coins, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
+import { useTranslation } from 'react-i18next'
+
 import { Skeleton } from '@/components/ui/skeleton'
-import { useSettings } from '@/lib/settings/context'
 import { useSolBalance } from '@/lib/vesta/queries'
 
 /** Compact SOL balance chip for the shell sidebar. */
@@ -32,7 +33,7 @@ export function BalancePanel() {
   const { publicKey } = useWallet()
   const balance = useSolBalance()
   const queryClient = useQueryClient()
-  const { t } = useSettings()
+  const { t } = useTranslation()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

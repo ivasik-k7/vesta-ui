@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 
 import { SolanaProvider } from '@/components/wallet/provider'
 import { VestaAuthProvider } from '@/lib/auth/context'
+import '@/lib/i18n'
 import { SettingsProvider } from '@/lib/settings/context'
 import { routeTree } from './routeTree.gen'
 import './index.css'

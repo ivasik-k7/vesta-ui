@@ -1,4 +1,8 @@
 import '@testing-library/jest-dom/vitest'
+import '@/lib/i18n' // initialize the i18next instance for components under test
+
+// jsdom has no scrollTo — TanStack Router calls it on navigation.
+window.scrollTo ??= (() => undefined) as typeof window.scrollTo
 
 // jsdom ships neither IntersectionObserver, ResizeObserver, nor matchMedia —
 // motion (and anything scroll/viewport-aware) needs stubs to render.

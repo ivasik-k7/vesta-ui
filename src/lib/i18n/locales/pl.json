@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "overview": "Przegląd",
+    "wallet": "Portfel",
+    "activity": "Aktywność",
+    "alliances": "Sojusze",
+    "console": "Konsola sprzedawcy",
+    "admin": "Admin",
+    "settings": "Ustawienia"
+  },
+  "auth": {
+    "title": "Zaloguj się do VESTA",
+    "subtitle": "Żywy protokół lojalnościowy na Solanie. Połącz portfel devnet i potwierdź własność bezpłatnym podpisem — bez transakcji i opłat.",
+    "connect": "Połącz portfel",
+    "connecting": "Łączenie…",
+    "signIn": "Zaloguj się przez Solanę",
+    "signingIn": "Sprawdź swój portfel…",
+    "signOut": "Wyloguj się",
+    "connectFirst": "Połącz portfel, aby kontynuować",
+    "step1": "Połącz portfel Phantom, Solflare lub Backpack",
+    "step2": "Podpisz jednorazową wiadomość, aby otworzyć bezpieczną sesję",
+    "step3": "Zarządzaj lojalnością, sprzedawcami i sojuszami",
+    "secureNote": "Weryfikujemy Twój podpis kryptograficznie (ed25519). Sesja jest powiązana z Twoim kluczem i wygasa automatycznie.",
+    "networkNote": "VESTA działa w sieci Solana devnet. Twój portfel może pokazać ostrzeżenie o sieci — to normalne; wszystkie transakcje trafiają do devnet.",
+    "rejected": "Logowanie odrzucone. Spróbuj ponownie.",
+    "verifyFailed": "Nie udało się zweryfikować podpisu.",
+    "backHome": "Powrót do strony głównej"
+  },
+  "settings": {
+    "title": "Ustawienia",
+    "subtitle": "Preferencje, wygląd i Twoje konto devnet.",
+    "appearance": "Wygląd",
+    "theme": "Motyw",
+    "language": "Język",
+    "account": "Konto devnet",
+    "balance": "Saldo SOL"
+  },
+  "theme": { "light": "Jasny", "dark": "Ciemny", "system": "Systemowy" },
+  "balance": { "airdrop": "Poproś o 1 SOL", "airdropping": "Wysyłanie…" },
+  "common": {
+    "connectPrompt": "Połącz portfel devnet, aby kontynuować.",
+    "loading": "Ładowanie…",
+    "devnet": "Devnet"
+  }
+}

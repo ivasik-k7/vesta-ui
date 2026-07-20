@@ -46,10 +46,11 @@ test('landing renders the VESTA hero', async () => {
   expect(screen.getAllByText('vesta_core').length).toBeGreaterThan(0)
 })
 
-test('protected app route shows the auth wall when disconnected', async () => {
+test('unauthenticated /app redirects to the dedicated auth page', async () => {
   renderAt('/app')
-  expect(await screen.findByRole('heading', { name: /connect to continue/i })).toBeInTheDocument()
-  expect(screen.getByText(/the dashboard is protected/i)).toBeInTheDocument()
+  // Router beforeLoad redirects to /auth when there is no stored session.
+  expect(await screen.findByRole('heading', { name: /sign in to vesta/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /connect wallet/i })).toBeInTheDocument()
 })
 
 test('merchant directory renders its live-scan header', async () => {

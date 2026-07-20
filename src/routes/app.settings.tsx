@@ -2,37 +2,31 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Monitor, Moon, Sun } from 'lucide-react'
 import type { ComponentType } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { BalancePanel } from '@/components/app/balance'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
-import { type Lang, type Theme, useSettings } from '@/lib/settings/context'
+import { LANGUAGES } from '@/lib/i18n'
+import { type Theme, useSettings } from '@/lib/settings/context'
 
 export const Route = createFileRoute('/app/settings')({
   component: SettingsPage,
 })
 
-const THEMES: {
-  value: Theme
-  labelKey: 'theme.light' | 'theme.dark' | 'theme.system'
-  icon: ComponentType<{ className?: string }>
-}[] = [
-  { value: 'light', labelKey: 'theme.light', icon: Sun },
-  { value: 'dark', labelKey: 'theme.dark', icon: Moon },
-  { value: 'system', labelKey: 'theme.system', icon: Monitor },
-]
-
-const LANGS: { value: Lang; label: string }[] = [
-  { value: 'en', label: 'English' },
-  { value: 'uk', label: 'Українська' },
+const THEMES: { value: Theme; key: string; icon: ComponentType<{ className?: string }> }[] = [
+  { value: 'light', key: 'theme.light', icon: Sun },
+  { value: 'dark', key: 'theme.dark', icon: Moon },
+  { value: 'system', key: 'theme.system', icon: Monitor },
 ]
 
 function SettingsPage() {
   const { publicKey } = useWallet()
-  const { theme, setTheme, lang, setLang, t } = useSettings()
+  const { theme, setTheme } = useSettings()
+  const { t, i18n } = useTranslation()
 
   return (
     <div>
-      <PageHeader title={t('settings.title')} sub={t('settings.sub')} />
+      <PageHeader title={t('settings.title')} sub={t('settings.subtitle')} />
 
       <div className="space-y-4">
         <section className="rounded-2xl border border-border bg-card p-6">
@@ -55,7 +49,7 @@ function SettingsPage() {
                   }`}
                 >
                   <opt.icon className="size-4" aria-hidden />
-                  {t(opt.labelKey)}
+                  {t(opt.key)}
                 </button>
               ))}
             </div>
@@ -63,16 +57,16 @@ function SettingsPage() {
 
           <div className="mt-6">
             <p className="mb-2 text-sm">{t('settings.language')}</p>
-            <div className="inline-flex rounded-lg border border-border p-1">
-              {LANGS.map((opt) => (
+            <div className="grid max-w-md grid-cols-2 gap-2 sm:grid-cols-4">
+              {LANGUAGES.map((opt) => (
                 <button
-                  key={opt.value}
+                  key={opt.code}
                   type="button"
-                  onClick={() => setLang(opt.value)}
-                  className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-                    lang === opt.value
-                      ? 'bg-flame text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
+                  onClick={() => void i18n.changeLanguage(opt.code)}
+                  className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    i18n.resolvedLanguage === opt.code
+                      ? 'border-flame/60 bg-flame/10 text-foreground'
+                      : 'border-border text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {opt.label}
