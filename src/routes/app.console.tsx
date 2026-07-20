@@ -1,20 +1,22 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import type { PublicKey } from '@solana/web3.js'
+import { PublicKey } from '@solana/web3.js'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { ArrowUpRight, CheckCircle2, Store } from 'lucide-react'
 import { useState } from 'react'
 
-import { ActionPanel, AmountField } from '@/components/app/action-panel'
+import { ActionPanel, AddressField, AmountField, isPubkey } from '@/components/app/action-panel'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { DECIMALS } from '@/lib/vesta/constants'
 import type { Merchant } from '@/lib/vesta/decode'
 import {
   closeOfferIx,
+  createAchievementIx,
   createAllianceIx,
   createCampaignIx,
   createOfferIx,
   finalizeTransferGuardIx,
+  grantAchievementIx,
   initializeTransferGuardIx,
   joinOwnAllianceIx,
   registerMerchantIx,
@@ -187,8 +189,89 @@ function ManageMerchant({ merchant }: { merchant: Merchant }) {
         <AlliancePanel authority={merchant.authority} joined={!!merchant.joinedAlliance} />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <AchievementPanel />
+        <GrantBadgePanel />
+      </div>
+
       <GuardPanel mint={merchant.pointMint} />
     </div>
+  )
+}
+
+function AchievementPanel() {
+  const [name, setName] = useState('')
+  const [threshold, setThreshold] = useState('')
+  const thresholdRaw = (() => {
+    const n = Number(threshold)
+    return Number.isFinite(n) && n > 0 ? BigInt(Math.round(n * 10 ** DECIMALS)) : 0n
+  })()
+  const ready = name.trim().length > 0 && name.length <= 32 && thresholdRaw > 0n
+
+  return (
+    <ActionPanel
+      title="Define an achievement"
+      description="A soulbound kleos badge customers earn at a lifetime-points threshold. Non-transferable — proof of devotion, gateable by any dApp."
+      cta="Create achievement"
+      disabled={!ready}
+      run={async ({ wallet, connection, send }) => {
+        if (!wallet.publicKey) throw new Error('Connect a wallet')
+        const ix = createAchievementIx({
+          authority: wallet.publicKey,
+          id: BigInt(Date.now()),
+          name: name.trim(),
+          uri: 'https://dev-vesta.netlify.app/badge.json',
+          thresholdLifetime: thresholdRaw,
+        })
+        return send(connection, wallet, [ix])
+      }}
+    >
+      <label className="block">
+        <span className="text-muted-foreground text-xs">Badge name (≤32)</span>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="First Flame"
+          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-flame/60"
+        />
+      </label>
+      <AmountField label="Lifetime threshold" value={threshold} onChange={setThreshold} />
+    </ActionPanel>
+  )
+}
+
+function GrantBadgePanel() {
+  const [achievementId, setAchievementId] = useState('')
+  const [customer, setCustomer] = useState('')
+  const ready = achievementId.trim().length > 0 && isPubkey(customer)
+
+  return (
+    <ActionPanel
+      title="Grant a badge"
+      description="Mint the soulbound badge to a customer who crossed the threshold. Paste the achievement id and the customer wallet."
+      cta="Grant badge"
+      disabled={!ready}
+      run={async ({ wallet, connection, send }) => {
+        if (!wallet.publicKey) throw new Error('Connect a wallet')
+        const ix = grantAchievementIx({
+          authority: wallet.publicKey,
+          achievementId: BigInt(achievementId.trim()),
+          customer: new PublicKey(customer),
+        })
+        return send(connection, wallet, [ix])
+      }}
+    >
+      <label className="block">
+        <span className="text-muted-foreground text-xs">Achievement id</span>
+        <input
+          value={achievementId}
+          onChange={(e) => setAchievementId(e.target.value.replace(/[^0-9]/g, ''))}
+          placeholder="1721476000000"
+          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none focus:border-flame/60"
+        />
+      </label>
+      <AddressField label="Customer wallet" value={customer} onChange={setCustomer} />
+    </ActionPanel>
   )
 }
 

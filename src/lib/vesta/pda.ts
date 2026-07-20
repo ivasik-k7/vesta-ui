@@ -28,6 +28,12 @@ export const pdas = {
   offer: (merchant: PublicKey, id: bigint) => derive([s('offer'), merchant.toBytes(), u64le(id)]),
   campaign: (merchant: PublicKey, id: bigint) =>
     derive([s('campaign'), merchant.toBytes(), u64le(id)]),
+  achievement: (merchant: PublicKey, id: bigint) =>
+    derive([s('achieve'), merchant.toBytes(), u64le(id)]),
+  badge: (achievement: PublicKey, customer: PublicKey) =>
+    derive([s('badge'), achievement.toBytes(), customer.toBytes()]),
+  kleosReceipt: (achievement: PublicKey, customer: PublicKey) =>
+    derive([s('kleos'), achievement.toBytes(), customer.toBytes()]),
   receipt: (offer: PublicKey, customer: PublicKey, redemptionIndex: number) =>
     derive([s('receipt'), offer.toBytes(), customer.toBytes(), u32le(redemptionIndex)]),
   alliance: (creator: PublicKey, id: bigint) =>

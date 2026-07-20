@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { Flame } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { LanguageSwitcher } from '@/components/layout/language-switcher'
 import { ConnectButton } from '@/components/wallet/connect-button'
 import { cn } from '@/lib/utils'
 
@@ -63,6 +64,7 @@ export function Header() {
             </span>
             Devnet
           </span>
+          <LanguageSwitcher />
           <ConnectButton />
         </div>
       </nav>

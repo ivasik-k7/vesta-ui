@@ -391,3 +391,60 @@ export function updateMerchantIx(
     data: Buffer.concat([disc('update_merchant'), option]),
   })
 }
+
+/** Define a kleos achievement (merchant signs). */
+export function createAchievementIx(params: {
+  authority: PublicKey
+  id: bigint
+  name: string
+  uri: string
+  thresholdLifetime: bigint
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, true),
+      m(merchant, false, false),
+      m(pdas.achievement(merchant, params.id), false, true),
+      m(pdas.config(), false, false),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: Buffer.concat([
+      disc('create_achievement'),
+      u64(params.id),
+      borshString(params.name),
+      borshString(params.uri),
+      u64(params.thresholdLifetime),
+    ]),
+  })
+}
+
+/** Grant a soulbound kleos badge to a qualifying customer (merchant signs). */
+export function grantAchievementIx(params: {
+  authority: PublicKey
+  achievementId: bigint
+  customer: PublicKey
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  const achievement = pdas.achievement(merchant, params.achievementId)
+  const badgeMint = pdas.badge(achievement, params.customer)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, true),
+      m(merchant, false, false),
+      m(achievement, false, true),
+      m(params.customer, false, false),
+      m(pdas.customerProfile(merchant, params.customer), false, false),
+      m(badgeMint, false, true),
+      m(ata(badgeMint, params.customer), false, true),
+      m(pdas.kleosReceipt(achievement, params.customer), false, true),
+      m(pdas.config(), false, false),
+      m(TOKEN_2022, false, false),
+      m(ASSOCIATED_TOKEN, false, false),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: disc('grant_achievement'),
+  })
+}
