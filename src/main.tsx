@@ -1,10 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { Buffer } from 'buffer'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
+import { SolanaProvider } from '@/components/wallet/provider'
 import { routeTree } from './routeTree.gen'
 import './index.css'
+
+// web3.js and spl-token expect a global Buffer in the browser.
+;(globalThis as typeof globalThis & { Buffer: typeof Buffer }).Buffer ??= Buffer
 
 const router = createRouter({ routeTree })
 
@@ -23,8 +28,10 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <SolanaProvider>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </SolanaProvider>
   </StrictMode>,
 )

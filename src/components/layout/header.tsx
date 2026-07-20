@@ -2,10 +2,14 @@ import { Link } from '@tanstack/react-router'
 import { Flame } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Button } from '@/components/ui/button'
+import { ConnectButton } from '@/components/wallet/connect-button'
 import { cn } from '@/lib/utils'
 
-// §1.1 + §8: nav is logo + one primary CTA. No link clutter, no hamburger.
+const NAV = [
+  { to: '/app', label: 'App' },
+  { to: '/merchant', label: 'Merchants' },
+] as const
+
 export function Header() {
   const [scrolled, setScrolled] = useState(false)
 
@@ -26,20 +30,41 @@ export function Header() {
       )}
     >
       <nav className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="group flex items-center gap-2 font-semibold tracking-tight">
-          <span className="relative grid place-items-center">
-            <span
-              aria-hidden
-              className="absolute size-6 rounded-full bg-flame/25 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
-            />
-            <Flame className="relative size-5 text-flame" aria-hidden />
-          </span>
-          VESTA
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/" className="group flex items-center gap-2 font-semibold tracking-tight">
+            <span className="relative grid place-items-center">
+              <span
+                aria-hidden
+                className="absolute size-6 rounded-full bg-flame/25 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
+              />
+              <Flame className="relative size-5 text-flame" aria-hidden />
+            </span>
+            VESTA
+          </Link>
+          <div className="hidden items-center gap-1 sm:flex">
+            {NAV.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="rounded-md px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
+                activeProps={{ className: 'text-foreground' }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-        <Button asChild size="sm">
-          <Link to="/app">Launch app</Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <span className="hidden items-center gap-1.5 font-medium text-[13px] text-muted-foreground sm:flex">
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-flame/60" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-flame" />
+            </span>
+            Devnet
+          </span>
+          <ConnectButton />
+        </div>
       </nav>
     </header>
   )

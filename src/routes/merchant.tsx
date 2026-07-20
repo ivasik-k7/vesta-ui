@@ -1,104 +1,106 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Eye, Flame, Medal, Megaphone, ShieldCheck, Undo2 } from 'lucide-react'
+import { ArrowUpRight, Store, Ticket } from 'lucide-react'
 
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
+import { DECIMALS } from '@/lib/vesta/constants'
+import type { Merchant } from '@/lib/vesta/decode'
+import { useMerchants, useOffers } from '@/lib/vesta/queries'
 
 export const Route = createFileRoute('/merchant')({
-  component: MerchantDashboard,
+  component: MerchantDirectory,
 })
 
-// Content mirrors docs/TECHNICAL_SPEC.md §2.1–§2.2, §3.2–§3.5, §4.
-const ONBOARDING_ROWS = [
-  { label: 'Point name / symbol', value: 'Kavarna Points · PTS' },
-  { label: 'Decay rate', value: '−20%/yr (tunable −100%..0 at registration)' },
-  { label: 'Earn rate', value: '1.00 pt per currency unit (1–1 000 raw/cent)' },
-  { label: 'One-time cost', value: '≈ 0.012 SOL — mint, treasury, guard, metadata' },
-  { label: 'Per new customer', value: '≈ 0.0036 SOL — profile + token account, paid by you' },
-] as const
+const addr = (k: string) => `${k.slice(0, 4)}…${k.slice(-4)}`
+const explorer = (k: string) => `https://explorer.solana.com/address/${k}?cluster=devnet`
 
-const TOOLS = [
-  {
-    icon: Megaphone,
-    title: 'Campaigns',
-    body: 'Time-boxed earn multipliers up to ×2.0, stacking with streaks under a hard ×2.4 joint cap. Closable anytime — rent comes back to you.',
-  },
-  {
-    icon: Medal,
-    title: 'Achievements',
-    body: 'Define lifetime-earnings thresholds; grant soulbound kleos badges your regulars can never lose the credit for — even if they burn the token.',
-  },
-  {
-    icon: Eye,
-    title: 'Transfer guard',
-    body: 'Two-step: initialize the policy account, then finalize — which burns the hook authority forever. Not even you can repoint the rules afterwards.',
-  },
-  {
-    icon: Undo2,
-    title: 'Clawback',
-    body: 'Refund and fraud handling via permanent delegate. Every clawback is a public, reason-coded, guard-audited transaction — disclosed to customers, by design.',
-  },
-] as const
+function MerchantDirectory() {
+  const merchants = useMerchants()
 
-function MerchantDashboard() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-16 md:py-24">
       <SectionHeader
-        kicker="Merchant dashboard · interactive preview"
-        title="Run a program that"
-        emphasis="runs itself"
-        sub="Registration wiring lands with the client build; everything below reflects the deployed on-chain rules, not a roadmap."
+        kicker="Merchant directory · live on devnet"
+        title="Every merchant,"
+        emphasis="read from the chain"
+        sub="This is not a mock list — it's a getProgramAccounts scan of live Merchant PDAs. Each carries a Token-2022 mint with decay, a transfer guard, and a clawback delegate."
       />
 
-      <Reveal delay={0.08} className="mt-12 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center gap-2">
-            <Flame className="size-5 text-flame" aria-hidden />
-            <h3 className="font-heading font-semibold">Two-minute onboarding</h3>
-          </div>
-          <p className="mt-2 text-muted-foreground text-sm leading-relaxed">
-            One transaction composes your point mint: metadata, decay, transfer guard, and clawback
-            delegate — all Token-2022 extensions, all verifiable.
-          </p>
-          <dl className="mt-5 space-y-3">
-            {ONBOARDING_ROWS.map((row) => (
-              <div
-                key={row.label}
-                className="flex items-baseline justify-between gap-6 border-border/60 border-b pb-2 last:border-0"
-              >
-                <dt className="shrink-0 text-muted-foreground text-sm">{row.label}</dt>
-                <dd className="text-right font-mono text-sm">{row.value}</dd>
-              </div>
+      <div className="mt-12">
+        {merchants.isLoading ? (
+          <p className="text-muted-foreground text-sm">Scanning the program…</p>
+        ) : merchants.data && merchants.data.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {merchants.data.map((merchant, i) => (
+              <Reveal key={merchant.address.toBase58()} delay={0.04 * i}>
+                <MerchantCard merchant={merchant} />
+              </Reveal>
             ))}
-          </dl>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="size-5 text-flame" aria-hidden />
-            <h3 className="font-heading font-semibold">What you can never do</h3>
           </div>
-          <p className="mt-2 text-muted-foreground text-sm leading-relaxed">
-            Trust is a feature. These are enforced by the protocol, not promised by us:
-          </p>
-          <ul className="mt-4 space-y-3 text-muted-foreground text-sm leading-relaxed">
-            <li>Freeze customer accounts — the freeze authority is never created.</li>
-            <li>Repoint the transfer guard after finalize — the authority is burned.</li>
-            <li>Mint badge duplicates — badge supply is frozen at one, forever.</li>
-            <li>Claw back invisibly — every clawback is public and reason-coded.</li>
-          </ul>
-        </div>
-      </Reveal>
-
-      <Reveal delay={0.12} className="mt-4 grid gap-4 md:grid-cols-2">
-        {TOOLS.map((tool) => (
-          <div key={tool.title} className="rounded-2xl border border-border bg-card p-6">
-            <tool.icon className="size-5 text-flame" aria-hidden />
-            <h3 className="mt-3 font-heading font-semibold">{tool.title}</h3>
-            <p className="mt-2 text-muted-foreground text-sm leading-relaxed">{tool.body}</p>
+        ) : (
+          <div className="rounded-2xl border border-border border-dashed bg-card/40 p-10 text-center text-muted-foreground text-sm">
+            No merchants registered yet on this deployment.
           </div>
-        ))}
-      </Reveal>
+        )}
+      </div>
     </main>
+  )
+}
+
+function MerchantCard({ merchant }: { merchant: Merchant }) {
+  const offers = useOffers(merchant.address)
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Store className="size-5 text-flame" aria-hidden />
+          <div>
+            <p className="font-heading font-semibold">{merchant.name}</p>
+            <a
+              href={explorer(merchant.pointMint.toBase58())}
+              target="_blank"
+              rel="noreferrer"
+              className="group inline-flex items-center gap-1 font-mono text-muted-foreground text-xs hover:text-foreground"
+            >
+              mint {addr(merchant.pointMint.toBase58())}
+              <ArrowUpRight
+                className="size-3 opacity-0 transition-opacity group-hover:opacity-100"
+                aria-hidden
+              />
+            </a>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="font-mono text-flame text-sm">{merchant.decayRateBps / 100}%/yr</p>
+          <p className="text-muted-foreground text-xs">
+            {merchant.customerCount.toString()} customers
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 border-border/60 border-t pt-4">
+        <p className="flex items-center gap-1.5 font-medium text-[13px] text-muted-foreground">
+          <Ticket className="size-3.5" aria-hidden />
+          Offers
+        </p>
+        {offers.data && offers.data.length > 0 ? (
+          <ul className="mt-2 space-y-1.5">
+            {offers.data.map((offer) => (
+              <li
+                key={offer.address.toBase58()}
+                className="flex items-center justify-between font-mono text-sm"
+              >
+                <span className="text-muted-foreground">#{offer.id.toString()}</span>
+                <span>{(Number(offer.pricePoints) / 10 ** DECIMALS).toFixed(2)} pts</span>
+                <span className="text-muted-foreground text-xs">{offer.supplyRemaining} left</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-muted-foreground text-sm">No active offers.</p>
+        )}
+      </div>
+    </div>
   )
 }

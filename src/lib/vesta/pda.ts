@@ -1,0 +1,47 @@
+import { PublicKey } from '@solana/web3.js'
+
+import { ARGUS, ASSOCIATED_TOKEN, TOKEN_2022, VESTA_CORE } from './constants'
+
+const s = (v: string) => new TextEncoder().encode(v)
+
+function u64le(n: bigint): Uint8Array {
+  const b = new Uint8Array(8)
+  new DataView(b.buffer).setBigUint64(0, n, true)
+  return b
+}
+
+function u32le(n: number): Uint8Array {
+  const b = new Uint8Array(4)
+  new DataView(b.buffer).setUint32(0, n, true)
+  return b
+}
+
+const derive = (seeds: Uint8Array[], program = VESTA_CORE) =>
+  PublicKey.findProgramAddressSync(seeds, program)[0]
+
+export const pdas = {
+  config: () => derive([s('config')]),
+  merchant: (authority: PublicKey) => derive([s('merchant'), authority.toBytes()]),
+  mint: (merchant: PublicKey) => derive([s('mint'), merchant.toBytes()]),
+  customerProfile: (merchant: PublicKey, wallet: PublicKey) =>
+    derive([s('customer'), merchant.toBytes(), wallet.toBytes()]),
+  offer: (merchant: PublicKey, id: bigint) => derive([s('offer'), merchant.toBytes(), u64le(id)]),
+  receipt: (offer: PublicKey, customer: PublicKey, redemptionIndex: number) =>
+    derive([s('receipt'), offer.toBytes(), customer.toBytes(), u32le(redemptionIndex)]),
+  alliance: (creator: PublicKey, id: bigint) =>
+    derive([s('alliance'), creator.toBytes(), u64le(id)]),
+  member: (alliance: PublicKey, merchant: PublicKey) =>
+    derive([s('member'), alliance.toBytes(), merchant.toBytes()]),
+  giftLedger: (mint: PublicKey, owner: PublicKey) =>
+    derive([s('ledger'), mint.toBytes(), owner.toBytes()], ARGUS),
+  extraAccountMetaList: (mint: PublicKey) =>
+    derive([s('extra-account-metas'), mint.toBytes()], ARGUS),
+}
+
+/** ATA under Token-2022 (off-curve owners allowed for PDA treasuries). */
+export function ata(mint: PublicKey, owner: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [owner.toBytes(), TOKEN_2022.toBytes(), mint.toBytes()],
+    ASSOCIATED_TOKEN,
+  )[0]
+}

@@ -1,15 +1,31 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { render, screen } from '@testing-library/react'
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 
 import { routeTree } from '@/routeTree.gen'
+
+// Wallet-adapter hooks need a provider; stub them so route rendering is
+// exercised without a real wallet/RPC in jsdom.
+vi.mock('@solana/wallet-adapter-react', () => ({
+  useWallet: () => ({ publicKey: null, connecting: false, disconnect: vi.fn() }),
+  useConnection: () => ({ connection: {} }),
+}))
+vi.mock('@solana/wallet-adapter-react-ui', () => ({
+  useWalletModal: () => ({ setVisible: vi.fn() }),
+}))
 
 function renderAt(path: string) {
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries: [path] }),
   })
-  render(<RouterProvider router={router} />)
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  )
 }
 
 test('landing renders the VESTA hero', async () => {
@@ -18,16 +34,14 @@ test('landing renders the VESTA hero', async () => {
   expect(screen.getAllByText('vesta_core').length).toBeGreaterThan(0)
 })
 
-test('customer app preview renders wallet and badges', async () => {
+test('customer app prompts to connect a wallet', async () => {
   renderAt('/app')
   expect(await screen.findByText(/your loyalty/i)).toBeInTheDocument()
-  expect(screen.getByText('Kavarna')).toBeInTheDocument()
-  expect(screen.getByText('First Flame')).toBeInTheDocument()
+  expect(screen.getByText(/connect a phantom/i)).toBeInTheDocument()
 })
 
-test('merchant preview renders onboarding economics', async () => {
+test('merchant directory renders its live-scan header', async () => {
   renderAt('/merchant')
-  expect(await screen.findByText(/runs itself/i)).toBeInTheDocument()
-  expect(screen.getByText(/0.012 SOL/)).toBeInTheDocument()
-  expect(screen.getByText(/what you can never do/i)).toBeInTheDocument()
+  expect(await screen.findByText(/every merchant/i)).toBeInTheDocument()
+  expect(screen.getByText(/read from the chain/i)).toBeInTheDocument()
 })
