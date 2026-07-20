@@ -190,3 +190,27 @@ export function useSolBalance() {
     staleTime: 10_000,
   })
 }
+
+export function useDecodedTransaction(signature: string | null) {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['tx', signature],
+    queryFn: async () => {
+      if (!signature) return null
+      const tx = await connection.getParsedTransaction(signature, {
+        maxSupportedTransactionVersion: 0,
+      })
+      if (!tx) return null
+      const { decodeTransactionInstructions } = await import('./decoder')
+      const decoded = decodeTransactionInstructions(tx.transaction.message.instructions)
+      return {
+        decoded,
+        fee: tx.meta?.fee ?? 0,
+        logs: tx.meta?.logMessages ?? [],
+        computeUnits: tx.meta?.computeUnitsConsumed ?? 0,
+      }
+    },
+    enabled: !!signature,
+    staleTime: 60_000,
+  })
+}

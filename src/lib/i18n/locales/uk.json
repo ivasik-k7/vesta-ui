@@ -6,7 +6,8 @@
     "alliances": "Альянси",
     "console": "Консоль мерчанта",
     "admin": "Адмін",
-    "settings": "Налаштування"
+    "settings": "Налаштування",
+    "drops": "Дропи"
   },
   "auth": {
     "title": "Вхід до VESTA",
@@ -35,8 +36,15 @@
     "account": "Devnet-рахунок",
     "balance": "Баланс SOL"
   },
-  "theme": { "light": "Світла", "dark": "Темна", "system": "Системна" },
-  "balance": { "airdrop": "Запросити 1 SOL", "airdropping": "Запит…" },
+  "theme": {
+    "light": "Світла",
+    "dark": "Темна",
+    "system": "Системна"
+  },
+  "balance": {
+    "airdrop": "Запросити 1 SOL",
+    "airdropping": "Запит…"
+  },
   "common": {
     "connectPrompt": "Підключи devnet-гаманець, щоб продовжити.",
     "loading": "Завантаження…",

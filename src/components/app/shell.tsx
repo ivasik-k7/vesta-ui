@@ -1,5 +1,14 @@
 import { Link } from '@tanstack/react-router'
-import { Activity, LayoutDashboard, Settings, Shield, Store, Users, Wallet } from 'lucide-react'
+import {
+  Activity,
+  Droplets,
+  LayoutDashboard,
+  Settings,
+  Shield,
+  Store,
+  Users,
+  Wallet,
+} from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -9,6 +18,7 @@ import { ConnectButton } from '@/components/wallet/connect-button'
 const NAV: { to: string; key: string; icon: ComponentType<{ className?: string }> }[] = [
   { to: '/app', key: 'nav.overview', icon: LayoutDashboard },
   { to: '/app/wallet', key: 'nav.wallet', icon: Wallet },
+  { to: '/app/drops', key: 'nav.drops', icon: Droplets },
   { to: '/app/activity', key: 'nav.activity', icon: Activity },
   { to: '/app/alliances', key: 'nav.alliances', icon: Users },
   { to: '/app/console', key: 'nav.console', icon: Store },

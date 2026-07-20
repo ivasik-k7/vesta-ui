@@ -1,11 +1,14 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Monitor, Moon, Sun } from 'lucide-react'
-import type { ComponentType } from 'react'
+import { LogOut, Monitor, Moon, RefreshCw, Sun } from 'lucide-react'
+import { type ComponentType, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BalancePanel } from '@/components/app/balance'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
+import { Button } from '@/components/ui/button'
+import { activeRpcEndpoint, RPC_OVERRIDE_KEY } from '@/components/wallet/provider'
+import { useVestaAuth } from '@/lib/auth/context'
 import { LANGUAGES } from '@/lib/i18n'
 import { type Theme, useSettings } from '@/lib/settings/context'
 
@@ -76,6 +79,10 @@ function SettingsPage() {
           </div>
         </section>
 
+        <RpcSection />
+
+        <SessionSection />
+
         <section>
           <p className="mb-2 font-medium text-[13px] text-muted-foreground">
             {t('settings.account')}
@@ -84,5 +91,83 @@ function SettingsPage() {
         </section>
       </div>
     </div>
+  )
+}
+
+function RpcSection() {
+  const [value, setValue] = useState(() => localStorage.getItem(RPC_OVERRIDE_KEY) ?? '')
+  const [saved, setSaved] = useState(false)
+  const current = activeRpcEndpoint()
+
+  const apply = () => {
+    const trimmed = value.trim()
+    if (trimmed) localStorage.setItem(RPC_OVERRIDE_KEY, trimmed)
+    else localStorage.removeItem(RPC_OVERRIDE_KEY)
+    setSaved(true)
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <p className="font-medium text-[13px] text-muted-foreground">Network / RPC</p>
+      <p className="mt-1 text-muted-foreground text-sm">
+        Override the devnet RPC endpoint — paste a private URL (e.g. Helius) to dodge public rate
+        limits. Takes effect after reload.
+      </p>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <input
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value)
+            setSaved(false)
+          }}
+          placeholder="https://devnet.helius-rpc.com/?api-key=…"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none focus:border-flame/60"
+        />
+        <Button onClick={apply} className="shrink-0">
+          Save
+        </Button>
+      </div>
+      <p className="mt-2 font-mono text-[11px] text-muted-foreground/70">active: {current}</p>
+      {saved ? (
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-2 inline-flex items-center gap-1.5 text-flame text-sm hover:text-flame-hover"
+        >
+          <RefreshCw className="size-3.5" aria-hidden />
+          Reload to apply
+        </button>
+      ) : null}
+    </section>
+  )
+}
+
+function SessionSection() {
+  const { session, signOut } = useVestaAuth()
+  if (!session) return null
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <p className="font-medium text-[13px] text-muted-foreground">Session</p>
+      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+        <div>
+          <dt className="text-muted-foreground text-xs">Address</dt>
+          <dd className="mt-0.5 font-mono">
+            {session.address.slice(0, 4)}…{session.address.slice(-4)}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground text-xs">Signed in</dt>
+          <dd className="mt-0.5">{new Date(session.issuedAt).toLocaleString()}</dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground text-xs">Expires</dt>
+          <dd className="mt-0.5">{new Date(session.expiresAt).toLocaleString()}</dd>
+        </div>
+      </dl>
+      <Button variant="outline" className="mt-4 border-line-strong" onClick={signOut}>
+        <LogOut className="size-4" aria-hidden />
+        Sign out
+      </Button>
+    </section>
   )
 }

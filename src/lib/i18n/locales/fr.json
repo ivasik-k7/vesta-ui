@@ -6,7 +6,8 @@
     "alliances": "Alliances",
     "console": "Console marchand",
     "admin": "Admin",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "drops": "Distributions"
   },
   "auth": {
     "title": "Connexion à VESTA",
@@ -35,8 +36,15 @@
     "account": "Compte devnet",
     "balance": "Solde SOL"
   },
-  "theme": { "light": "Clair", "dark": "Sombre", "system": "Système" },
-  "balance": { "airdrop": "Demander 1 SOL", "airdropping": "Demande…" },
+  "theme": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "balance": {
+    "airdrop": "Demander 1 SOL",
+    "airdropping": "Demande…"
+  },
   "common": {
     "connectPrompt": "Connectez un portefeuille devnet pour continuer.",
     "loading": "Chargement…",

@@ -6,7 +6,8 @@
     "alliances": "Allianzen",
     "console": "Händlerkonsole",
     "admin": "Admin",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "drops": "Drops"
   },
   "auth": {
     "title": "Bei VESTA anmelden",
@@ -35,8 +36,15 @@
     "account": "Devnet-Konto",
     "balance": "SOL-Guthaben"
   },
-  "theme": { "light": "Hell", "dark": "Dunkel", "system": "System" },
-  "balance": { "airdrop": "1 SOL anfordern", "airdropping": "Anfordern…" },
+  "theme": {
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "balance": {
+    "airdrop": "1 SOL anfordern",
+    "airdropping": "Anfordern…"
+  },
   "common": {
     "connectPrompt": "Verbinde eine Devnet-Wallet, um fortzufahren.",
     "loading": "Wird geladen…",

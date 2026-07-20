@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { FlameBalanceCard } from '@/components/app/flame-balance'
 import { GiftFlow, RedeemFlow, SwapFlow } from '@/components/app/flows'
+import { ProfileStats } from '@/components/app/profile-stats'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import type { Holding } from '@/lib/vesta/queries'
 import { useHoldings, useOffers } from '@/lib/vesta/queries'
@@ -30,6 +31,16 @@ function WalletPage() {
               <FlameBalanceCard key={h.merchant.address.toBase58()} holding={h} />
             ))}
           </div>
+
+          <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {holdings.data.map((h) => (
+              <ProfileStats
+                key={h.merchant.address.toBase58()}
+                merchant={h.merchant.address}
+                name={h.merchant.name}
+              />
+            ))}
+          </section>
 
           <section className="grid gap-4 md:grid-cols-2">
             <GiftFlow holding={holdings.data[0]} />

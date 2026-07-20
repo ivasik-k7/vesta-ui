@@ -6,7 +6,8 @@
     "alliances": "联盟",
     "console": "商户控制台",
     "admin": "管理",
-    "settings": "设置"
+    "settings": "设置",
+    "drops": "空投"
   },
   "auth": {
     "title": "登录 VESTA",
@@ -35,8 +36,15 @@
     "account": "Devnet 账户",
     "balance": "SOL 余额"
   },
-  "theme": { "light": "浅色", "dark": "深色", "system": "跟随系统" },
-  "balance": { "airdrop": "领取 1 SOL", "airdropping": "领取中…" },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  },
+  "balance": {
+    "airdrop": "领取 1 SOL",
+    "airdropping": "领取中…"
+  },
   "common": {
     "connectPrompt": "连接 devnet 钱包以继续。",
     "loading": "加载中…",

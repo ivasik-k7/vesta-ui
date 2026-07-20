@@ -6,7 +6,8 @@
     "alliances": "Alianzas",
     "console": "Consola de comercio",
     "admin": "Admin",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "drops": "Drops"
   },
   "auth": {
     "title": "Iniciar sesión en VESTA",
@@ -35,8 +36,15 @@
     "account": "Cuenta devnet",
     "balance": "Saldo SOL"
   },
-  "theme": { "light": "Claro", "dark": "Oscuro", "system": "Sistema" },
-  "balance": { "airdrop": "Solicitar 1 SOL", "airdropping": "Solicitando…" },
+  "theme": {
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "balance": {
+    "airdrop": "Solicitar 1 SOL",
+    "airdropping": "Solicitando…"
+  },
   "common": {
     "connectPrompt": "Conecta una cartera devnet para continuar.",
     "loading": "Cargando…",

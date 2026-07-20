@@ -6,7 +6,8 @@
     "alliances": "Sojusze",
     "console": "Konsola sprzedawcy",
     "admin": "Admin",
-    "settings": "Ustawienia"
+    "settings": "Ustawienia",
+    "drops": "Zrzuty"
   },
   "auth": {
     "title": "Zaloguj się do VESTA",
@@ -35,8 +36,15 @@
     "account": "Konto devnet",
     "balance": "Saldo SOL"
   },
-  "theme": { "light": "Jasny", "dark": "Ciemny", "system": "Systemowy" },
-  "balance": { "airdrop": "Poproś o 1 SOL", "airdropping": "Wysyłanie…" },
+  "theme": {
+    "light": "Jasny",
+    "dark": "Ciemny",
+    "system": "Systemowy"
+  },
+  "balance": {
+    "airdrop": "Poproś o 1 SOL",
+    "airdropping": "Wysyłanie…"
+  },
   "common": {
     "connectPrompt": "Połącz portfel devnet, aby kontynuować.",
     "loading": "Ładowanie…",

@@ -18,6 +18,7 @@ import { Route as AppActivityRouteImport } from './routes/app.activity'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppAlliancesRouteImport } from './routes/app.alliances'
 import { Route as AppConsoleRouteImport } from './routes/app.console'
+import { Route as AppDropsRouteImport } from './routes/app.drops'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppWalletRouteImport } from './routes/app.wallet'
 
@@ -66,6 +67,11 @@ const AppConsoleRoute = AppConsoleRouteImport.update({
   path: '/console',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDropsRoute = AppDropsRouteImport.update({
+  id: '/drops',
+  path: '/drops',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
   '/app/console': typeof AppConsoleRoute
+  '/app/drops': typeof AppDropsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
   '/app/console': typeof AppConsoleRoute
+  '/app/drops': typeof AppDropsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/wallet': typeof AppWalletRoute
   '/app': typeof AppIndexRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
   '/app/console': typeof AppConsoleRoute
+  '/app/drops': typeof AppDropsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/alliances'
     | '/app/console'
+    | '/app/drops'
     | '/app/settings'
     | '/app/wallet'
     | '/app/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/alliances'
     | '/app/console'
+    | '/app/drops'
     | '/app/settings'
     | '/app/wallet'
     | '/app'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/alliances'
     | '/app/console'
+    | '/app/drops'
     | '/app/settings'
     | '/app/wallet'
     | '/app/'
@@ -229,6 +241,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConsoleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/drops': {
+      id: '/app/drops'
+      path: '/drops'
+      fullPath: '/app/drops'
+      preLoaderRoute: typeof AppDropsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
@@ -251,6 +270,7 @@ interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppAlliancesRoute: typeof AppAlliancesRoute
   AppConsoleRoute: typeof AppConsoleRoute
+  AppDropsRoute: typeof AppDropsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppWalletRoute: typeof AppWalletRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -261,6 +281,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppAlliancesRoute: AppAlliancesRoute,
   AppConsoleRoute: AppConsoleRoute,
+  AppDropsRoute: AppDropsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppWalletRoute: AppWalletRoute,
   AppIndexRoute: AppIndexRoute,
