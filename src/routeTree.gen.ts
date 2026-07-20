@@ -15,12 +15,15 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as MerchantRouteImport } from './routes/merchant'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
-import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppAlliancesRouteImport } from './routes/app.alliances'
+import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppConsoleRouteImport } from './routes/app.console'
-import { Route as AppDropsRouteImport } from './routes/app.drops'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppDiscoverRouteImport } from './routes/app.discover'
+import { Route as AppNetworkRouteImport } from './routes/app.network'
+import { Route as AppVerifyRouteImport } from './routes/app.verify'
 import { Route as AppWalletRouteImport } from './routes/app.wallet'
+import { Route as AppMerchantAddressRouteImport } from './routes/app.merchant.$address'
+import { Route as AppTokenMintRouteImport } from './routes/app.token.$mint'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,14 +55,14 @@ const AppActivityRoute = AppActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminRoute = AppAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppAlliancesRoute = AppAlliancesRouteImport.update({
   id: '/alliances',
   path: '/alliances',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AppRoute,
 } as any)
 const AppConsoleRoute = AppConsoleRouteImport.update({
@@ -67,19 +70,34 @@ const AppConsoleRoute = AppConsoleRouteImport.update({
   path: '/console',
   getParentRoute: () => AppRoute,
 } as any)
-const AppDropsRoute = AppDropsRouteImport.update({
-  id: '/drops',
-  path: '/drops',
+const AppDiscoverRoute = AppDiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AppNetworkRoute = AppNetworkRouteImport.update({
+  id: '/network',
+  path: '/network',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppVerifyRoute = AppVerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
   getParentRoute: () => AppRoute,
 } as any)
 const AppWalletRoute = AppWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMerchantAddressRoute = AppMerchantAddressRouteImport.update({
+  id: '/merchant/$address',
+  path: '/merchant/$address',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTokenMintRoute = AppTokenMintRouteImport.update({
+  id: '/token/$mint',
+  path: '/token/$mint',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -89,26 +107,32 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/merchant': typeof MerchantRoute
   '/app/activity': typeof AppActivityRoute
-  '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
+  '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
-  '/app/drops': typeof AppDropsRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/app/discover': typeof AppDiscoverRoute
+  '/app/network': typeof AppNetworkRoute
+  '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
+  '/app/merchant/$address': typeof AppMerchantAddressRoute
+  '/app/token/$mint': typeof AppTokenMintRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/merchant': typeof MerchantRoute
   '/app/activity': typeof AppActivityRoute
-  '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
+  '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
-  '/app/drops': typeof AppDropsRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/app/discover': typeof AppDiscoverRoute
+  '/app/network': typeof AppNetworkRoute
+  '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app': typeof AppIndexRoute
+  '/app/merchant/$address': typeof AppMerchantAddressRoute
+  '/app/token/$mint': typeof AppTokenMintRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -117,13 +141,16 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/merchant': typeof MerchantRoute
   '/app/activity': typeof AppActivityRoute
-  '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
+  '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
-  '/app/drops': typeof AppDropsRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/app/discover': typeof AppDiscoverRoute
+  '/app/network': typeof AppNetworkRoute
+  '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
+  '/app/merchant/$address': typeof AppMerchantAddressRoute
+  '/app/token/$mint': typeof AppTokenMintRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -133,26 +160,32 @@ export interface FileRouteTypes {
     | '/auth'
     | '/merchant'
     | '/app/activity'
-    | '/app/admin'
     | '/app/alliances'
+    | '/app/analytics'
     | '/app/console'
-    | '/app/drops'
-    | '/app/settings'
+    | '/app/discover'
+    | '/app/network'
+    | '/app/verify'
     | '/app/wallet'
     | '/app/'
+    | '/app/merchant/$address'
+    | '/app/token/$mint'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/merchant'
     | '/app/activity'
-    | '/app/admin'
     | '/app/alliances'
+    | '/app/analytics'
     | '/app/console'
-    | '/app/drops'
-    | '/app/settings'
+    | '/app/discover'
+    | '/app/network'
+    | '/app/verify'
     | '/app/wallet'
     | '/app'
+    | '/app/merchant/$address'
+    | '/app/token/$mint'
   id:
     | '__root__'
     | '/'
@@ -160,13 +193,16 @@ export interface FileRouteTypes {
     | '/auth'
     | '/merchant'
     | '/app/activity'
-    | '/app/admin'
     | '/app/alliances'
+    | '/app/analytics'
     | '/app/console'
-    | '/app/drops'
-    | '/app/settings'
+    | '/app/discover'
+    | '/app/network'
+    | '/app/verify'
     | '/app/wallet'
     | '/app/'
+    | '/app/merchant/$address'
+    | '/app/token/$mint'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,18 +256,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppActivityRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/admin': {
-      id: '/app/admin'
-      path: '/admin'
-      fullPath: '/app/admin'
-      preLoaderRoute: typeof AppAdminRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/alliances': {
       id: '/app/alliances'
       path: '/alliances'
       fullPath: '/app/alliances'
       preLoaderRoute: typeof AppAlliancesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/analytics': {
+      id: '/app/analytics'
+      path: '/analytics'
+      fullPath: '/app/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/console': {
@@ -241,18 +277,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConsoleRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/drops': {
-      id: '/app/drops'
-      path: '/drops'
-      fullPath: '/app/drops'
-      preLoaderRoute: typeof AppDropsRouteImport
+    '/app/discover': {
+      id: '/app/discover'
+      path: '/discover'
+      fullPath: '/app/discover'
+      preLoaderRoute: typeof AppDiscoverRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
+    '/app/network': {
+      id: '/app/network'
+      path: '/network'
+      fullPath: '/app/network'
+      preLoaderRoute: typeof AppNetworkRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/verify': {
+      id: '/app/verify'
+      path: '/verify'
+      fullPath: '/app/verify'
+      preLoaderRoute: typeof AppVerifyRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/wallet': {
@@ -262,29 +305,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWalletRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/merchant/$address': {
+      id: '/app/merchant/$address'
+      path: '/merchant/$address'
+      fullPath: '/app/merchant/$address'
+      preLoaderRoute: typeof AppMerchantAddressRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/token/$mint': {
+      id: '/app/token/$mint'
+      path: '/token/$mint'
+      fullPath: '/app/token/$mint'
+      preLoaderRoute: typeof AppTokenMintRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppActivityRoute: typeof AppActivityRoute
-  AppAdminRoute: typeof AppAdminRoute
   AppAlliancesRoute: typeof AppAlliancesRoute
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppConsoleRoute: typeof AppConsoleRoute
-  AppDropsRoute: typeof AppDropsRoute
-  AppSettingsRoute: typeof AppSettingsRoute
+  AppDiscoverRoute: typeof AppDiscoverRoute
+  AppNetworkRoute: typeof AppNetworkRoute
+  AppVerifyRoute: typeof AppVerifyRoute
   AppWalletRoute: typeof AppWalletRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppMerchantAddressRoute: typeof AppMerchantAddressRoute
+  AppTokenMintRoute: typeof AppTokenMintRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppActivityRoute: AppActivityRoute,
-  AppAdminRoute: AppAdminRoute,
   AppAlliancesRoute: AppAlliancesRoute,
+  AppAnalyticsRoute: AppAnalyticsRoute,
   AppConsoleRoute: AppConsoleRoute,
-  AppDropsRoute: AppDropsRoute,
-  AppSettingsRoute: AppSettingsRoute,
+  AppDiscoverRoute: AppDiscoverRoute,
+  AppNetworkRoute: AppNetworkRoute,
+  AppVerifyRoute: AppVerifyRoute,
   AppWalletRoute: AppWalletRoute,
   AppIndexRoute: AppIndexRoute,
+  AppMerchantAddressRoute: AppMerchantAddressRoute,
+  AppTokenMintRoute: AppTokenMintRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { ARGUS, ASSOCIATED_TOKEN, TOKEN_2022, VESTA_CORE } from './constants'
+import { AEGIS, ARGUS, ASSOCIATED_TOKEN, TOKEN_2022, VESTA_CORE } from './constants'
 
 const s = (v: string) => new TextEncoder().encode(v)
 
@@ -20,14 +20,19 @@ const derive = (seeds: Uint8Array[], program = VESTA_CORE) =>
   PublicKey.findProgramAddressSync(seeds, program)[0]
 
 export const pdas = {
+  // ── vesta_core ────────────────────────────────────────────────────────────
   config: () => derive([s('config')]),
-  merchant: (authority: PublicKey) => derive([s('merchant'), authority.toBytes()]),
+  /** Multi-record: a wallet owns many merchants, keyed by (authority, id). */
+  merchant: (authority: PublicKey, id: bigint) =>
+    derive([s('merchant'), authority.toBytes(), u64le(id)]),
   mint: (merchant: PublicKey) => derive([s('mint'), merchant.toBytes()]),
   customerProfile: (merchant: PublicKey, wallet: PublicKey) =>
     derive([s('customer'), merchant.toBytes(), wallet.toBytes()]),
   offer: (merchant: PublicKey, id: bigint) => derive([s('offer'), merchant.toBytes(), u64le(id)]),
   campaign: (merchant: PublicKey, id: bigint) =>
     derive([s('campaign'), merchant.toBytes(), u64le(id)]),
+  campaignProgress: (campaign: PublicKey, customer: PublicKey) =>
+    derive([s('cprogress'), campaign.toBytes(), customer.toBytes()]),
   achievement: (merchant: PublicKey, id: bigint) =>
     derive([s('achieve'), merchant.toBytes(), u64le(id)]),
   badge: (achievement: PublicKey, customer: PublicKey) =>
@@ -40,10 +45,21 @@ export const pdas = {
     derive([s('alliance'), creator.toBytes(), u64le(id)]),
   member: (alliance: PublicKey, merchant: PublicKey) =>
     derive([s('member'), alliance.toBytes(), merchant.toBytes()]),
-  giftLedger: (mint: PublicKey, owner: PublicKey) =>
-    derive([s('ledger'), mint.toBytes(), owner.toBytes()], ARGUS),
+
+  // ── argus (transfer-hook policy engine) ─────────────────────────────────────
+  guardConfig: (mint: PublicKey) => derive([s('guard'), mint.toBytes()], ARGUS),
+  walletState: (mint: PublicKey, owner: PublicKey) =>
+    derive([s('wstate'), mint.toBytes(), owner.toBytes()], ARGUS),
+  listEntry: (mint: PublicKey, target: PublicKey) =>
+    derive([s('entry'), mint.toBytes(), target.toBytes()], ARGUS),
   extraAccountMetaList: (mint: PublicKey) =>
     derive([s('extra-account-metas'), mint.toBytes()], ARGUS),
+
+  // ── aegis (attestation issuer) ──────────────────────────────────────────────
+  issuer: (authority: PublicKey, id: bigint) =>
+    derive([s('issuer'), authority.toBytes(), u64le(id)], AEGIS),
+  attestation: (issuer: PublicKey, subject: PublicKey) =>
+    derive([s('attestation'), issuer.toBytes(), subject.toBytes()], AEGIS),
 }
 
 /** ATA under Token-2022 (off-curve owners allowed for PDA treasuries). */

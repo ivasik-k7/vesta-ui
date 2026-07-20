@@ -1,13 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ArrowUpRight, Search, Store, Ticket } from 'lucide-react'
+import { ArrowUpRight, BadgeCheck, Search, Store, Ticket, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
-
+import { fmtCount, fmtPoints } from '@/components/app/metric'
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DECIMALS } from '@/lib/vesta/constants'
 import type { Merchant } from '@/lib/vesta/decode'
 import { useMerchants, useOffers } from '@/lib/vesta/queries'
+
+const CATEGORY_LABEL = ['General', 'Food & Drink', 'Retail', 'Services', 'Entertainment', 'Travel']
 
 export const Route = createFileRoute('/merchant')({
   component: MerchantDirectory,
@@ -85,7 +87,12 @@ function MerchantCard({ merchant }: { merchant: Merchant }) {
         <div className="flex items-center gap-2">
           <Store className="size-5 text-flame" aria-hidden />
           <div>
-            <p className="font-heading font-semibold">{merchant.name}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="font-heading font-semibold">{merchant.name}</p>
+              {merchant.verified ? (
+                <BadgeCheck className="size-4 text-flame" aria-label="Verified" />
+              ) : null}
+            </div>
             <a
               href={explorer(merchant.pointMint.toBase58())}
               target="_blank"
@@ -103,12 +110,26 @@ function MerchantCard({ merchant }: { merchant: Merchant }) {
         <div className="text-right">
           <p className="font-mono text-flame text-sm">{merchant.decayRateBps / 100}%/yr</p>
           <p className="text-muted-foreground text-xs">
-            {merchant.customerCount.toString()} customers
+            {fmtCount(merchant.customerCount)} customers
           </p>
         </div>
       </div>
 
-      <div className="mt-5 border-border/60 border-t pt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-1.5">
+        <span className="rounded-full border border-border px-2 py-0.5 text-muted-foreground text-xs">
+          {CATEGORY_LABEL[merchant.category] ?? 'General'}
+        </span>
+        {merchant.joinedAlliance ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground text-xs">
+            <Users className="size-3" aria-hidden /> Alliance
+          </span>
+        ) : null}
+        <span className="ml-auto font-mono text-muted-foreground text-xs">
+          {fmtPoints(merchant.lifetimePointsIssued)} issued
+        </span>
+      </div>
+
+      <div className="mt-4 border-border/60 border-t pt-4">
         <p className="flex items-center gap-1.5 font-medium text-[13px] text-muted-foreground">
           <Ticket className="size-3.5" aria-hidden />
           Offers

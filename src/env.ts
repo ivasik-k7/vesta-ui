@@ -7,6 +7,7 @@ export const env = createEnv({
     VITE_RPC_URL: z.url().default('https://api.devnet.solana.com'),
     VITE_VESTA_CORE_PROGRAM_ID: z.string().default('gaMq6BpH1aqC8ZCYtAxwZBjTa9AnfdWvYwURG6L4LDz'),
     VITE_ARGUS_PROGRAM_ID: z.string().default('9zJEWrk47z1ACT3ySMwzmUrMsQzFC8afBSFcsCzsz3rx'),
+    VITE_AEGIS_PROGRAM_ID: z.string().default('AcCdMQC1rj4KukjhFzf4S8metEAXpnt9gzvMThsu15e1'),
   },
   runtimeEnv: import.meta.env,
   emptyStringAsUndefined: true,

@@ -30,15 +30,15 @@ export function GiftFlow({ holding }: { holding: Holding }) {
         if (!wallet.publicKey) throw new Error('Connect a wallet')
         const owner = wallet.publicKey
         const recipient = new PublicKey(to)
-        const ledger = pdas.giftLedger(holding.merchant.pointMint, owner)
-        const ledgerExists = await connection.getAccountInfo(ledger)
+        const state = pdas.walletState(holding.merchant.pointMint, owner)
+        const stateExists = await connection.getAccountInfo(state)
         const ixns = giftIxns({
           from: owner,
           to: recipient,
           mint: holding.merchant.pointMint,
-          merchant: holding.merchant.authority,
+          merchantAuthority: holding.merchant.authority,
           rawAmount: raw,
-          ensureLedger: !ledgerExists,
+          ensureWalletState: !stateExists,
           ensureDestAta: true,
         })
         return send(connection, wallet, ixns)
@@ -154,11 +154,13 @@ function MerchantSelect({
 }) {
   return (
     <label className="block">
-      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className="font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
+        {label}
+      </span>
       <select
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-flame/60"
+        className="mt-1.5 w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
       >
         {holdings.map((h, i) => (
           <option key={h.merchant.address.toBase58()} value={i}>

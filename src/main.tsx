@@ -4,9 +4,11 @@ import { Buffer } from 'buffer'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
+import { Toaster } from '@/components/app/toaster'
 import { SolanaProvider } from '@/components/wallet/provider'
 import { VestaAuthProvider } from '@/lib/auth/context'
 import '@/lib/i18n'
+import { NotifyProvider } from '@/lib/notify/context'
 import { SettingsProvider } from '@/lib/settings/context'
 import { routeTree } from './routeTree.gen'
 import './index.css'
@@ -22,7 +24,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
-const queryClient = new QueryClient()
+// Production-grade defaults: retry transient RPC failures with capped
+// exponential backoff (429s under load), but never spin on a hard 4xx; don't
+// refetch on every window focus (devnet RPC budgets are finite).
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 20_000,
+      gcTime: 5 * 60_000,
+      retry: (failureCount, error) => {
+        const msg = error instanceof Error ? error.message : String(error)
+        if (/\b(400|401|403|404)\b/.test(msg)) return false
+        return failureCount < 3
+      },
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
@@ -35,7 +54,10 @@ createRoot(rootElement).render(
       <SolanaProvider>
         <VestaAuthProvider>
           <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router} />
+            <NotifyProvider>
+              <RouterProvider router={router} />
+              <Toaster />
+            </NotifyProvider>
           </QueryClientProvider>
         </VestaAuthProvider>
       </SolanaProvider>

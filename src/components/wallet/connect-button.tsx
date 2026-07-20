@@ -3,6 +3,7 @@ import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 import { Check, ChevronDown, LogOut, ShieldCheck, Wallet } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
+import { useAuthFlow } from '@/components/app/auth-flow'
 import { Button } from '@/components/ui/button'
 import { useVestaAuth } from '@/lib/auth/context'
 
@@ -10,23 +11,22 @@ const short = (key: string) => `${key.slice(0, 4)}…${key.slice(-4)}`
 
 export function ConnectButton({ size = 'sm' }: { size?: 'sm' | 'default' | 'lg' }) {
   const { publicKey, connecting } = useWallet()
-  const { setVisible } = useWalletModal()
-  const { status, signIn } = useVestaAuth()
+  const { status } = useVestaAuth()
+  const { login } = useAuthFlow()
 
-  if (!publicKey) {
+  if (!publicKey || status !== 'authenticated') {
     return (
-      <Button size={size} onClick={() => setVisible(true)} disabled={connecting}>
-        <Wallet className="size-4" aria-hidden />
-        {connecting ? 'Connecting…' : 'Connect wallet'}
-      </Button>
-    )
-  }
-
-  if (status !== 'authenticated') {
-    return (
-      <Button size={size} onClick={() => signIn()} disabled={status === 'authenticating'}>
-        <ShieldCheck className="size-4" aria-hidden />
-        {status === 'authenticating' ? 'Check your wallet…' : 'Sign in'}
+      <Button size={size} onClick={login} disabled={connecting || status === 'authenticating'}>
+        {publicKey ? (
+          <ShieldCheck className="size-4" aria-hidden />
+        ) : (
+          <Wallet className="size-4" aria-hidden />
+        )}
+        {connecting || status === 'authenticating'
+          ? 'Check your wallet…'
+          : publicKey
+            ? 'Sign in'
+            : 'Connect wallet'}
       </Button>
     )
   }

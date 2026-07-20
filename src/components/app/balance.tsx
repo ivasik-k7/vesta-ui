@@ -5,6 +5,7 @@ import { useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
+import { Money } from '@/components/app/money'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSolBalance } from '@/lib/vesta/queries'
 
@@ -21,7 +22,11 @@ export function BalanceChip() {
       {balance.isLoading ? (
         <Skeleton className="mt-1 h-5 w-16" />
       ) : (
-        <p className="mt-0.5 font-mono text-sm tabular-nums">{(balance.data ?? 0).toFixed(3)}</p>
+        <Money
+          value={balance.data ?? 0}
+          digits={3}
+          className="mt-0.5 block font-mono text-sm tabular-nums"
+        />
       )}
     </div>
   )

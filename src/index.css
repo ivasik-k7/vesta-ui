@@ -129,6 +129,62 @@
   html {
     @apply font-sans;
   }
+
+  /* Theme-aware custom scrollbar, applied app-wide. Track is invisible; the
+     thumb is a flame-tinted capsule floating inside padding, brightening to
+     full flame on hover. Adapts to light/dark via the same design tokens. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--color-flame) 50%, var(--border)) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    background-color: color-mix(in oklch, var(--color-flame) 38%, var(--border));
+    transition: background-color 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklch, var(--color-flame) 78%, var(--border));
+  }
+  ::-webkit-scrollbar-thumb:active {
+    background-color: var(--color-flame);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  /* Slimmer, brighter variant for compact panels (e.g. the sidebar nav). */
+  .scrollbar-flame {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--color-flame) 55%, transparent) transparent;
+  }
+  .scrollbar-flame::-webkit-scrollbar {
+    width: 8px;
+  }
+  .scrollbar-flame::-webkit-scrollbar-thumb {
+    border-width: 2px;
+    background-color: color-mix(in oklch, var(--color-flame) 30%, var(--border));
+  }
+  .scrollbar-flame::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-flame);
+  }
+  /* Fully hidden scrollbar for horizontal tab/chip strips. */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
 @theme {
     /* sicilian orange scale (REFERENCES.md §3.1) */

@@ -1,10 +1,10 @@
 import { useWallet } from '@solana/wallet-adapter-react'
-import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, Check, Flame, Loader2, ShieldCheck, TriangleAlert, Wallet } from 'lucide-react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useAuthFlow } from '@/components/app/auth-flow'
 import { Button } from '@/components/ui/button'
 import { useVestaAuth } from '@/lib/auth/context'
 import { hasValidStoredSession } from '@/lib/auth/session-store'
@@ -20,8 +20,8 @@ export const Route = createFileRoute('/auth')({
 function AuthPage() {
   const { t } = useTranslation()
   const { publicKey, connecting } = useWallet()
-  const { setVisible } = useWalletModal()
   const { status, signIn, error } = useVestaAuth()
+  const { login } = useAuthFlow()
   const navigate = useNavigate()
 
   // The instant the session becomes valid, enter the app.
@@ -73,12 +73,7 @@ function AuthPage() {
 
           <div className="mt-7">
             {!connected ? (
-              <Button
-                size="lg"
-                className="w-full"
-                onClick={() => setVisible(true)}
-                disabled={connecting}
-              >
+              <Button size="lg" className="w-full" onClick={login} disabled={connecting}>
                 <Wallet className="size-4" aria-hidden />
                 {connecting ? t('auth.connecting') : t('auth.connect')}
               </Button>
