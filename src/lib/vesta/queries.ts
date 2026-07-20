@@ -1,6 +1,6 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import type { Connection, PublicKey } from '@solana/web3.js'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
 import { AEGIS, DISCRIMINATOR, VESTA_CORE } from './constants'
 import { type DecayingMint, parseDecayingMint } from './decay'
@@ -310,6 +310,66 @@ export function useActivityFeed(scope: ActivityScope = 'protocol', limit = 100) 
   })
 }
 
+interface ActivityPage {
+  records: ActivityRecord[]
+  nextCursor: string | undefined
+}
+
+/**
+ * Paged transaction history: the first page (one signatures call + one parsed
+ * batch) renders fast; older pages stream in lazily behind a cursor. Memory is
+ * bounded — only the newest `maxPages` pages are kept, older ones are dropped.
+ */
+export function useActivityPages(scope: ActivityScope = 'protocol', pageSize = 25, maxPages = 8) {
+  const { connection } = useConnection()
+  const { publicKey } = useWallet()
+  const address = scope === 'wallet' ? publicKey : VESTA_CORE
+  return useInfiniteQuery({
+    queryKey: ['activity-pages', scope, address?.toBase58(), pageSize],
+    enabled: !!address,
+    staleTime: 15_000,
+    gcTime: 60_000, // drop the whole feed from memory shortly after leaving
+    maxPages,
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }): Promise<ActivityPage> => {
+      if (!address) return { records: [], nextCursor: undefined }
+      const sigs = await connection.getSignaturesForAddress(address, {
+        limit: pageSize,
+        before: pageParam,
+      })
+      if (sigs.length === 0) return { records: [], nextCursor: undefined }
+      const { decodeTransactionInstructions, primaryAction } = await import('./decoder')
+      const txs = await connection.getParsedTransactions(
+        sigs.map((s) => s.signature),
+        { maxSupportedTransactionVersion: 0 },
+      )
+      const records: ActivityRecord[] = []
+      txs.forEach((tx, j) => {
+        const sig = sigs[j]
+        if (!sig) return
+        const actions = tx ? decodeTransactionInstructions(tx.transaction.message.instructions) : []
+        const feePayer = tx?.transaction.message.accountKeys[0]?.pubkey.toBase58() ?? null
+        records.push({
+          signature: sig.signature,
+          slot: sig.slot,
+          blockTime: sig.blockTime ?? tx?.blockTime ?? null,
+          err: sig.err !== null,
+          feePayer,
+          fee: tx?.meta?.fee ?? 0,
+          computeUnits: tx?.meta?.computeUnitsConsumed ?? 0,
+          actions,
+          primary: primaryAction(actions),
+        })
+      })
+      return {
+        records,
+        nextCursor: sigs.length === pageSize ? sigs[sigs.length - 1]?.signature : undefined,
+      }
+    },
+    getNextPageParam: (last) => last.nextCursor,
+  })
+}
+
 export function useDecodedTransaction(signature: string | null) {
   const { connection } = useConnection()
   return useQuery({
@@ -434,6 +494,43 @@ export function useIssuers() {
       return decodeAll(accounts, decodeIssuer).sort((a, b) => Number(b.issued - a.issued))
     },
     staleTime: 30_000,
+  })
+}
+
+/** All achievements defined by a merchant. */
+export function useMyAchievements(merchant: PublicKey | undefined) {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['achievements', merchant?.toBase58()],
+    queryFn: async () => {
+      if (!merchant) return []
+      const { decodeAchievement } = await import('./decode')
+      const accounts = await connection.getProgramAccounts(VESTA_CORE, {
+        filters: [
+          memcmpDiscriminator(DISCRIMINATOR.Achievement),
+          { memcmp: { offset: 8, bytes: merchant.toBase58() } },
+        ],
+      })
+      return decodeAll(accounts, decodeAchievement).sort((a, b) => Number(a.id - b.id))
+    },
+    enabled: !!merchant,
+    staleTime: 20_000,
+  })
+}
+
+/** Live argus guard policy for a mint (null until the guard is initialized). */
+export function useGuardConfig(mint: PublicKey | undefined) {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['guard', mint?.toBase58()],
+    queryFn: async () => {
+      if (!mint) return null
+      const { decodeGuardConfig } = await import('./decode')
+      const info = await connection.getAccountInfo(pdas.guardConfig(mint))
+      return info ? decodeGuardConfig(new Uint8Array(info.data)) : null
+    },
+    enabled: !!mint,
+    staleTime: 20_000,
   })
 }
 

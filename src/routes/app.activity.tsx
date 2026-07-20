@@ -6,19 +6,20 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Coins,
   Layers,
   RefreshCw,
   Search,
   User,
   XCircle,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { fmtCount, Metric } from '@/components/app/metric'
-import { PageHeader } from '@/components/app/shell'
+import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CATEGORY_META, type Category, type DecodedIx } from '@/lib/vesta/decoder'
-import { type ActivityRecord, type ActivityScope, useActivityFeed } from '@/lib/vesta/queries'
+import { type ActivityRecord, useActivityPages } from '@/lib/vesta/queries'
 import { explorerTx } from '@/lib/vesta/tx'
 
 export const Route = createFileRoute('/app/activity')({
@@ -28,18 +29,35 @@ export const Route = createFileRoute('/app/activity')({
 type StatusFilter = 'all' | 'success' | 'failed'
 type GroupBy = 'none' | 'day' | 'category'
 
+// Wallet-only history: small pages stream in lazily as you scroll, and only
+// the newest ~160 records are kept in memory (older pages are dropped).
 function ActivityPage() {
   const { publicKey } = useWallet()
-  const [scope, setScope] = useState<ActivityScope>(publicKey ? 'wallet' : 'protocol')
-  const feed = useActivityFeed(scope, 100)
+  const feed = useActivityPages('wallet', 20, 8)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('all')
   const [cats, setCats] = useState<Set<Category>>(new Set())
   const [group, setGroup] = useState<GroupBy>('day')
 
-  const records = feed.data ?? []
+  const records = useMemo(() => (feed.data?.pages ?? []).flatMap((p) => p.records), [feed.data])
 
-  // Which categories actually appear in this window → drive the chip filter.
+  // Lazy loading: fetch the next page when the sentinel scrolls into view.
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && feed.hasNextPage && !feed.isFetchingNextPage) {
+          void feed.fetchNextPage()
+        }
+      },
+      { rootMargin: '240px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [feed.hasNextPage, feed.isFetchingNextPage, feed.fetchNextPage])
+
   const presentCats = useMemo(() => {
     const set = new Set<Category>()
     for (const r of records) for (const a of r.actions) set.add(a.category)
@@ -53,9 +71,7 @@ function ActivityPage() {
       if (status === 'failed' && !r.err) return false
       if (cats.size > 0 && !r.actions.some((a) => cats.has(a.category))) return false
       if (q) {
-        const hay = [r.signature, r.feePayer ?? '', ...r.actions.map((a) => a.label)]
-          .join(' ')
-          .toLowerCase()
+        const hay = [r.signature, ...r.actions.map((a) => a.label)].join(' ').toLowerCase()
         if (!hay.includes(q)) return false
       }
       return true
@@ -75,36 +91,38 @@ function ActivityPage() {
   return (
     <div>
       <PageHeader
-        title="Transaction history"
-        sub="Your full on-chain history, or the whole protocol's — searchable, filterable by action, grouped by day, with every instruction decoded. Read straight from the chain, no indexer."
+        title="My transactions"
+        sub="Everything your wallet has signed — gifts, redeems, swaps, transfers — decoded instruction by instruction, streaming in lazily from the chain."
       />
 
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Segmented
-          value={scope}
-          onChange={setScope}
-          options={[
-            { value: 'wallet', label: 'My wallet' },
-            { value: 'protocol', label: 'Protocol' },
-          ]}
-        />
-        <span className="text-muted-foreground text-xs">
-          {scope === 'wallet'
-            ? publicKey
-              ? 'Every transaction signed by your wallet — gifts, redeems, swaps, transfers.'
-              : 'Connect a wallet to see your history.'
-            : 'Every vesta_core protocol transaction across all users.'}
-        </span>
-      </div>
-
-      {feed.isLoading ? (
+      {!publicKey ? (
+        <ConnectPrompt message="Connect a devnet wallet to analyze its transactions." />
+      ) : feed.isLoading ? (
         <div className="space-y-3">
           <Skeleton className="h-20" />
           <Skeleton className="h-64" />
         </div>
+      ) : feed.isError ? (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/[0.04] p-10 text-center">
+          <XCircle className="size-6 text-red-400" aria-hidden />
+          <p className="max-w-md text-muted-foreground text-sm leading-relaxed">
+            Couldn't load your history — the RPC is likely rate-limiting. Set a private RPC in
+            Account → Wallet &amp; funds, or retry.
+          </p>
+          <p className="max-w-md break-all font-mono text-[11px] text-red-400/80">
+            {feed.error instanceof Error ? feed.error.message.slice(0, 160) : String(feed.error)}
+          </p>
+          <button
+            type="button"
+            onClick={() => feed.refetch()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-flame/40 px-3 py-1.5 text-flame text-sm transition-colors hover:bg-flame/10"
+          >
+            <RefreshCw className="size-3.5" aria-hidden /> Retry
+          </button>
+        </div>
       ) : (
         <div className="space-y-6">
-          {/* Summary stats over the current filter */}
+          {/* Analysis over the loaded window (respects filters) */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Metric icon={ActivityIcon} label="Transactions" value={fmtCount(stats.total)} accent />
             <Metric
@@ -121,22 +139,22 @@ function ActivityPage() {
             />
             <Metric
               icon={User}
-              label="Signers"
-              value={fmtCount(stats.signers)}
+              label="Top action"
+              value={stats.topAction ?? '—'}
               hint={`${(stats.fees / 1e9).toFixed(5)} SOL fees`}
             />
           </div>
 
           {/* Controls */}
-          <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+          <div className="space-y-3 rounded-2xl border border-border bg-card/50 p-4 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-background px-3">
+              <div className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-background/60 px-3 shadow-inner transition-colors focus-within:border-flame/60">
                 <Search className="size-4 text-muted-foreground" aria-hidden />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search signature, wallet, or action…"
-                  className="w-full bg-transparent py-2 text-sm outline-none"
+                  placeholder="Search signature or action…"
+                  className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground/50"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -206,11 +224,36 @@ function ActivityPage() {
           {/* Rows */}
           {filtered.length === 0 ? (
             <p className="rounded-2xl border border-border border-dashed bg-card/40 p-10 text-center text-muted-foreground text-sm">
-              No transactions match these filters.
+              {records.length === 0
+                ? 'No transactions for this wallet yet.'
+                : 'No transactions match these filters.'}
             </p>
           ) : (
-            <Grouped records={filtered} group={group} mine={publicKey?.toBase58() ?? null} />
+            <Grouped records={filtered} group={group} />
           )}
+
+          {/* Lazy-load sentinel */}
+          <div ref={sentinelRef} className="flex items-center justify-center gap-3 py-2">
+            <span className="font-mono text-[11px] text-muted-foreground/60 tabular-nums">
+              {records.length} in view
+            </span>
+            {feed.isFetchingNextPage ? (
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground text-xs">
+                <RefreshCw className="size-3.5 animate-spin" aria-hidden />
+                Loading older…
+              </span>
+            ) : feed.hasNextPage ? (
+              <button
+                type="button"
+                onClick={() => feed.fetchNextPage()}
+                className="rounded-lg border border-border px-3 py-1.5 text-muted-foreground text-xs transition-colors hover:border-flame/40 hover:text-flame"
+              >
+                Load older
+              </button>
+            ) : (
+              <span className="text-[11px] text-muted-foreground/60">end of history</span>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -222,33 +265,30 @@ function summarize(records: ActivityRecord[]) {
   const failed = records.filter((r) => r.err).length
   const ixns = records.reduce((a, r) => a + r.actions.length, 0)
   const fees = records.reduce((a, r) => a + r.fee, 0)
-  const signers = new Set(records.map((r) => r.feePayer).filter(Boolean)).size
+  const actionCounts = new Map<string, number>()
+  for (const r of records) {
+    const label = r.primary?.label
+    if (label) actionCounts.set(label, (actionCounts.get(label) ?? 0) + 1)
+  }
+  const topAction = [...actionCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
   const distinctActions = new Set(records.flatMap((r) => r.actions.map((a) => a.label))).size
   return {
     total,
     failed,
     ixns,
     fees,
-    signers,
+    topAction,
     distinctActions,
     successRate: total === 0 ? 100 : Math.round(((total - failed) / total) * 100),
   }
 }
 
-function Grouped({
-  records,
-  group,
-  mine,
-}: {
-  records: ActivityRecord[]
-  group: GroupBy
-  mine: string | null
-}) {
+function Grouped({ records, group }: { records: ActivityRecord[]; group: GroupBy }) {
   if (group === 'none') {
     return (
-      <div className="overflow-hidden rounded-2xl border border-border">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card/50 ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm">
         {records.map((r, i) => (
-          <Row key={r.signature} record={r} mine={mine} last={i === records.length - 1} />
+          <Row key={r.signature} record={r} last={i === records.length - 1} />
         ))}
       </div>
     )
@@ -276,17 +316,17 @@ function Grouped({
       {[...groups.entries()].map(([key, rows]) => (
         <div key={key}>
           <div className="mb-2 flex items-center gap-2 px-1">
-            <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+            <p className="font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
               {key}
             </p>
-            <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            <span className="rounded-full border border-border bg-background/40 px-2 py-0.5 text-[10px] text-muted-foreground tabular-nums">
               {rows.length}
             </span>
             <div className="ml-2 h-px flex-1 bg-border/60" />
           </div>
-          <div className="overflow-hidden rounded-2xl border border-border">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card/50 ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm">
             {rows.map((r, i) => (
-              <Row key={r.signature} record={r} mine={mine} last={i === rows.length - 1} />
+              <Row key={r.signature} record={r} last={i === rows.length - 1} />
             ))}
           </div>
         </div>
@@ -295,28 +335,19 @@ function Grouped({
   )
 }
 
-function Row({
-  record,
-  mine,
-  last,
-}: {
-  record: ActivityRecord
-  mine: string | null
-  last: boolean
-}) {
+function Row({ record, last }: { record: ActivityRecord; last: boolean }) {
   const [open, setOpen] = useState(false)
   const when = record.blockTime
     ? new Date(record.blockTime * 1000).toLocaleTimeString()
     : `slot ${record.slot}`
   const primary = record.primary
-  const isMine = mine && record.feePayer === mine
 
   return (
     <div className={last ? '' : 'border-border border-b'}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 bg-card px-4 py-3 text-left transition-colors hover:bg-secondary"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-flame/[0.05]"
       >
         {open ? (
           <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -336,7 +367,12 @@ function Row({
             >
               {primary.label}
             </span>
-          ) : null}
+          ) : (
+            <span className="shrink-0 rounded-md bg-secondary px-2 py-0.5 font-medium text-muted-foreground text-xs">
+              <Coins className="mr-1 inline size-3" aria-hidden />
+              System
+            </span>
+          )}
           {record.actions.length > 1 ? (
             <span className="shrink-0 text-muted-foreground text-xs">
               +{record.actions.length - 1}
@@ -345,11 +381,6 @@ function Row({
         </span>
 
         <span className="ml-auto flex shrink-0 items-center gap-3 text-muted-foreground text-xs">
-          {isMine ? (
-            <span className="rounded-full bg-flame/10 px-1.5 py-0.5 text-[10px] text-flame">
-              you
-            </span>
-          ) : null}
           <span className="hidden font-mono sm:inline">
             {record.signature.slice(0, 6)}…{record.signature.slice(-6)}
           </span>
@@ -360,7 +391,7 @@ function Row({
       {open ? (
         <div className="space-y-3 border-border/60 border-t bg-background/40 px-5 py-4">
           <div>
-            <p className="mb-1.5 font-medium text-[11px] text-muted-foreground/70 uppercase tracking-wide">
+            <p className="mb-1.5 font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
               Instructions ({record.actions.length})
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -371,7 +402,6 @@ function Row({
             </div>
           </div>
           <div className="grid gap-2 font-mono text-muted-foreground text-xs sm:grid-cols-2">
-            <span>signer {record.feePayer ? short(record.feePayer) : '—'}</span>
             <span>slot {record.slot.toLocaleString()}</span>
             <span>fee {(record.fee / 1e9).toFixed(6)} SOL</span>
             <span>{record.computeUnits.toLocaleString()} CU</span>
@@ -429,5 +459,3 @@ function Segmented<T extends string>({
     </div>
   )
 }
-
-const short = (k: string) => `${k.slice(0, 6)}…${k.slice(-6)}`

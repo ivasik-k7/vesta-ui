@@ -18,7 +18,7 @@ export const Route = createFileRoute('/app/analytics')({
 })
 
 function AnalyticsPage() {
-  const feed = useActivityFeed('protocol', 100)
+  const feed = useActivityFeed('protocol', 50)
   const net = useNetworkStats()
   const merchant = useMyMerchant()
   const records = feed.data ?? []
@@ -48,7 +48,7 @@ function AnalyticsPage() {
               icon={Activity}
               label="Transactions"
               value={fmtCount(records.length)}
-              hint="last 100"
+              hint="last 50"
               accent
             />
             <Metric
@@ -213,13 +213,23 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-6">
-      <div className="mb-4 flex items-center gap-2">
-        <Icon className="size-4 text-flame" aria-hidden />
-        <h2 className="font-heading font-semibold">{title}</h2>
-        {hint ? <span className="ml-auto text-muted-foreground text-xs">{hint}</span> : null}
+    <section className="overflow-hidden rounded-2xl border border-border bg-card/50 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-line-strong">
+      <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-2.5">
+        <span className="grid size-6 shrink-0 place-items-center rounded-lg border border-flame/20 bg-flame/10 text-flame">
+          <Icon className="size-3.5" aria-hidden />
+        </span>
+        <h2 className="font-semibold text-[11px] text-muted-foreground uppercase tracking-[0.16em]">
+          {title}
+        </h2>
+        {hint ? (
+          <span className="ml-auto font-mono text-[11px] text-muted-foreground/60">{hint}</span>
+        ) : null}
       </div>
-      {children}
+      <div
+        aria-hidden
+        className="mx-4 h-px bg-gradient-to-r from-border via-border/50 to-transparent"
+      />
+      <div className="px-4 py-4">{children}</div>
     </section>
   )
 }

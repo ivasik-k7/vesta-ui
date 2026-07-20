@@ -1,16 +1,15 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ArrowRight, Coins, Compass, Send, Ticket } from 'lucide-react'
+import { Coins } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { TokenCard } from '@/components/app/flame-balance'
-import { GiftFlow, RedeemFlow, SwapFlow } from '@/components/app/flows'
 import { useMoney } from '@/components/app/money'
 import { EmptySlate, Section, SectionMeta } from '@/components/app/section'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { Skeleton } from '@/components/ui/skeleton'
 import { liveUiAmount } from '@/lib/vesta/decay'
-import { type Holding, useHoldings, useOffers } from '@/lib/vesta/queries'
+import { type Holding, useHoldings } from '@/lib/vesta/queries'
 
 export const Route = createFileRoute('/app/wallet')({
   component: WalletPage,
@@ -30,8 +29,6 @@ function WalletPage() {
   const { publicKey } = useWallet()
   const holdings = useHoldings()
   const items = holdings.data ?? []
-  const [selIdx, setSelIdx] = useState(0)
-  const sel = items.length > 0 ? items[Math.min(selIdx, items.length - 1)] : undefined
 
   return (
     <div>
@@ -80,40 +77,6 @@ function WalletPage() {
               ))}
             </div>
           </Section>
-
-          {/* 2 — Move */}
-          <Section
-            icon={Send}
-            title="Move points"
-            desc="Gift to a friend within the daily cap, or swap across the alliance — the argus guard validates every transfer live."
-            right={
-              items.length > 1 ? (
-                <BrandSelect
-                  items={items}
-                  value={Math.min(selIdx, items.length - 1)}
-                  onChange={setSelIdx}
-                />
-              ) : undefined
-            }
-          >
-            <div className="grid items-stretch gap-4 md:grid-cols-2">
-              {sel ? <GiftFlow key={sel.merchant.pointMint.toBase58()} holding={sel} /> : null}
-              {items.length > 1 ? (
-                <SwapFlow holdings={items} />
-              ) : (
-                <EmptySlate icon={Compass}>
-                  Hold points from two alliance merchants to unlock cross-brand swaps.{' '}
-                  <Link to="/app/discover" className="text-flame hover:text-flame-hover">
-                    Discover more brands
-                  </Link>
-                  .
-                </EmptySlate>
-              )}
-            </div>
-          </Section>
-
-          {/* 3 — Spend */}
-          {sel ? <RedeemSection holding={sel} /> : null}
         </div>
       )}
     </div>
@@ -158,79 +121,5 @@ function PortfolioHero({ items }: { items: Holding[] }) {
         </div>
       </div>
     </div>
-  )
-}
-
-/** Standardized brand selector used by the Move / Redeem sections. */
-function BrandSelect({
-  items,
-  value,
-  onChange,
-}: {
-  items: Holding[]
-  value: number
-  onChange: (v: number) => void
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-      className="rounded-lg border border-border bg-background/60 px-2.5 py-1 text-xs shadow-inner outline-none transition-colors focus:border-flame/60"
-      aria-label="Brand"
-    >
-      {items.map((h, i) => (
-        <option key={h.merchant.pointMint.toBase58()} value={i}>
-          {h.merchant.name}
-        </option>
-      ))}
-    </select>
-  )
-}
-
-function RedeemSection({ holding }: { holding: Holding }) {
-  const offers = useOffers(holding.merchant.address)
-
-  return (
-    <Section
-      icon={Ticket}
-      title="Redeem rewards"
-      desc={`Burn ${holding.merchant.name} points for live offers — priced in decayed value, converted on-chain.`}
-      right={
-        offers.data && offers.data.length > 0 ? (
-          <SectionMeta>
-            {offers.data.length} offer{offers.data.length > 1 ? 's' : ''}
-          </SectionMeta>
-        ) : undefined
-      }
-    >
-      {offers.isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-40" />
-          <Skeleton className="h-40" />
-        </div>
-      ) : offers.data && offers.data.length > 0 ? (
-        <div className="grid items-stretch gap-4 md:grid-cols-2">
-          {offers.data.slice(0, 4).map((offer) => (
-            <RedeemFlow
-              key={offer.address.toBase58()}
-              holding={holding}
-              offer={offer}
-              redemptionIndex={0}
-            />
-          ))}
-        </div>
-      ) : (
-        <EmptySlate icon={Ticket}>
-          {holding.merchant.name} has no active offers right now.{' '}
-          <Link
-            to="/app/merchant/$address"
-            params={{ address: holding.merchant.address.toBase58() }}
-            className="inline-flex items-center gap-0.5 text-flame hover:text-flame-hover"
-          >
-            View their profile <ArrowRight className="size-3" aria-hidden />
-          </Link>
-        </EmptySlate>
-      )}
-    </Section>
   )
 }

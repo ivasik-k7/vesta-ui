@@ -1,18 +1,24 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey } from '@solana/web3.js'
+import { PublicKey, type TransactionInstruction } from '@solana/web3.js'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
+  ArrowUpRight,
+  Award,
   BadgeCheck,
+  Coins,
   Gauge,
   Gift,
   LayoutDashboard,
+  Loader2,
   LogOut,
   Megaphone,
+  Pause,
+  Play,
   ShieldCheck,
-  Store,
   Ticket,
   Trash2,
+  Undo2,
   Users,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -25,8 +31,14 @@ import {
   SelectField,
   TextField,
 } from '@/components/app/action-panel'
-import { fmtCount, fmtPoints } from '@/components/app/metric'
+import { fmtCount, fmtPoints, Metric } from '@/components/app/metric'
+import { Section, SectionMeta } from '@/components/app/section'
+import { DataRow, FieldRow, Group, Input, Row } from '@/components/app/settings-kit'
+import { ShareButton } from '@/components/app/share-button'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { humanizeError, useNotify } from '@/lib/notify/context'
 import {
   CAMPAIGN_KIND,
   CAMPAIGN_KIND_LABEL,
@@ -34,9 +46,10 @@ import {
   DEFAULT_DAILY_GIFT_CAP_RAW,
   GUARD_FLAG,
 } from '@/lib/vesta/constants'
-import type { Merchant } from '@/lib/vesta/decode'
+import type { Alliance, GuardConfig, Merchant } from '@/lib/vesta/decode'
 import {
   clawbackIx,
+  closeAchievementIx,
   closeCampaignIx,
   closeMerchantIx,
   closeOfferIx,
@@ -56,21 +69,35 @@ import {
   leaveAllianceIx,
   registerMerchantIx,
   revokeAttestationIx,
+  setAllianceParamsIx,
+  setAlliancePausedIx,
   setClawbackCapIx,
+  setGuardPausedIx,
   setMerchantOperatorIx,
   setMerchantPausedIx,
   setSwapBudgetIx,
   setSwapRateIx,
+  setTokenAttributeIx,
+  updateCampaignIx,
   updateDecayRateIx,
+  updateMerchantIx,
   updateMerchantProfileIx,
   updateTokenMetadataIx,
 } from '@/lib/vesta/ixns'
 import { pdas } from '@/lib/vesta/pda'
-import { useMyCampaigns, useMyIssuer, useMyMerchant, useOffers } from '@/lib/vesta/queries'
+import {
+  useAlliances,
+  useGuardConfig,
+  useMyAchievements,
+  useMyCampaigns,
+  useMyIssuer,
+  useMyMerchant,
+  useOffers,
+} from '@/lib/vesta/queries'
 import { sendIxns } from '@/lib/vesta/tx'
 
 export const Route = createFileRoute('/app/console')({
-  component: ConsolePage,
+  component: () => <ConsoleView tab="overview" />,
 })
 
 const CATEGORIES = [
@@ -82,27 +109,116 @@ const CATEGORIES = [
   { value: 5, label: 'Travel' },
 ]
 
+// UI-points → raw units (2 decimals).
 const raw = (ui: string): bigint => {
   const n = Number(ui)
   return Number.isFinite(n) && n > 0 ? BigInt(Math.round(n * 10 ** DECIMALS)) : 0n
 }
+const fromRaw = (r: bigint) => (Number(r) / 10 ** DECIMALS).toFixed(2)
 
-function ConsolePage() {
+/** Row-level signer with per-key busy state + toast feedback. */
+function useSign() {
+  const { connection } = useConnection()
+  const wallet = useWallet()
+  const qc = useQueryClient()
+  const { notify } = useNotify()
+  const [busyKey, setBusyKey] = useState<string | null>(null)
+  const run = async (key: string, label: string, ixns: TransactionInstruction[]) => {
+    if (!wallet.publicKey) return
+    setBusyKey(key)
+    try {
+      const sig = await sendIxns(connection, wallet, ixns)
+      notify('success', label, { message: 'Confirmed on devnet.', txSig: sig })
+      await qc.invalidateQueries()
+    } catch (e) {
+      notify('error', `${label} failed`, { message: humanizeError(e) })
+    } finally {
+      setBusyKey(null)
+    }
+  }
+  return { run, busyKey }
+}
+
+export type ConsoleTab =
+  | 'overview'
+  | 'issue'
+  | 'offers'
+  | 'achievements'
+  | 'campaigns'
+  | 'alliance'
+  | 'token'
+  | 'attest'
+  | 'advanced'
+
+export const CONSOLE_TABS: ConsoleTab[] = [
+  'overview',
+  'issue',
+  'offers',
+  'achievements',
+  'campaigns',
+  'alliance',
+  'token',
+  'attest',
+  'advanced',
+]
+
+const TAB_META: Record<ConsoleTab, { title: string; sub: string }> = {
+  overview: {
+    title: 'Merchant overview',
+    sub: 'Your program at a glance — status, lifetime figures, and owner controls.',
+  },
+  issue: {
+    title: 'Issue points',
+    sub: 'The core loop — award points for spend, straight to a customer wallet. Gasless for them.',
+  },
+  offers: {
+    title: 'Offers',
+    sub: 'Rewards customers redeem by burning points — create, monitor, and close them.',
+  },
+  achievements: {
+    title: 'Achievements',
+    sub: 'Soulbound kleos badges earned at lifetime thresholds — define, grant, and retire.',
+  },
+  campaigns: {
+    title: 'Campaigns',
+    sub: 'Time-boxed earn boosts — multipliers, flat bonuses, quests. Pause and close live.',
+  },
+  alliance: {
+    title: 'Alliance',
+    sub: 'Cross-brand point swaps at governed rates — found one or manage your membership.',
+  },
+  token: {
+    title: 'Token & guard',
+    sub: 'The Token-2022 mint your points live on, and the argus policy every transfer must pass.',
+  },
+  attest: {
+    title: 'Attestations',
+    sub: 'Vouch for wallets as an aegis issuer — argus guards can gate transfers on your word.',
+  },
+  advanced: {
+    title: 'Advanced',
+    sub: 'Operators, clawback, and the irreversible stuff.',
+  },
+}
+
+/** One merchant-console tab, routed from the sidebar (one route per tab). */
+export function ConsoleView({ tab }: { tab: ConsoleTab }) {
   const { publicKey } = useWallet()
   const myMerchant = useMyMerchant()
+  const meta = TAB_META[tab]
 
   return (
     <div>
-      <PageHeader
-        title="Merchant console"
-        sub="Run your loyalty program end to end — issue points, launch campaigns, mint badges, manage your alliance, tune the transfer guard, and issue attestations. Every action is one signed devnet transaction."
-      />
+      <PageHeader title={meta.title} sub={meta.sub} />
       {!publicKey ? (
         <ConnectPrompt message="Connect a devnet wallet to register a merchant or manage yours." />
       ) : myMerchant.isLoading ? (
-        <p className="text-muted-foreground text-sm">Checking for your merchant…</p>
+        <div className="space-y-4">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-64" />
+        </div>
       ) : myMerchant.data ? (
-        <ManageMerchant merchant={myMerchant.data} />
+        <TabBody tab={tab} merchant={myMerchant.data} />
       ) : (
         <RegisterMerchant />
       )}
@@ -110,7 +226,7 @@ function ConsolePage() {
   )
 }
 
-// ── registration ──────────────────────────────────────────────────────────────
+// ── registration (fallback when no merchant yet) ─────────────────────────────
 
 function RegisterMerchant() {
   const [name, setName] = useState('')
@@ -133,15 +249,16 @@ function RegisterMerchant() {
         disabled={!ready}
         run={async ({ wallet, connection, send }) => {
           if (!wallet.publicKey) throw new Error('Connect a wallet')
-          const ix = registerMerchantIx({
-            authority: wallet.publicKey,
-            name: name.trim(),
-            symbol: symbol.trim().toUpperCase(),
-            uri: 'https://dev-vesta.netlify.app/points.json',
-            decayRateBps: decayBps,
-            baseEarnRate: 100n,
-          })
-          return send(connection, wallet, [ix])
+          return send(connection, wallet, [
+            registerMerchantIx({
+              authority: wallet.publicKey,
+              name: name.trim(),
+              symbol: symbol.trim().toUpperCase(),
+              uri: 'https://dev-vesta.netlify.app/points.json',
+              decayRateBps: decayBps,
+              baseEarnRate: 100n,
+            }),
+          ])
         }}
       >
         <TextField label="Brand name (≤32)" value={name} onChange={setName} placeholder="Kavarna" />
@@ -158,239 +275,328 @@ function RegisterMerchant() {
   )
 }
 
-// ── manage (tabbed) ─────────────────────────────────────────────────────────
+// ── tab bodies (navigation lives in the sidebar) ─────────────────────────────
 
-type TabId =
-  | 'overview'
-  | 'issue'
-  | 'rewards'
-  | 'campaigns'
-  | 'alliance'
-  | 'trust'
-  | 'attest'
-  | 'advanced'
+function TabBody({ tab, merchant }: { tab: ConsoleTab; merchant: Merchant }) {
+  const authority = merchant.authority
+  const merchantPda = pdas.merchant(authority, 0n)
 
-const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'issue', label: 'Issue points', icon: Gift },
-  { id: 'rewards', label: 'Offers & badges', icon: Ticket },
-  { id: 'campaigns', label: 'Campaigns', icon: Megaphone },
-  { id: 'alliance', label: 'Alliance', icon: Users },
-  { id: 'trust', label: 'Token & guard', icon: ShieldCheck },
-  { id: 'attest', label: 'Attestations', icon: BadgeCheck },
-  { id: 'advanced', label: 'Advanced', icon: Gauge },
-]
-
-function ManageMerchant({ merchant }: { merchant: Merchant }) {
-  const [tab, setTab] = useState<TabId>('overview')
-  const self = merchant.authority
-
-  return (
-    <div className="space-y-6">
-      <div className="scrollbar-none flex gap-1 overflow-x-auto border-border border-b pb-px">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors ${
-              tab === t.id
-                ? 'border-flame text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <t.icon className="size-3.5" aria-hidden />
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'overview' && <OverviewTab merchant={merchant} authority={self} />}
-      {tab === 'issue' && <IssueTab merchant={merchant} authority={self} />}
-      {tab === 'rewards' && <RewardsTab merchant={merchant} authority={self} />}
-      {tab === 'campaigns' && <CampaignsTab merchant={merchant} authority={self} />}
-      {tab === 'alliance' && <AllianceTab merchant={merchant} authority={self} />}
-      {tab === 'trust' && <TrustTab merchant={merchant} authority={self} />}
-      {tab === 'attest' && <AttestTab authority={self} />}
-      {tab === 'advanced' && <AdvancedTab merchant={merchant} authority={self} />}
-    </div>
-  )
+  switch (tab) {
+    case 'overview':
+      return <OverviewTab merchant={merchant} merchantPda={merchantPda} />
+    case 'issue':
+      return <IssueTab merchant={merchant} merchantPda={merchantPda} />
+    case 'offers':
+      return <OffersTab merchant={merchant} merchantPda={merchantPda} />
+    case 'achievements':
+      return <AchievementsTab merchantPda={merchantPda} />
+    case 'campaigns':
+      return <CampaignsTab merchantPda={merchantPda} />
+    case 'alliance':
+      return <AllianceTab merchant={merchant} merchantPda={merchantPda} />
+    case 'token':
+      return <TokenGuardTab merchant={merchant} merchantPda={merchantPda} />
+    case 'attest':
+      return <AttestTab authority={authority} />
+    case 'advanced':
+      return <AdvancedTab merchant={merchant} merchantPda={merchantPda} />
+  }
 }
 
-// ── overview tab ──────────────────────────────────────────────────────────────
+// ── overview ──────────────────────────────────────────────────────────────────
 
-function OverviewTab({ merchant, authority }: { merchant: Merchant; authority: PublicKey }) {
-  const merchantPda = pdas.merchant(authority, 0n)
+function OverviewTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
+  const { run, busyKey } = useSign()
   const [category, setCategory] = useState<number>(merchant.category)
   const [uri, setUri] = useState(merchant.metadataUri)
+  const [earnRate, setEarnRate] = useState(merchant.baseEarnRate.toString())
+  const mint = merchant.pointMint.toBase58()
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-flame/40 bg-card p-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <Store className="size-5 text-flame" aria-hidden />
-          <p className="font-heading font-semibold text-lg">{merchant.name}</p>
-          {merchant.verified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-flame/10 px-2 py-0.5 text-flame text-xs">
-              <BadgeCheck className="size-3" aria-hidden /> Verified
-            </span>
-          ) : null}
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs ${
-              merchant.paused ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'
-            }`}
-          >
-            {merchant.paused ? 'Paused' : 'Active'}
-          </span>
-        </div>
-        <dl className="mt-5 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          <Field label="Decay rate" value={`${merchant.decayRateBps / 100}%/yr`} />
-          <Field label="Customers" value={fmtCount(merchant.customerCount)} />
-          <Field label="Issued" value={fmtPoints(merchant.lifetimePointsIssued)} />
-          <Field label="Redemptions" value={fmtCount(merchant.lifetimeRedemptions)} />
-          <Field label="Badges" value={fmtCount(merchant.badgesIssued)} />
-        </dl>
-        <a
-          href={`https://explorer.solana.com/address/${merchant.pointMint.toBase58()}?cluster=devnet`}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-flex items-center gap-1 font-mono text-flame text-sm hover:text-flame-hover"
-        >
-          point mint on explorer →
-        </a>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <ActionPanel
-          title={merchant.paused ? 'Resume merchant' : 'Pause merchant'}
-          description={
-            merchant.paused
-              ? 'Resume issuing, redeeming, and campaign activity. Clawback stays available while paused.'
-              : 'Freeze earn, redeem, and campaign mutations for your program — a scoped circuit breaker. Clawback remains available.'
-          }
-          cta={merchant.paused ? 'Resume' : 'Pause'}
-          run={async ({ wallet, connection, send }) => {
-            if (!wallet.publicKey) throw new Error('Connect a wallet')
-            return send(connection, wallet, [
-              setMerchantPausedIx(wallet.publicKey, merchantPda, !merchant.paused),
-            ])
-          }}
+    <div className="space-y-8">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-2xl border border-flame/30 bg-gradient-to-br from-flame/[0.06] to-transparent p-5">
+        <div
+          aria-hidden
+          className="-right-12 -top-12 pointer-events-none absolute size-40 rounded-full bg-flame/10 blur-3xl"
         />
-
-        <ActionPanel
-          title="Brand profile"
-          description="Set your category and off-chain metadata URI — surfaced in the public directory."
-          cta="Update profile"
-          run={async ({ wallet, connection, send }) => {
-            if (!wallet.publicKey) throw new Error('Connect a wallet')
-            return send(connection, wallet, [
-              updateMerchantProfileIx(wallet.publicKey, merchantPda, category, uri.trim()),
-            ])
-          }}
-        >
-          <SelectField
-            label="Category"
-            value={category}
-            onChange={setCategory}
-            options={CATEGORIES}
-          />
-          <TextField
-            label="Metadata URI"
-            value={uri}
-            onChange={setUri}
-            placeholder="https://…/brand.json"
-            mono
-          />
-        </ActionPanel>
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
+              Your merchant
+            </p>
+            <div className="mt-1 flex items-center gap-2">
+              <p className="font-heading font-semibold text-3xl tracking-tight">{merchant.name}</p>
+              {merchant.verified ? (
+                <BadgeCheck className="size-5 text-flame" aria-label="Verified" />
+              ) : null}
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs ${merchant.paused ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}
+              >
+                {merchant.paused ? 'Paused' : 'Active'}
+              </span>
+              {merchant.joinedAlliance ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground text-xs">
+                  <Users className="size-3" aria-hidden /> In alliance
+                </span>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-end gap-1.5">
+            <Link
+              to="/app/token/$mint"
+              params={{ mint }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-muted-foreground text-xs transition-colors hover:border-flame/40 hover:text-flame"
+            >
+              <Coins className="size-3.5" aria-hidden /> Token
+            </Link>
+            <ShareButton
+              value={merchant.address.toBase58()}
+              what="Merchant"
+              label="Share"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-muted-foreground text-xs transition-colors hover:border-flame/40 hover:text-flame"
+            />
+            <a
+              href={`https://explorer.solana.com/address/${mint}?cluster=devnet`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-muted-foreground text-xs transition-colors hover:border-flame/40 hover:text-flame"
+            >
+              Explorer <ArrowUpRight className="size-3.5" aria-hidden />
+            </a>
+          </div>
+        </div>
       </div>
+
+      {/* KPIs */}
+      <Section icon={LayoutDashboard} title="Business at a glance" desc="Lifetime program figures.">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <Metric icon={Users} label="Customers" value={fmtCount(merchant.customerCount)} accent />
+          <Metric icon={Coins} label="Issued" value={fmtPoints(merchant.lifetimePointsIssued)} />
+          <Metric
+            icon={Ticket}
+            label="Redemptions"
+            value={fmtCount(merchant.lifetimeRedemptions)}
+          />
+          <Metric icon={Award} label="Badges" value={fmtCount(merchant.badgesIssued)} />
+          <Metric icon={Undo2} label="Clawed back" value={fmtPoints(merchant.lifetimeClawedBack)} />
+        </div>
+      </Section>
+
+      {/* Controls */}
+      <Section icon={Gauge} title="Program controls" desc="Owner-only switches and rates.">
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          <Group title="Status">
+            <Row
+              icon={merchant.paused ? Play : Pause}
+              title={merchant.paused ? 'Resume merchant' : 'Pause merchant'}
+              desc="Scoped circuit breaker — halts earn/redeem/campaigns. Clawback stays available."
+            >
+              <Button
+                size="sm"
+                disabled={busyKey === 'pause'}
+                onClick={() =>
+                  run('pause', merchant.paused ? 'Resume merchant' : 'Pause merchant', [
+                    setMerchantPausedIx(merchant.authority, merchantPda, !merchant.paused),
+                  ])
+                }
+              >
+                {busyKey === 'pause' ? <Loader2 className="size-3.5 animate-spin" /> : null}
+                {merchant.paused ? 'Resume' : 'Pause'}
+              </Button>
+            </Row>
+            <FieldRow
+              label="Base earn rate"
+              desc="Raw units minted per 1 base unit of spend (100 = 1.00 pt per base)."
+            >
+              <div className="flex gap-2">
+                <Input
+                  value={earnRate}
+                  inputMode="numeric"
+                  onChange={(e) => setEarnRate(e.target.value.replace(/[^0-9]/g, ''))}
+                />
+                <Button
+                  size="sm"
+                  className="shrink-0"
+                  disabled={busyKey === 'rate' || !Number(earnRate)}
+                  onClick={() =>
+                    run('rate', 'Update earn rate', [
+                      updateMerchantIx(merchant.authority, merchantPda, BigInt(earnRate)),
+                    ])
+                  }
+                >
+                  Save
+                </Button>
+              </div>
+            </FieldRow>
+          </Group>
+
+          <Group title="Brand profile" desc="Surfaced in Discover and the public profile.">
+            <FieldRow label="Category">
+              <select
+                value={category}
+                onChange={(e) => setCategory(Number(e.target.value))}
+                className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </FieldRow>
+            <FieldRow label="Metadata URI">
+              <Input
+                mono
+                value={uri}
+                onChange={(e) => setUri(e.target.value)}
+                placeholder="https://…/brand.json"
+              />
+            </FieldRow>
+            <div className="px-4 py-3">
+              <Button
+                size="sm"
+                disabled={busyKey === 'profile'}
+                onClick={() =>
+                  run('profile', 'Update brand profile', [
+                    updateMerchantProfileIx(merchant.authority, merchantPda, category, uri.trim()),
+                  ])
+                }
+              >
+                {busyKey === 'profile' ? <Loader2 className="size-3.5 animate-spin" /> : null}
+                Save profile
+              </Button>
+            </div>
+          </Group>
+        </div>
+      </Section>
     </div>
   )
 }
 
-// ── issue points tab ──────────────────────────────────────────────────────────
+// ── issue points ──────────────────────────────────────────────────────────────
 
-function IssueTab({ merchant, authority }: { merchant: Merchant; authority: PublicKey }) {
-  const merchantPda = pdas.merchant(authority, 0n)
+// earn_points caps `minted` (= base × earn_rate(100) × multiplier ≤ ×2.4) at
+// 1,000,000 raw per tx — so the largest always-safe base amount is 4,166.
+const MAX_ISSUE_BASE = 4_000n
+
+function IssueTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
   const campaigns = useMyCampaigns(merchantPda)
   const [customer, setCustomer] = useState('')
   const [amount, setAmount] = useState('')
   const [campaign, setCampaign] = useState('')
-  const amountBase = raw(amount)
-  const ready = isPubkey(customer) && amountBase > 0n
+  const amountBase = (() => {
+    const n = Number(amount)
+    return Number.isFinite(n) && n > 0 ? BigInt(Math.round(n)) : 0n
+  })()
+  const overCap = amountBase > MAX_ISSUE_BASE
+  const ready = isPubkey(customer) && amountBase > 0n && !overCap
 
   const campaignOptions = [
     { value: '', label: 'No campaign (streak only)' },
-    ...(campaigns.data ?? []).map((c) => ({
-      value: c.address.toBase58(),
-      label: `#${c.id.toString()} · ${CAMPAIGN_KIND_LABEL[c.kind] ?? 'Campaign'}`,
-    })),
+    ...(campaigns.data ?? [])
+      .filter((c) => c.active && !c.paused)
+      .map((c) => ({
+        value: c.address.toBase58(),
+        label: `${c.name || `#${c.id}`} · ${CAMPAIGN_KIND_LABEL[c.kind] ?? 'Campaign'}`,
+      })),
   ]
 
   return (
-    <div className="max-w-lg">
-      <ActionPanel
-        title="Issue points"
-        description="Award points for a customer's spend. The base amount runs through their streak multiplier — and, optionally, a live campaign — before minting to their wallet."
-        cta="Issue points"
-        disabled={!ready}
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          const visitDay = Math.floor(Date.now() / 1000 / 86_400)
-          const cust = new PublicKey(customer)
-          const ix = campaign
-            ? earnPointsCampaignIx({
-                signer: wallet.publicKey,
-                merchant: merchantPda,
-                mint: merchant.pointMint,
-                customer: cust,
-                campaign: new PublicKey(campaign),
-                amountBase,
-                visitDay,
-              })
-            : earnPointsIx({
-                signer: wallet.publicKey,
-                merchant: merchantPda,
-                mint: merchant.pointMint,
-                customer: cust,
-                amountBase,
-                visitDay,
-              })
-          return send(connection, wallet, [ix])
-        }}
-      >
-        <AddressField label="Customer wallet" value={customer} onChange={setCustomer} />
-        <AmountField label="Base amount (spend)" value={amount} onChange={setAmount} />
-        <SelectField
-          label="Campaign"
-          value={campaign}
-          onChange={setCampaign}
-          options={campaignOptions}
-        />
-      </ActionPanel>
-    </div>
+    <Section
+      icon={Gift}
+      title="Issue points"
+      desc="The core loop — award points for a customer's spend, straight to their wallet."
+    >
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <ActionPanel
+          title="Issue points"
+          description={`1 base ≈ 1.00 pt before the streak multiplier (≤ ×2.4). The chain caps one issue at 10,000.00 pts — base max ${MAX_ISSUE_BASE.toLocaleString()}.`}
+          cta="Issue points"
+          disabled={!ready}
+          run={async ({ wallet, connection, send }) => {
+            if (!wallet.publicKey) throw new Error('Connect a wallet')
+            const visitDay = Math.floor(Date.now() / 1000 / 86_400)
+            const cust = new PublicKey(customer)
+            const ix = campaign
+              ? earnPointsCampaignIx({
+                  signer: wallet.publicKey,
+                  merchant: merchantPda,
+                  mint: merchant.pointMint,
+                  customer: cust,
+                  campaign: new PublicKey(campaign),
+                  amountBase,
+                  visitDay,
+                })
+              : earnPointsIx({
+                  signer: wallet.publicKey,
+                  merchant: merchantPda,
+                  mint: merchant.pointMint,
+                  customer: cust,
+                  amountBase,
+                  visitDay,
+                })
+            return send(connection, wallet, [ix])
+          }}
+        >
+          <AddressField label="Customer wallet" value={customer} onChange={setCustomer} />
+          <AmountField
+            label="Base amount (spend)"
+            value={amount}
+            onChange={setAmount}
+            suffix="base"
+          />
+          {overCap ? (
+            <p className="text-red-400/90 text-xs">
+              Max {MAX_ISSUE_BASE.toLocaleString()} base per transaction — split larger grants.
+            </p>
+          ) : null}
+          <SelectField
+            label="Campaign"
+            value={campaign}
+            onChange={setCampaign}
+            options={campaignOptions}
+          />
+        </ActionPanel>
+
+        <Group title="How earning works" desc="All math runs on-chain — the UI only proposes.">
+          <DataRow label="Earn rate" value={`${merchant.baseEarnRate.toString()} raw / base`} />
+          <DataRow label="Streak bonus" value="+2% per day, capped ×2.4 total" mono={false} />
+          <DataRow label="Per-tx cap" value="10,000.00 pts" mono={false} />
+          <DataRow label="Gasless for customer" value="Yes — you sign & pay" mono={false} />
+        </Group>
+      </div>
+    </Section>
   )
 }
 
-// ── rewards tab (offers + achievements) ──────────────────────────────────────
+// ── offers management ─────────────────────────────────────────────────────────
 
-function RewardsTab({ merchant, authority }: { merchant: Merchant; authority: PublicKey }) {
-  const merchantPda = pdas.merchant(authority, 0n)
+function OffersTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
   const offers = useOffers(merchant.address)
+  const { run, busyKey } = useSign()
   const [price, setPrice] = useState('')
   const [supply, setSupply] = useState('')
   const nextId = BigInt((offers.data?.length ?? 0) + 1)
   const priceRaw = raw(price)
   const supplyNum = Number.parseInt(supply, 10)
-  const offerReady = priceRaw > 0n && Number.isFinite(supplyNum) && supplyNum > 0
+  const ready = priceRaw > 0n && Number.isFinite(supplyNum) && supplyNum > 0
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+    <Section
+      icon={Ticket}
+      title="Offers"
+      desc="Rewards customers redeem by burning points — priced in UI value, so decay never cheats anyone."
+      right={offers.data ? <SectionMeta>{offers.data.length} live</SectionMeta> : undefined}
+    >
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <ActionPanel
-          title="Create an offer"
-          description={`Offer #${nextId.toString()} — priced in UI points, redeemable by customers burning decayed points at fair value.`}
+          title={`Create offer #${nextId.toString()}`}
+          description="Set the point price and how many units can ever be redeemed."
           cta="Create offer"
-          disabled={!offerReady}
+          disabled={!ready}
           run={async ({ wallet, connection, send }) => {
             if (!wallet.publicKey) throw new Error('Connect a wallet')
             return send(connection, wallet, [
@@ -408,129 +614,217 @@ function RewardsTab({ merchant, authority }: { merchant: Merchant; authority: Pu
           <AmountField label="Supply" value={supply} onChange={setSupply} suffix="units" />
         </ActionPanel>
 
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <p className="flex items-center gap-1.5 font-medium text-[13px] text-muted-foreground">
-            <Ticket className="size-3.5" aria-hidden /> Your offers
-          </p>
-          {offers.data && offers.data.length > 0 ? (
-            <ul className="mt-3 space-y-1.5">
-              {offers.data.map((o) => (
-                <li
-                  key={o.address.toBase58()}
-                  className="flex items-center justify-between gap-3 font-mono text-sm"
+        <Group title="Live offers" desc="Closing an offer returns its rent to you.">
+          {offers.isLoading ? (
+            <div className="p-4">
+              <Skeleton className="h-24" />
+            </div>
+          ) : offers.data && offers.data.length > 0 ? (
+            offers.data.map((o) => (
+              <Row
+                key={o.address.toBase58()}
+                title={`Offer #${o.id.toString()}`}
+                desc={`${fromRaw(o.pricePoints)} pts · ${o.supplyRemaining} left`}
+              >
+                <button
+                  type="button"
+                  disabled={busyKey === `offer-${o.id}`}
+                  onClick={() =>
+                    run(`offer-${o.id}`, `Close offer #${o.id}`, [
+                      closeOfferIx(merchant.authority, merchantPda, o.id),
+                    ])
+                  }
+                  className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50"
                 >
-                  <span className="text-muted-foreground">#{o.id.toString()}</span>
-                  <span>{(Number(o.pricePoints) / 10 ** DECIMALS).toFixed(2)} pts</span>
-                  <span className="text-muted-foreground text-xs">{o.supplyRemaining} left</span>
-                  <RowClose
-                    onClose={(w, c) => sendIxns(c, w, [closeOfferIx(authority, merchantPda, o.id)])}
-                  />
-                </li>
-              ))}
-            </ul>
+                  {busyKey === `offer-${o.id}` ? '…' : 'Close'}
+                </button>
+              </Row>
+            ))
           ) : (
-            <p className="mt-3 text-muted-foreground text-sm">No offers yet.</p>
+            <div className="px-4 py-6 text-center text-muted-foreground text-sm">
+              No offers yet.
+            </div>
           )}
-        </div>
+        </Group>
       </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <AchievementPanel merchant={merchantPda} />
-        <GrantBadgePanel merchant={merchantPda} />
-      </div>
-    </div>
+    </Section>
   )
 }
 
-function AchievementPanel({ merchant }: { merchant: PublicKey }) {
+// ── achievements management ───────────────────────────────────────────────────
+
+function AchievementsTab({ merchantPda }: { merchantPda: PublicKey }) {
+  const achievements = useMyAchievements(merchantPda)
+  const { run, busyKey } = useSign()
   const [name, setName] = useState('')
   const [threshold, setThreshold] = useState('')
+  const [grantId, setGrantId] = useState('')
+  const [grantCustomer, setGrantCustomer] = useState('')
   const thresholdRaw = raw(threshold)
-  const ready = name.trim().length > 0 && name.length <= 32 && thresholdRaw > 0n
+  const createReady = name.trim().length > 0 && name.length <= 32 && thresholdRaw > 0n
+  const grantReady = grantId !== '' && isPubkey(grantCustomer)
 
   return (
-    <ActionPanel
-      title="Define an achievement"
-      description="A soulbound kleos badge customers earn at a lifetime-points threshold. Non-transferable proof of devotion, gateable by any dApp."
-      cta="Create achievement"
-      disabled={!ready}
-      run={async ({ wallet, connection, send }) => {
-        if (!wallet.publicKey) throw new Error('Connect a wallet')
-        return send(connection, wallet, [
-          createAchievementIx({
-            authority: wallet.publicKey,
-            merchant,
-            id: BigInt(Date.now()),
-            name: name.trim(),
-            uri: 'https://dev-vesta.netlify.app/badge.json',
-            thresholdLifetime: thresholdRaw,
-          }),
-        ])
-      }}
+    <Section
+      icon={Award}
+      title="Achievements"
+      desc="Soulbound kleos badges customers earn at lifetime-points thresholds — non-transferable proof of devotion."
+      right={achievements.data ? <SectionMeta>{achievements.data.length}</SectionMeta> : undefined}
     >
-      <TextField
-        label="Badge name (≤32)"
-        value={name}
-        onChange={setName}
-        placeholder="First Flame"
-      />
-      <AmountField label="Lifetime threshold" value={threshold} onChange={setThreshold} />
-    </ActionPanel>
-  )
-}
+      <div className="space-y-6">
+        {/* Registry */}
+        <Group
+          title="Your achievements"
+          desc="Closing removes the definition (badges already granted survive)."
+        >
+          {achievements.isLoading ? (
+            <div className="p-4">
+              <Skeleton className="h-24" />
+            </div>
+          ) : achievements.data && achievements.data.length > 0 ? (
+            achievements.data.map((a) => (
+              <Row
+                key={a.address.toBase58()}
+                icon={Award}
+                title={
+                  <span className="flex items-center gap-2">
+                    <span className="truncate">{a.name}</span>
+                    <span className="rounded-full border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                      id {a.id.toString()}
+                    </span>
+                  </span>
+                }
+                desc={`threshold ${fromRaw(a.thresholdLifetime)} pts lifetime · ${a.badgeCount} badge${a.badgeCount === 1 ? '' : 's'} granted`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setGrantId(a.id.toString())}
+                    className="rounded-lg border border-flame/40 px-2.5 py-1 text-flame text-xs transition-colors hover:bg-flame/10"
+                  >
+                    Grant
+                  </button>
+                  <CloseAchievementButton
+                    merchantPda={merchantPda}
+                    id={a.id}
+                    name={a.name}
+                    run={run}
+                    busy={busyKey === `achv-${a.id}`}
+                  />
+                </div>
+              </Row>
+            ))
+          ) : (
+            <div className="px-4 py-6 text-center text-muted-foreground text-sm">
+              No achievements defined yet — create the first below.
+            </div>
+          )}
+        </Group>
 
-function GrantBadgePanel({ merchant }: { merchant: PublicKey }) {
-  const [achievementId, setAchievementId] = useState('')
-  const [customer, setCustomer] = useState('')
-  const ready = achievementId.trim().length > 0 && isPubkey(customer)
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          <ActionPanel
+            title="Define an achievement"
+            description="Customers who cross the lifetime threshold become eligible; anyone can then trigger the grant — the chain checks eligibility."
+            cta="Create achievement"
+            disabled={!createReady}
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              return send(connection, wallet, [
+                createAchievementIx({
+                  authority: wallet.publicKey,
+                  merchant: merchantPda,
+                  id: BigInt(Date.now()),
+                  name: name.trim(),
+                  uri: 'https://dev-vesta.netlify.app/badge.json',
+                  thresholdLifetime: thresholdRaw,
+                }),
+              ])
+            }}
+          >
+            <TextField
+              label="Badge name (≤32)"
+              value={name}
+              onChange={setName}
+              placeholder="First Flame"
+            />
+            <AmountField label="Lifetime threshold" value={threshold} onChange={setThreshold} />
+          </ActionPanel>
 
-  return (
-    <ActionPanel
-      title="Grant a badge"
-      description="Mint the soulbound badge to a customer who crossed the threshold. Anyone can trigger it — the chain checks eligibility."
-      cta="Grant badge"
-      disabled={!ready}
-      run={async ({ wallet, connection, send }) => {
-        if (!wallet.publicKey) throw new Error('Connect a wallet')
-        return send(connection, wallet, [
-          grantAchievementIx({
-            payer: wallet.publicKey,
-            merchant,
-            achievementId: BigInt(achievementId.trim()),
-            customer: new PublicKey(customer),
-          }),
-        ])
-      }}
-    >
-      <TextField
-        label="Achievement id"
-        value={achievementId}
-        onChange={(v) => setAchievementId(v.replace(/[^0-9]/g, ''))}
-        placeholder="1721476000000"
-        mono
-      />
-      <AddressField label="Customer wallet" value={customer} onChange={setCustomer} />
-    </ActionPanel>
-  )
-}
-
-// ── campaigns tab ─────────────────────────────────────────────────────────────
-
-function CampaignsTab({ merchant, authority }: { merchant: Merchant; authority: PublicKey }) {
-  const merchantPda = pdas.merchant(authority, 0n)
-  const offers = useOffers(merchant.address)
-  const nextId = BigInt((offers.data?.length ?? 0) + 1)
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <CampaignPanel merchant={merchantPda} campaignId={nextId} />
-        <CampaignList merchant={merchantPda} authority={authority} />
+          <ActionPanel
+            title="Grant a badge"
+            description="Mint the soulbound badge to an eligible customer. Pick an achievement above to prefill its id."
+            cta="Grant badge"
+            disabled={!grantReady}
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              return send(connection, wallet, [
+                grantAchievementIx({
+                  payer: wallet.publicKey,
+                  merchant: merchantPda,
+                  achievementId: BigInt(grantId),
+                  customer: new PublicKey(grantCustomer),
+                }),
+              ])
+            }}
+          >
+            <TextField
+              label="Achievement id"
+              value={grantId}
+              onChange={(v) => setGrantId(v.replace(/[^0-9]/g, ''))}
+              placeholder="pick above or paste"
+              mono
+            />
+            <AddressField
+              label="Customer wallet"
+              value={grantCustomer}
+              onChange={setGrantCustomer}
+            />
+          </ActionPanel>
+        </div>
       </div>
-    </div>
+    </Section>
   )
 }
 
-function CampaignPanel({ merchant, campaignId }: { merchant: PublicKey; campaignId: bigint }) {
+function CloseAchievementButton({
+  merchantPda,
+  id,
+  name,
+  run,
+  busy,
+}: {
+  merchantPda: PublicKey
+  id: bigint
+  name: string
+  run: (key: string, label: string, ixns: TransactionInstruction[]) => Promise<void>
+  busy: boolean
+}) {
+  const { publicKey } = useWallet()
+  return (
+    <button
+      type="button"
+      disabled={busy || !publicKey}
+      onClick={() =>
+        publicKey &&
+        run(`achv-${id}`, `Close achievement "${name}"`, [
+          closeAchievementIx(publicKey, merchantPda, id),
+        ])
+      }
+      className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50"
+    >
+      {busy ? '…' : 'Close'}
+    </button>
+  )
+}
+
+// ── campaigns management ─────────────────────────────────────────────────────
+
+function CampaignsTab({ merchantPda }: { merchantPda: PublicKey }) {
+  const campaigns = useMyCampaigns(merchantPda)
+  const { run, busyKey } = useSign()
+  const { publicKey } = useWallet()
+  const now = Date.now() / 1000
+
   const [kind, setKind] = useState<number>(CAMPAIGN_KIND.MULTIPLIER)
   const [name, setName] = useState('')
   const [multiplier, setMultiplier] = useState('1.5')
@@ -538,391 +832,804 @@ function CampaignPanel({ merchant, campaignId }: { merchant: PublicKey; campaign
   const [questTarget, setQuestTarget] = useState('')
   const [questReward, setQuestReward] = useState('')
   const [days, setDays] = useState('7')
-
+  const [budget, setBudget] = useState('0')
+  const [perCap, setPerCap] = useState('0')
+  const [minTier, setMinTier] = useState<number>(0)
+  const [minSpend, setMinSpend] = useState('0')
   const dayNum = Number.parseInt(days, 10)
-  const bps = Math.round(Number(multiplier) * 10_000) // e.g. 1.5× → 15000
+  const bps = Math.round(Number(multiplier) * 10_000)
   const ready = name.trim().length > 0 && Number.isFinite(dayNum) && dayNum > 0
+  const nextId = BigInt((campaigns.data?.length ?? 0) + 1)
 
   return (
-    <ActionPanel
-      title="Launch a campaign"
-      description="A time-boxed earn boost: a multiplier, a flat bonus per visit, or a quest that pays out on completion. Governed by an optional points budget."
-      cta="Create campaign"
-      disabled={!ready}
-      run={async ({ wallet, connection, send }) => {
-        if (!wallet.publicKey) throw new Error('Connect a wallet')
-        const now = BigInt(Math.floor(Date.now() / 1000))
-        return send(connection, wallet, [
-          createCampaignIx({
-            authority: wallet.publicKey,
-            merchant,
-            id: campaignId,
-            args: {
-              kind,
-              multiplierBps: kind === CAMPAIGN_KIND.MULTIPLIER ? bps : 0,
-              flatBonus: kind === CAMPAIGN_KIND.FLAT_BONUS ? raw(flat) : 0n,
-              questTarget: kind === CAMPAIGN_KIND.QUEST ? Number.parseInt(questTarget, 10) || 0 : 0,
-              questReward: kind === CAMPAIGN_KIND.QUEST ? raw(questReward) : 0n,
-              minSpendBase: 0n,
-              minTier: 0,
-              pointsBudget: 0n,
-              perCustomerCap: 0n,
-              startsAt: now - 60n,
-              endsAt: now + BigInt(dayNum) * 86_400n,
-              name: name.trim(),
-            },
-          }),
-        ])
-      }}
+    <Section
+      icon={Megaphone}
+      title="Campaigns"
+      desc="Time-boxed earn boosts — multipliers, flat bonuses, or quests. Pause, extend, or close them live."
+      right={campaigns.data ? <SectionMeta>{campaigns.data.length}</SectionMeta> : undefined}
     >
-      <TextField label="Campaign name" value={name} onChange={setName} placeholder="Summer boost" />
-      <SelectField
-        label="Kind"
-        value={kind}
-        onChange={setKind}
-        options={CAMPAIGN_KIND_LABEL.map((label, value) => ({ value, label }))}
-      />
-      {kind === CAMPAIGN_KIND.MULTIPLIER ? (
-        <AmountField label="Multiplier" value={multiplier} onChange={setMultiplier} suffix="×" />
-      ) : null}
-      {kind === CAMPAIGN_KIND.FLAT_BONUS ? (
-        <AmountField label="Flat bonus / visit" value={flat} onChange={setFlat} />
-      ) : null}
-      {kind === CAMPAIGN_KIND.QUEST ? (
-        <>
-          <AmountField
-            label="Quest target (visits)"
-            value={questTarget}
-            onChange={setQuestTarget}
-            suffix="visits"
-          />
-          <AmountField label="Reward on completion" value={questReward} onChange={setQuestReward} />
-        </>
-      ) : null}
-      <AmountField label="Duration" value={days} onChange={setDays} suffix="days" />
-    </ActionPanel>
-  )
-}
-
-function CampaignList({ merchant, authority }: { merchant: PublicKey; authority: PublicKey }) {
-  const campaigns = useMyCampaigns(merchant)
-  const now = Date.now() / 1000
-  return (
-    <div className="rounded-2xl border border-border bg-card p-6">
-      <p className="flex items-center gap-1.5 font-medium text-[13px] text-muted-foreground">
-        <Megaphone className="size-3.5" aria-hidden /> Your campaigns
-      </p>
-      {campaigns.data && campaigns.data.length > 0 ? (
-        <ul className="mt-3 space-y-1.5">
-          {campaigns.data.map((c) => {
-            const live =
-              c.active && !c.paused && Number(c.startsAt) <= now && now < Number(c.endsAt)
-            return (
-              <li
-                key={c.address.toBase58()}
-                className="flex items-center justify-between gap-3 font-mono text-sm"
-              >
-                <span className="text-muted-foreground">#{c.id.toString()}</span>
-                <span className="truncate">{CAMPAIGN_KIND_LABEL[c.kind]}</span>
-                <span
-                  className={live ? 'text-emerald-400 text-xs' : 'text-muted-foreground/60 text-xs'}
-                >
-                  {live ? 'live' : 'ended'}
-                </span>
-                <RowClose
-                  onClose={(w, conn) =>
-                    sendIxns(conn, w, [closeCampaignIx(authority, merchant, c.id)])
+      <div className="space-y-6">
+        <Group
+          title="Your campaigns"
+          desc="Pause stops accrual instantly; close returns rent when the run ends."
+        >
+          {campaigns.isLoading ? (
+            <div className="p-4">
+              <Skeleton className="h-24" />
+            </div>
+          ) : campaigns.data && campaigns.data.length > 0 ? (
+            campaigns.data.map((c) => {
+              const live =
+                c.active && !c.paused && Number(c.startsAt) <= now && now < Number(c.endsAt)
+              return (
+                <Row
+                  key={c.address.toBase58()}
+                  icon={Megaphone}
+                  title={
+                    <span className="flex items-center gap-2">
+                      <span className="truncate">{c.name || `Campaign #${c.id}`}</span>
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                          live
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : c.paused
+                              ? 'bg-amber-500/10 text-amber-400'
+                              : 'bg-secondary text-muted-foreground'
+                        }`}
+                      >
+                        {live ? 'live' : c.paused ? 'paused' : 'ended'}
+                      </span>
+                    </span>
                   }
+                  desc={`${CAMPAIGN_KIND_LABEL[c.kind] ?? 'Campaign'}${c.kind === 0 ? ` ×${(c.multiplierBps / 10_000).toFixed(2)}` : ''} · ${c.participantCount} participants · until ${new Date(Number(c.endsAt) * 1000).toLocaleDateString()}${c.pointsBudget > 0n ? ` · budget ${fromRaw(c.pointsSpent)}/${fromRaw(c.pointsBudget)} pts` : ''}`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      disabled={busyKey === `cext-${c.id}` || !publicKey}
+                      onClick={() =>
+                        publicKey &&
+                        run(`cext-${c.id}`, 'Extend campaign +7d', [
+                          updateCampaignIx({
+                            authority: publicKey,
+                            merchant: merchantPda,
+                            campaign: c.address,
+                            endsAt: c.endsAt + 7n * 86_400n,
+                          }),
+                        ])
+                      }
+                      className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-flame/40 hover:text-flame disabled:opacity-50"
+                    >
+                      {busyKey === `cext-${c.id}` ? '…' : '+7d'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busyKey === `cpause-${c.id}` || !publicKey}
+                      onClick={() =>
+                        publicKey &&
+                        run(`cpause-${c.id}`, c.paused ? 'Resume campaign' : 'Pause campaign', [
+                          updateCampaignIx({
+                            authority: publicKey,
+                            merchant: merchantPda,
+                            campaign: c.address,
+                            paused: !c.paused,
+                          }),
+                        ])
+                      }
+                      className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-flame/40 hover:text-flame disabled:opacity-50"
+                    >
+                      {busyKey === `cpause-${c.id}` ? '…' : c.paused ? 'Resume' : 'Pause'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busyKey === `cclose-${c.id}` || !publicKey}
+                      onClick={() =>
+                        publicKey &&
+                        run(`cclose-${c.id}`, `Close campaign #${c.id}`, [
+                          closeCampaignIx(publicKey, merchantPda, c.id),
+                        ])
+                      }
+                      className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50"
+                    >
+                      {busyKey === `cclose-${c.id}` ? '…' : 'Close'}
+                    </button>
+                  </div>
+                </Row>
+              )
+            })
+          ) : (
+            <div className="px-4 py-6 text-center text-muted-foreground text-sm">
+              No campaigns yet — launch the first below.
+            </div>
+          )}
+        </Group>
+
+        <div className="max-w-xl">
+          <ActionPanel
+            title="Launch a campaign"
+            description="A multiplier boosts every earn, a flat bonus pays per visit, a quest pays out on the Nth visit."
+            cta="Create campaign"
+            disabled={!ready}
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              const nowSec = BigInt(Math.floor(Date.now() / 1000))
+              return send(connection, wallet, [
+                createCampaignIx({
+                  authority: wallet.publicKey,
+                  merchant: merchantPda,
+                  id: nextId,
+                  args: {
+                    kind,
+                    multiplierBps: kind === CAMPAIGN_KIND.MULTIPLIER ? bps : 0,
+                    flatBonus: kind === CAMPAIGN_KIND.FLAT_BONUS ? raw(flat) : 0n,
+                    questTarget:
+                      kind === CAMPAIGN_KIND.QUEST ? Number.parseInt(questTarget, 10) || 0 : 0,
+                    questReward: kind === CAMPAIGN_KIND.QUEST ? raw(questReward) : 0n,
+                    minSpendBase: BigInt(Math.max(0, Math.round(Number(minSpend) || 0))),
+                    minTier,
+                    pointsBudget: raw(budget),
+                    perCustomerCap: raw(perCap),
+                    startsAt: nowSec - 60n,
+                    endsAt: nowSec + BigInt(dayNum) * 86_400n,
+                    name: name.trim(),
+                  },
+                }),
+              ])
+            }}
+          >
+            <TextField
+              label="Campaign name"
+              value={name}
+              onChange={setName}
+              placeholder="Summer boost"
+            />
+            <SelectField
+              label="Kind"
+              value={kind}
+              onChange={setKind}
+              options={CAMPAIGN_KIND_LABEL.map((label, value) => ({ value, label }))}
+            />
+            {kind === CAMPAIGN_KIND.MULTIPLIER ? (
+              <AmountField
+                label="Multiplier"
+                value={multiplier}
+                onChange={setMultiplier}
+                suffix="×"
+              />
+            ) : null}
+            {kind === CAMPAIGN_KIND.FLAT_BONUS ? (
+              <AmountField label="Flat bonus / visit" value={flat} onChange={setFlat} />
+            ) : null}
+            {kind === CAMPAIGN_KIND.QUEST ? (
+              <>
+                <AmountField
+                  label="Quest target (visits)"
+                  value={questTarget}
+                  onChange={setQuestTarget}
+                  suffix="visits"
                 />
-              </li>
-            )
-          })}
-        </ul>
-      ) : (
-        <p className="mt-3 text-muted-foreground text-sm">No campaigns yet.</p>
-      )}
-    </div>
+                <AmountField
+                  label="Reward on completion"
+                  value={questReward}
+                  onChange={setQuestReward}
+                />
+              </>
+            ) : null}
+            <AmountField label="Duration" value={days} onChange={setDays} suffix="days" />
+            <div className="grid grid-cols-2 gap-3">
+              <AmountField label="Points budget (0=∞)" value={budget} onChange={setBudget} />
+              <AmountField label="Per-customer cap (0=∞)" value={perCap} onChange={setPerCap} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <SelectField
+                label="Min tier"
+                value={minTier}
+                onChange={setMinTier}
+                options={[
+                  { value: 0, label: 'Any' },
+                  { value: 1, label: 'Silver+' },
+                  { value: 2, label: 'Gold+' },
+                  { value: 3, label: 'Platinum' },
+                ]}
+              />
+              <AmountField
+                label="Min spend (base)"
+                value={minSpend}
+                onChange={setMinSpend}
+                suffix="base"
+              />
+            </div>
+          </ActionPanel>
+        </div>
+      </div>
+    </Section>
   )
 }
 
-// ── alliance tab ──────────────────────────────────────────────────────────────
+// ── alliance ──────────────────────────────────────────────────────────────────
 
-function AllianceTab({ merchant, authority }: { merchant: Merchant; authority: PublicKey }) {
+function AllianceTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
   if (merchant.joinedAlliance) {
-    return <AllianceManagement alliance={merchant.joinedAlliance} authority={authority} />
+    return <AllianceManagement alliance={merchant.joinedAlliance} merchantPda={merchantPda} />
   }
-  return <FoundAlliance authority={authority} />
+  return <FoundAlliance merchantPda={merchantPda} />
 }
 
-function FoundAlliance({ authority }: { authority: PublicKey }) {
-  const merchantPda = pdas.merchant(authority, 0n)
+function FoundAlliance({ merchantPda }: { merchantPda: PublicKey }) {
   const [name, setName] = useState('')
   const ready = name.trim().length > 0 && name.length <= 32
 
   return (
-    <div className="max-w-lg">
-      <ActionPanel
-        title="Found an alliance"
-        description="Create a koinon alliance and join it — customers will be able to swap your points with other members at governed rates."
-        cta="Create & join alliance"
-        disabled={!ready}
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          const id = BigInt(Date.now())
-          const alliance = pdas.alliance(wallet.publicKey, id)
-          return send(connection, wallet, [
-            createAllianceIx({ creator: wallet.publicKey, id, name: name.trim() }),
-            joinAllianceIx({
-              authority: wallet.publicKey,
-              merchant: merchantPda,
-              alliance,
-              allianceAuthority: wallet.publicKey,
-              rateBps: 10_000,
-              swapInBudgetRaw: 1_000_000n,
-            }),
-          ])
-        }}
-      >
-        <TextField
-          label="Alliance name (≤32)"
-          value={name}
-          onChange={setName}
-          placeholder="Koinon"
-        />
-      </ActionPanel>
-    </div>
+    <Section
+      icon={Users}
+      title="Alliance"
+      desc="Found a koinon alliance so customers can swap your points with partner brands at governed rates."
+    >
+      <div className="max-w-lg">
+        <ActionPanel
+          title="Found an alliance"
+          description="Creates the alliance and joins your merchant in one transaction."
+          cta="Create & join alliance"
+          disabled={!ready}
+          run={async ({ wallet, connection, send }) => {
+            if (!wallet.publicKey) throw new Error('Connect a wallet')
+            const id = BigInt(Date.now())
+            const alliance = pdas.alliance(wallet.publicKey, id)
+            return send(connection, wallet, [
+              createAllianceIx({ creator: wallet.publicKey, id, name: name.trim() }),
+              joinAllianceIx({
+                authority: wallet.publicKey,
+                merchant: merchantPda,
+                alliance,
+                allianceAuthority: wallet.publicKey,
+                rateBps: 10_000,
+                swapInBudgetRaw: 1_000_000n,
+              }),
+            ])
+          }}
+        >
+          <TextField
+            label="Alliance name (≤32)"
+            value={name}
+            onChange={setName}
+            placeholder="Koinon"
+          />
+        </ActionPanel>
+      </div>
+    </Section>
   )
 }
 
 function AllianceManagement({
   alliance,
-  authority,
+  merchantPda,
 }: {
   alliance: PublicKey
-  authority: PublicKey
+  merchantPda: PublicKey
 }) {
-  const merchantPda = pdas.merchant(authority, 0n)
+  const { publicKey } = useWallet()
+  const alliances = useAlliances()
+  const info = alliances.data?.find((a) => a.address.equals(alliance)) ?? null
+  const isGovernor = !!publicKey && !!info && info.authority.equals(publicKey)
   const [rate, setRate] = useState('')
   const [budget, setBudget] = useState('')
   const rateBps = Math.round(Number(rate) * 100)
   const budgetRaw = raw(budget)
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <ActionPanel
-        title="Set swap rate"
-        description="Update your points' rate to the alliance unit. Needs the alliance authority co-sign — here you are both."
-        cta="Set rate"
-        disabled={!(rateBps > 0)}
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          return send(connection, wallet, [
-            setSwapRateIx({
-              authority: wallet.publicKey,
-              merchant: merchantPda,
-              allianceAuthority: wallet.publicKey,
-              alliance,
-              newRate: rateBps,
-            }),
-          ])
-        }}
-      >
-        <AmountField label="Rate (× alliance unit)" value={rate} onChange={setRate} suffix="×" />
-      </ActionPanel>
-
-      <ActionPanel
-        title="Set inbound budget"
-        description="Your daily cap on points others can mint into via swaps — your chosen exposure to partner economies."
-        cta="Set budget"
-        disabled={!(budgetRaw > 0n)}
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          return send(connection, wallet, [
-            setSwapBudgetIx({
-              authority: wallet.publicKey,
-              merchant: merchantPda,
-              alliance,
-              newBudget: budgetRaw,
-            }),
-          ])
-        }}
-      >
-        <AmountField label="Daily inbound budget" value={budget} onChange={setBudget} />
-      </ActionPanel>
-
-      <ActionPanel
-        title="Leave alliance"
-        description="Exit the alliance. Your membership closes and rent returns to you; customers can no longer swap into your points."
-        cta="Leave alliance"
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          return send(connection, wallet, [
-            leaveAllianceIx(wallet.publicKey, merchantPda, alliance),
-          ])
-        }}
-      >
-        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          <LogOut className="size-4 text-flame" aria-hidden />
-          Departure is one signature
-        </div>
-      </ActionPanel>
-    </div>
-  )
-}
-
-// ── trust tab (token + guard) ─────────────────────────────────────────────────
-
-function TrustTab({ merchant, authority }: { merchant: Merchant; authority: PublicKey }) {
-  const merchantPda = pdas.merchant(authority, 0n)
-  const mint = merchant.pointMint
-  const [decay, setDecay] = useState(String(-merchant.decayRateBps / 100))
-  const [metaKind, setMetaKind] = useState<number>(2)
-  const [metaValue, setMetaValue] = useState('')
-
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+    <Section
+      icon={Users}
+      title="Alliance"
+      desc="Tune how your points trade against the alliance unit, and your daily inbound exposure."
+      right={
+        <SectionMeta>
+          {alliance.toBase58().slice(0, 4)}…{alliance.toBase58().slice(-4)}
+        </SectionMeta>
+      }
+    >
+      <div className="grid items-stretch gap-4 lg:grid-cols-3">
         <ActionPanel
-          title="Retune decay rate"
-          description="Change how fast unspent points cool. Positive appreciation is possible too — set a negative annual rate to keep points melting."
-          cta="Update decay"
+          title="Set swap rate"
+          description="Your points' rate to the alliance unit — needs the alliance authority co-sign (you, if self-founded)."
+          cta="Set rate"
+          disabled={!(rateBps > 0)}
           run={async ({ wallet, connection, send }) => {
             if (!wallet.publicKey) throw new Error('Connect a wallet')
             return send(connection, wallet, [
-              updateDecayRateIx({
+              setSwapRateIx({
                 authority: wallet.publicKey,
                 merchant: merchantPda,
-                mint,
-                newRateBps: -Math.round(Number(decay) * 100),
+                allianceAuthority: wallet.publicKey,
+                alliance,
+                newRate: rateBps,
               }),
             ])
           }}
         >
-          <AmountField label="Annual decay" value={decay} onChange={setDecay} suffix="%/yr" />
+          <AmountField label="Rate (× alliance unit)" value={rate} onChange={setRate} suffix="×" />
         </ActionPanel>
 
         <ActionPanel
-          title="Update token metadata"
-          description="Edit the on-chain Token-2022 metadata field — name, symbol, or the metadata URI that wallets and explorers read."
-          cta="Update metadata"
+          title="Set inbound budget"
+          description="Daily cap on points others can swap into — your chosen exposure to partner economies."
+          cta="Set budget"
+          disabled={!(budgetRaw > 0n)}
           run={async ({ wallet, connection, send }) => {
             if (!wallet.publicKey) throw new Error('Connect a wallet')
             return send(connection, wallet, [
-              updateTokenMetadataIx({
+              setSwapBudgetIx({
                 authority: wallet.publicKey,
                 merchant: merchantPda,
-                mint,
-                fieldKind: metaKind,
-                value: metaValue.trim(),
+                alliance,
+                newBudget: budgetRaw,
               }),
             ])
           }}
         >
-          <SelectField
-            label="Field"
-            value={metaKind}
-            onChange={setMetaKind}
-            options={[
-              { value: 0, label: 'Name' },
-              { value: 1, label: 'Symbol' },
-              { value: 2, label: 'URI' },
-            ]}
-          />
-          <TextField label="New value" value={metaValue} onChange={setMetaValue} mono />
+          <AmountField label="Daily inbound budget" value={budget} onChange={setBudget} />
+        </ActionPanel>
+
+        <ActionPanel
+          title="Leave alliance"
+          description="Membership closes and rent returns; customers can no longer swap into your points."
+          cta="Leave alliance"
+          run={async ({ wallet, connection, send }) => {
+            if (!wallet.publicKey) throw new Error('Connect a wallet')
+            return send(connection, wallet, [
+              leaveAllianceIx(wallet.publicKey, merchantPda, alliance),
+            ])
+          }}
+        >
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+            <LogOut className="size-4 text-flame" aria-hidden />
+            Departure is one signature
+          </div>
         </ActionPanel>
       </div>
 
-      <GuardPanel merchant={merchantPda} mint={mint} />
-    </div>
+      {info ? (
+        <div className="mt-6 grid items-start gap-4 lg:grid-cols-2">
+          <Group
+            title={`Alliance · ${info.name || 'unnamed'}`}
+            desc="Read live from the alliance account."
+            right={
+              <span
+                className={`rounded-full px-2 py-0.5 text-[11px] ${info.paused ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}
+              >
+                {info.paused ? 'Paused' : 'Live'}
+              </span>
+            }
+          >
+            <DataRow label="Members" value={String(info.memberCount)} />
+            <DataRow label="Swap fee" value={`${info.feeBps / 100}%`} />
+            <DataRow
+              label="Rate bounds"
+              value={`${info.minRateBps / 100}% – ${info.maxRateBps / 100}%`}
+            />
+            <DataRow label="Total swaps" value={fmtCount(info.totalSwaps)} />
+            <DataRow label="UI volume" value={fmtPoints(info.totalUiVolume)} />
+          </Group>
+
+          {isGovernor ? <AllianceGovernance info={info} /> : null}
+        </div>
+      ) : null}
+    </Section>
   )
 }
 
-function GuardPanel({ merchant, mint }: { merchant: PublicKey; mint: PublicKey }) {
-  const [cap, setCap] = useState(String(DEFAULT_DAILY_GIFT_CAP_RAW / 10 ** DECIMALS))
-  const [blockProgram, setBlockProgram] = useState(true)
+/** Governance panel — only the alliance authority sees these controls. */
+function AllianceGovernance({ info }: { info: Alliance }) {
+  const { run, busyKey } = useSign()
+  const { publicKey } = useWallet()
+  const [fee, setFee] = useState(String(info.feeBps / 100))
+  const [minR, setMinR] = useState(String(info.minRateBps / 100))
+  const [maxR, setMaxR] = useState(String(info.maxRateBps / 100))
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <ActionPanel
-        title="Initialize transfer guard"
-        description="Creates the argus policy for your mint. Required before customers can gift — without it, hooked transfers fail closed."
-        cta="Initialize guard"
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          return send(connection, wallet, [
-            initializeTransferGuardIx({
-              authority: wallet.publicKey,
-              merchant,
-              mint,
-              policy: {
-                flags: blockProgram ? GUARD_FLAG.BLOCK_PROGRAM_OWNED : 0,
-                dailyGiftCap: raw(cap),
-                perTxCap: 0n,
-                maxWalletBalance: 0n,
-                transfersPerDayCap: 0,
-                cooldownSecs: 0,
-                attestationIssuer: PublicKey.default,
-                attestationSchema: 0,
-                attestationMask: 0n,
-              },
-            }),
-          ])
-        }}
+    <Group title="Governance" desc="You are the alliance authority — these apply to every member.">
+      <Row
+        icon={info.paused ? Play : Pause}
+        title={info.paused ? 'Resume alliance' : 'Pause alliance'}
+        desc="Halts all cross-brand swaps while paused."
       >
-        <AmountField label="Daily gift cap" value={cap} onChange={setCap} />
-        <Toggle
-          label="Block program-owned recipients"
-          checked={blockProgram}
-          onChange={setBlockProgram}
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-line-strong"
+          disabled={busyKey === 'apause' || !publicKey}
+          onClick={() =>
+            publicKey &&
+            run('apause', info.paused ? 'Resume alliance' : 'Pause alliance', [
+              setAlliancePausedIx(publicKey, info.address, !info.paused),
+            ])
+          }
+        >
+          {busyKey === 'apause' ? '…' : info.paused ? 'Resume' : 'Pause'}
+        </Button>
+      </Row>
+      <FieldRow label="Swap fee (%)" desc="Charged on every swap, burned from the out-leg.">
+        <Input
+          value={fee}
+          inputMode="decimal"
+          onChange={(e) => setFee(e.target.value.replace(/[^0-9.]/g, ''))}
         />
-      </ActionPanel>
-
-      <ActionPanel
-        title="Retune guard policy"
-        description="Adjust the live daily gift cap without touching the rest of the policy. Takes effect on the next transfer."
-        cta="Update policy"
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          return send(connection, wallet, [
-            configurePolicyIx({ authority: wallet.publicKey, mint, dailyGiftCap: raw(cap) }),
-          ])
-        }}
+      </FieldRow>
+      <FieldRow
+        label="Rate bounds (min % – max %)"
+        desc="Members must set their swap rate inside these bounds."
       >
-        <AmountField label="New daily gift cap" value={cap} onChange={setCap} />
-      </ActionPanel>
-
-      <ActionPanel
-        title="Finalize guard (burn authority)"
-        description="Permanently revoke the hook authority. After this, not even you can repoint the transfer rules — the strongest trust signal you can give customers."
-        cta="Finalize guard"
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          return send(connection, wallet, [
-            finalizeTransferGuardIx(wallet.publicKey, merchant, mint),
-          ])
-        }}
-      >
-        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          <ShieldCheck className="size-4 text-flame" aria-hidden />
-          Irreversible
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            value={minR}
+            inputMode="decimal"
+            onChange={(e) => setMinR(e.target.value.replace(/[^0-9.]/g, ''))}
+          />
+          <Input
+            value={maxR}
+            inputMode="decimal"
+            onChange={(e) => setMaxR(e.target.value.replace(/[^0-9.]/g, ''))}
+          />
         </div>
-      </ActionPanel>
+      </FieldRow>
+      <div className="px-4 py-3">
+        <Button
+          size="sm"
+          disabled={busyKey === 'aparams' || !publicKey}
+          onClick={() =>
+            publicKey &&
+            run('aparams', 'Update alliance params', [
+              setAllianceParamsIx({
+                authority: publicKey,
+                alliance: info.address,
+                feeBps: Math.round(Number(fee) * 100),
+                minRateBps: Math.round(Number(minR) * 100),
+                maxRateBps: Math.round(Number(maxR) * 100),
+              }),
+            ])
+          }
+        >
+          {busyKey === 'aparams' ? '…' : 'Save params'}
+        </Button>
+      </div>
+    </Group>
+  )
+}
+
+// ── token & guard ─────────────────────────────────────────────────────────────
+
+function TokenGuardTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
+  const mint = merchant.pointMint
+  const guard = useGuardConfig(mint)
+  const { run, busyKey } = useSign()
+  const { publicKey } = useWallet()
+
+  const [decay, setDecay] = useState(String(-merchant.decayRateBps / 100))
+  const [metaKind, setMetaKind] = useState<number>(2)
+  const [metaValue, setMetaValue] = useState('')
+  const [attrKey, setAttrKey] = useState('')
+  const [attrValue, setAttrValue] = useState('')
+
+  return (
+    <div className="space-y-8">
+      <Section icon={Coins} title="Token" desc="The Token-2022 mint your points live on.">
+        <div className="grid items-start gap-4 lg:grid-cols-3">
+          <ActionPanel
+            title="Retune decay rate"
+            description="How fast unspent points cool — the living heart of the token."
+            cta="Update decay"
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              return send(connection, wallet, [
+                updateDecayRateIx({
+                  authority: wallet.publicKey,
+                  merchant: merchantPda,
+                  mint,
+                  newRateBps: -Math.round(Number(decay) * 100),
+                }),
+              ])
+            }}
+          >
+            <AmountField label="Annual decay" value={decay} onChange={setDecay} suffix="%/yr" />
+          </ActionPanel>
+
+          <ActionPanel
+            title="Update metadata"
+            description="Edit the on-chain name, symbol, or URI wallets and explorers read."
+            cta="Update metadata"
+            disabled={metaValue.trim() === ''}
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              return send(connection, wallet, [
+                updateTokenMetadataIx({
+                  authority: wallet.publicKey,
+                  merchant: merchantPda,
+                  mint,
+                  fieldKind: metaKind,
+                  value: metaValue.trim(),
+                }),
+              ])
+            }}
+          >
+            <SelectField
+              label="Field"
+              value={metaKind}
+              onChange={setMetaKind}
+              options={[
+                { value: 0, label: 'Name' },
+                { value: 1, label: 'Symbol' },
+                { value: 2, label: 'URI' },
+              ]}
+            />
+            <TextField label="New value" value={metaValue} onChange={setMetaValue} mono />
+          </ActionPanel>
+
+          <ActionPanel
+            title="Set custom attribute"
+            description="Attach an arbitrary key/value to the token's on-chain metadata — tiers, perks, anything."
+            cta="Set attribute"
+            disabled={attrKey.trim() === '' || attrValue.trim() === ''}
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              return send(connection, wallet, [
+                setTokenAttributeIx({
+                  authority: wallet.publicKey,
+                  merchant: merchantPda,
+                  mint,
+                  key: attrKey.trim(),
+                  value: attrValue.trim(),
+                }),
+              ])
+            }}
+          >
+            <TextField
+              label="Key"
+              value={attrKey}
+              onChange={setAttrKey}
+              placeholder="tier_perk"
+              mono
+            />
+            <TextField
+              label="Value"
+              value={attrValue}
+              onChange={setAttrValue}
+              placeholder="free espresso"
+            />
+          </ActionPanel>
+        </div>
+      </Section>
+
+      <Section
+        icon={ShieldCheck}
+        title="Transfer guard"
+        desc="The argus policy every peer transfer of your points must pass — read live from the chain."
+      >
+        {guard.isLoading ? (
+          <Skeleton className="h-40" />
+        ) : guard.data ? (
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            <Group
+              title="Live policy"
+              right={
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] ${guard.data.paused ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}
+                >
+                  {guard.data.paused ? 'Paused' : 'Enforcing'}
+                </span>
+              }
+            >
+              <DataRow label="Daily gift cap" value={`${fromRaw(guard.data.dailyGiftCap)} pts`} />
+              <DataRow
+                label="Per-tx cap"
+                value={
+                  guard.data.perTxCap > 0n ? `${fromRaw(guard.data.perTxCap)} pts` : 'unlimited'
+                }
+              />
+              <DataRow
+                label="Max wallet balance"
+                value={
+                  guard.data.maxWalletBalance > 0n
+                    ? `${fromRaw(guard.data.maxWalletBalance)} pts`
+                    : 'unlimited'
+                }
+              />
+              <DataRow
+                label="Transfers / day"
+                value={
+                  guard.data.transfersPerDayCap > 0
+                    ? String(guard.data.transfersPerDayCap)
+                    : 'unlimited'
+                }
+                mono={false}
+              />
+              <DataRow
+                label="Cooldown"
+                value={guard.data.cooldownSecs > 0 ? `${guard.data.cooldownSecs}s` : 'none'}
+                mono={false}
+              />
+              <DataRow
+                label="Block program-owned"
+                value={(guard.data.flags & GUARD_FLAG.BLOCK_PROGRAM_OWNED) !== 0 ? 'Yes' : 'No'}
+                mono={false}
+              />
+              <DataRow
+                label="Gifting"
+                value={
+                  (guard.data.flags & GUARD_FLAG.GIFTING_DISABLED) !== 0 ? 'Disabled' : 'Enabled'
+                }
+                mono={false}
+              />
+              <Row
+                icon={guard.data.paused ? Play : Pause}
+                title={guard.data.paused ? 'Resume transfers' : 'Pause transfers'}
+                desc="Freezes every peer transfer of the token while paused."
+              >
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-line-strong"
+                  disabled={busyKey === 'gpause' || !publicKey}
+                  onClick={() =>
+                    publicKey &&
+                    run('gpause', guard.data?.paused ? 'Resume guard' : 'Pause guard', [
+                      setGuardPausedIx(publicKey, mint, !guard.data?.paused),
+                    ])
+                  }
+                >
+                  {busyKey === 'gpause' ? '…' : guard.data.paused ? 'Resume' : 'Pause'}
+                </Button>
+              </Row>
+            </Group>
+
+            <div className="space-y-4">
+              <PolicyEditor mint={mint} guard={guard.data} />
+
+              <ActionPanel
+                title="Finalize guard"
+                description="Permanently burns the hook authority — not even you can repoint the rules after this. The strongest trust signal."
+                cta="Finalize (irreversible)"
+                run={async ({ wallet, connection, send }) => {
+                  if (!wallet.publicKey) throw new Error('Connect a wallet')
+                  return send(connection, wallet, [
+                    finalizeTransferGuardIx(wallet.publicKey, merchantPda, mint),
+                  ])
+                }}
+              >
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <ShieldCheck className="size-4 text-flame" aria-hidden />
+                  Irreversible
+                </div>
+              </ActionPanel>
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-lg">
+            <ActionPanel
+              title="Initialize transfer guard"
+              description="Creates the argus policy for your mint — required before customers can gift your points (transfers fail closed without it)."
+              cta="Initialize guard"
+              run={async ({ wallet, connection, send }) => {
+                if (!wallet.publicKey) throw new Error('Connect a wallet')
+                return send(connection, wallet, [
+                  initializeTransferGuardIx({
+                    authority: wallet.publicKey,
+                    merchant: merchantPda,
+                    mint,
+                    policy: {
+                      flags: GUARD_FLAG.BLOCK_PROGRAM_OWNED,
+                      dailyGiftCap: BigInt(DEFAULT_DAILY_GIFT_CAP_RAW),
+                      perTxCap: 0n,
+                      maxWalletBalance: 0n,
+                      transfersPerDayCap: 0,
+                      cooldownSecs: 0,
+                      attestationIssuer: PublicKey.default,
+                      attestationSchema: 0,
+                      attestationMask: 0n,
+                    },
+                  }),
+                ])
+              }}
+            >
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <ShieldCheck className="size-4 text-flame" aria-hidden />
+                Default: 500 pts/day gift cap, program-owned recipients blocked
+              </div>
+            </ActionPanel>
+          </div>
+        )}
+      </Section>
     </div>
   )
 }
 
-// ── attestations tab (aegis) ──────────────────────────────────────────────────
+/** Full argus policy editor — every knob the program exposes, prefilled live. */
+function PolicyEditor({ mint, guard }: { mint: PublicKey; guard: GuardConfig }) {
+  const [giftCap, setGiftCap] = useState(fromRaw(guard.dailyGiftCap))
+  const [perTx, setPerTx] = useState(guard.perTxCap > 0n ? fromRaw(guard.perTxCap) : '0')
+  const [maxBal, setMaxBal] = useState(
+    guard.maxWalletBalance > 0n ? fromRaw(guard.maxWalletBalance) : '0',
+  )
+  const [perDay, setPerDay] = useState(String(guard.transfersPerDayCap))
+  const [cooldown, setCooldown] = useState(String(guard.cooldownSecs))
+  const [blockProgram, setBlockProgram] = useState(
+    (guard.flags & GUARD_FLAG.BLOCK_PROGRAM_OWNED) !== 0,
+  )
+  const [noGifting, setNoGifting] = useState((guard.flags & GUARD_FLAG.GIFTING_DISABLED) !== 0)
+
+  const optRaw = (v: string): bigint => {
+    const n = Number(v)
+    return Number.isFinite(n) && n > 0 ? BigInt(Math.round(n * 10 ** DECIMALS)) : 0n
+  }
+  const optInt = (v: string): number => {
+    const n = Number.parseInt(v, 10)
+    return Number.isFinite(n) && n > 0 ? n : 0
+  }
+
+  return (
+    <ActionPanel
+      title="Policy editor"
+      description="Every knob argus enforces — zeros mean unlimited/none. Changes apply from the next transfer."
+      cta="Update policy"
+      disabled={optRaw(giftCap) <= 0n}
+      run={async ({ wallet, connection, send }) => {
+        if (!wallet.publicKey) throw new Error('Connect a wallet')
+        const flags =
+          (blockProgram ? GUARD_FLAG.BLOCK_PROGRAM_OWNED : 0) |
+          (noGifting ? GUARD_FLAG.GIFTING_DISABLED : 0)
+        return send(connection, wallet, [
+          configurePolicyIx({
+            authority: wallet.publicKey,
+            mint,
+            flags,
+            dailyGiftCap: optRaw(giftCap),
+            perTxCap: optRaw(perTx),
+            maxWalletBalance: optRaw(maxBal),
+            transfersPerDayCap: optInt(perDay),
+            cooldownSecs: optInt(cooldown),
+          }),
+        ])
+      }}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <AmountField label="Daily gift cap" value={giftCap} onChange={setGiftCap} />
+        <AmountField label="Per-tx cap (0=∞)" value={perTx} onChange={setPerTx} />
+        <AmountField label="Max balance (0=∞)" value={maxBal} onChange={setMaxBal} />
+        <AmountField label="Transfers/day (0=∞)" value={perDay} onChange={setPerDay} suffix="tx" />
+      </div>
+      <AmountField
+        label="Cooldown between transfers (0=none)"
+        value={cooldown}
+        onChange={setCooldown}
+        suffix="sec"
+      />
+      <label className="flex cursor-pointer items-center gap-2 text-muted-foreground text-sm">
+        <input
+          type="checkbox"
+          checked={blockProgram}
+          onChange={(e) => setBlockProgram(e.target.checked)}
+          className="size-4 accent-flame"
+        />
+        Block program-owned recipients
+      </label>
+      <label className="flex cursor-pointer items-center gap-2 text-muted-foreground text-sm">
+        <input
+          type="checkbox"
+          checked={noGifting}
+          onChange={(e) => setNoGifting(e.target.checked)}
+          className="size-4 accent-flame"
+        />
+        Disable gifting entirely
+      </label>
+    </ActionPanel>
+  )
+}
+
+// ── attestations (aegis issuer) ──────────────────────────────────────────────
 
 function AttestTab({ authority }: { authority: PublicKey }) {
   const issuer = useMyIssuer()
 
-  if (issuer.isLoading) {
-    return <p className="text-muted-foreground text-sm">Checking for your issuer…</p>
-  }
-
-  if (!issuer.data) {
-    return <RegisterIssuer />
-  }
+  if (issuer.isLoading) return <Skeleton className="h-40" />
+  if (!issuer.data) return <RegisterIssuer />
 
   return (
     <IssuerConsole
@@ -938,27 +1645,33 @@ function RegisterIssuer() {
   const ready = name.trim().length > 0 && name.length <= 32
 
   return (
-    <div className="max-w-lg">
-      <ActionPanel
-        title="Become an aegis issuer"
-        description="Register as an attestation issuer. You can then vouch for wallets — region, KYC tier, age band — and argus guards can gate transfers on your attestations."
-        cta="Register issuer"
-        disabled={!ready}
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          return send(connection, wallet, [
-            initIssuerIx({ authority: wallet.publicKey, name: name.trim() }),
-          ])
-        }}
-      >
-        <TextField
-          label="Issuer name (≤32)"
-          value={name}
-          onChange={setName}
-          placeholder="Kavarna KYC"
-        />
-      </ActionPanel>
-    </div>
+    <Section
+      icon={BadgeCheck}
+      title="Attestations"
+      desc="Become an aegis issuer to vouch for wallets — argus guards can then gate transfers on your attestations."
+    >
+      <div className="max-w-lg">
+        <ActionPanel
+          title="Become an issuer"
+          description="Registers your aegis issuer account; you can then issue and revoke attestations."
+          cta="Register issuer"
+          disabled={!ready}
+          run={async ({ wallet, connection, send }) => {
+            if (!wallet.publicKey) throw new Error('Connect a wallet')
+            return send(connection, wallet, [
+              initIssuerIx({ authority: wallet.publicKey, name: name.trim() }),
+            ])
+          }}
+        >
+          <TextField
+            label="Issuer name (≤32)"
+            value={name}
+            onChange={setName}
+            placeholder="Kavarna KYC"
+          />
+        </ActionPanel>
+      </div>
+    </Section>
   )
 }
 
@@ -978,21 +1691,16 @@ function IssuerConsole({
   const [revokeSubject, setRevokeSubject] = useState('')
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-flame/40 bg-card p-6">
-        <div className="flex items-center gap-2">
-          <BadgeCheck className="size-5 text-flame" aria-hidden />
-          <p className="font-heading font-semibold text-lg">{name}</p>
-          <span className="ml-auto font-mono text-muted-foreground text-sm">
-            {fmtCount(issued)} issued
-          </span>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
+    <Section
+      icon={BadgeCheck}
+      title="Attestations"
+      desc={`Issuing as "${name}" — argus reads these at transfer time to enforce compliance policies.`}
+      right={<SectionMeta>{fmtCount(issued)} issued</SectionMeta>}
+    >
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <ActionPanel
           title="Issue attestation"
-          description="Vouch for a wallet under a schema. The attestation is a PDA argus can read at transfer time to enforce compliance policies."
+          description="Vouch for a wallet under a schema — region, KYC tier, or age band."
           cta="Issue attestation"
           disabled={!isPubkey(subject)}
           run={async ({ wallet, connection, send }) => {
@@ -1029,7 +1737,7 @@ function IssuerConsole({
 
         <ActionPanel
           title="Revoke attestation"
-          description="Immediately invalidate a wallet's attestation. argus fails closed on revoked attestations from the next transfer."
+          description="Immediately invalidates a wallet's attestation — argus fails closed from the next transfer."
           cta="Revoke"
           disabled={!isPubkey(revokeSubject)}
           run={async ({ wallet, connection, send }) => {
@@ -1047,225 +1755,168 @@ function IssuerConsole({
           <AddressField label="Subject wallet" value={revokeSubject} onChange={setRevokeSubject} />
         </ActionPanel>
       </div>
-    </div>
+    </Section>
   )
 }
 
-// ── advanced tab (operators, clawback, danger) ───────────────────────────────
+// ── advanced (operators, clawback, danger) ───────────────────────────────────
 
-function AdvancedTab({ merchant, authority }: { merchant: Merchant; authority: PublicKey }) {
-  const merchantPda = pdas.merchant(authority, 0n)
-  return (
-    <div className="space-y-6">
-      <OperatorsPanel merchant={merchantPda} operators={merchant.operators} />
-      <div className="grid gap-4 md:grid-cols-2">
-        <ClawbackCapPanel merchant={merchantPda} current={merchant.clawbackDailyCapRaw} />
-        <ClawbackPanel merchant={merchantPda} mint={merchant.pointMint} authority={authority} />
-      </div>
-      <CloseMerchantPanel merchant={merchantPda} mint={merchant.pointMint} />
-    </div>
-  )
-}
-
-function OperatorsPanel({ merchant, operators }: { merchant: PublicKey; operators: PublicKey[] }) {
-  const [op, setOp] = useState('')
-  const ready = isPubkey(op)
-  return (
-    <div className="rounded-2xl border border-border bg-card p-6">
-      <p className="flex items-center gap-1.5 font-medium text-[13px] text-muted-foreground">
-        <Users className="size-3.5" aria-hidden /> Operators ({operators.length}/4)
-      </p>
-      {operators.length > 0 ? (
-        <ul className="mt-3 space-y-1.5">
-          {operators.map((o) => (
-            <li
-              key={o.toBase58()}
-              className="flex items-center justify-between gap-3 font-mono text-sm"
-            >
-              <span className="truncate text-muted-foreground">
-                {o.toBase58().slice(0, 6)}…{o.toBase58().slice(-6)}
-              </span>
-              <RowClose
-                label="remove"
-                onClose={(w, c) =>
-                  w.publicKey
-                    ? sendIxns(c, w, [setMerchantOperatorIx(w.publicKey, merchant, o, false)])
-                    : Promise.resolve()
-                }
-              />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-3 text-muted-foreground text-sm">
-          No operators. Add hot keys to issue points and run campaigns without exposing your owner
-          key.
-        </p>
-      )}
-      <div className="mt-4 max-w-md">
-        <ActionPanel
-          title="Add operator"
-          description="Grant a key permission to issue points and run day-to-day operations. The owner key retains full control."
-          cta="Add operator"
-          disabled={!ready}
-          run={async ({ wallet, connection, send }) => {
-            if (!wallet.publicKey) throw new Error('Connect a wallet')
-            return send(connection, wallet, [
-              setMerchantOperatorIx(wallet.publicKey, merchant, new PublicKey(op), true),
-            ])
-          }}
-        >
-          <AddressField label="Operator wallet" value={op} onChange={setOp} />
-        </ActionPanel>
-      </div>
-    </div>
-  )
-}
-
-function ClawbackCapPanel({ merchant, current }: { merchant: PublicKey; current: bigint }) {
-  const [cap, setCap] = useState(String(Number(current) / 10 ** DECIMALS))
-  return (
-    <ActionPanel
-      title="Daily clawback cap"
-      description="Bound how much you can claw back per day, in points. Zero means unlimited. A public, on-chain self-limit that reassures customers."
-      cta="Set cap"
-      run={async ({ wallet, connection, send }) => {
-        if (!wallet.publicKey) throw new Error('Connect a wallet')
-        return send(connection, wallet, [setClawbackCapIx(wallet.publicKey, merchant, raw(cap))])
-      }}
-    >
-      <AmountField label="Daily cap (0 = unlimited)" value={cap} onChange={setCap} />
-    </ActionPanel>
-  )
-}
-
-function ClawbackPanel({
-  merchant,
-  mint,
-  authority,
-}: {
-  merchant: PublicKey
-  mint: PublicKey
-  authority: PublicKey
-}) {
-  const [customer, setCustomer] = useState('')
-  const [amount, setAmount] = useState('')
-  const amountRaw = raw(amount)
-  const ready = isPubkey(customer) && amountRaw > 0n
+function AdvancedTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
+  const { run, busyKey } = useSign()
+  const { publicKey } = useWallet()
+  const [operator, setOperator] = useState('')
+  const [cap, setCap] = useState(fromRaw(merchant.clawbackDailyCapRaw))
+  const [clawCustomer, setClawCustomer] = useState('')
+  const [clawAmount, setClawAmount] = useState('')
+  const clawRaw = raw(clawAmount)
 
   return (
-    <ActionPanel
-      title="Clawback"
-      description="Reclaim points to your treasury for refunds or fraud. A hooked, reason-coded transfer — argus audits it and it is fully public by design."
-      cta="Clawback to treasury"
-      disabled={!ready}
-      run={async ({ wallet, connection, send }) => {
-        if (!wallet.publicKey) throw new Error('Connect a wallet')
-        return send(connection, wallet, [
-          clawbackIx({
-            authority: wallet.publicKey,
-            merchant,
-            mint,
-            treasuryOwner: authority,
-            customer: new PublicKey(customer),
-            amountRaw,
-            reasonCode: 1,
-          }),
-        ])
-      }}
-    >
-      <AddressField label="Customer wallet" value={customer} onChange={setCustomer} />
-      <AmountField label="Amount" value={amount} onChange={setAmount} />
-    </ActionPanel>
-  )
-}
-
-function CloseMerchantPanel({ merchant, mint }: { merchant: PublicKey; mint: PublicKey }) {
-  return (
-    <div className="max-w-lg rounded-2xl border border-red-500/30 bg-red-500/[0.03] p-1">
-      <ActionPanel
-        title="Close merchant"
-        description="Permanently delete this merchant and reclaim rent. Only possible when the point supply is zero — clear all outstanding points first. This cannot be undone."
-        cta="Close merchant"
-        run={async ({ wallet, connection, send }) => {
-          if (!wallet.publicKey) throw new Error('Connect a wallet')
-          return send(connection, wallet, [closeMerchantIx(wallet.publicKey, merchant, mint)])
-        }}
+    <div className="space-y-8">
+      <Section
+        icon={Users}
+        title="Operators"
+        desc="Hot keys allowed to issue points and run day-to-day operations — the owner key keeps full control."
+        right={<SectionMeta>{merchant.operators.length}/4</SectionMeta>}
       >
-        <div className="flex items-center gap-2 text-red-400/90 text-sm">
-          <Trash2 className="size-4" aria-hidden />
-          Irreversible — supply must be zero
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          <Group title="Active operators">
+            {merchant.operators.length > 0 ? (
+              merchant.operators.map((o) => (
+                <Row
+                  key={o.toBase58()}
+                  icon={Users}
+                  title={
+                    <span className="font-mono">{`${o.toBase58().slice(0, 8)}…${o.toBase58().slice(-8)}`}</span>
+                  }
+                >
+                  <button
+                    type="button"
+                    disabled={busyKey === `op-${o.toBase58()}` || !publicKey}
+                    onClick={() =>
+                      publicKey &&
+                      run(`op-${o.toBase58()}`, 'Remove operator', [
+                        setMerchantOperatorIx(publicKey, merchantPda, o, false),
+                      ])
+                    }
+                    className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50"
+                  >
+                    {busyKey === `op-${o.toBase58()}` ? '…' : 'Remove'}
+                  </button>
+                </Row>
+              ))
+            ) : (
+              <div className="px-4 py-6 text-center text-muted-foreground text-sm">
+                No operators yet.
+              </div>
+            )}
+          </Group>
+
+          <ActionPanel
+            title="Add operator"
+            description="Grant a key permission to issue points and operate campaigns."
+            cta="Add operator"
+            disabled={!isPubkey(operator)}
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              return send(connection, wallet, [
+                setMerchantOperatorIx(wallet.publicKey, merchantPda, new PublicKey(operator), true),
+              ])
+            }}
+          >
+            <AddressField label="Operator wallet" value={operator} onChange={setOperator} />
+          </ActionPanel>
         </div>
-      </ActionPanel>
+      </Section>
+
+      <Section
+        icon={Undo2}
+        title="Clawback"
+        desc="Reclaim points to your treasury for refunds or fraud — public, reason-coded, audited by argus."
+      >
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          <ActionPanel
+            title="Clawback points"
+            description={`Lifetime clawed back: ${fmtPoints(merchant.lifetimeClawedBack)} pts across ${fmtCount(merchant.clawbackCount)} actions.`}
+            cta="Clawback to treasury"
+            disabled={!isPubkey(clawCustomer) || clawRaw <= 0n}
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              return send(connection, wallet, [
+                clawbackIx({
+                  authority: wallet.publicKey,
+                  merchant: merchantPda,
+                  mint: merchant.pointMint,
+                  treasuryOwner: merchant.authority,
+                  customer: new PublicKey(clawCustomer),
+                  amountRaw: clawRaw,
+                  reasonCode: 1,
+                }),
+              ])
+            }}
+          >
+            <AddressField label="Customer wallet" value={clawCustomer} onChange={setClawCustomer} />
+            <AmountField label="Amount" value={clawAmount} onChange={setClawAmount} />
+          </ActionPanel>
+
+          <Group title="Self-imposed limits" desc="A public on-chain cap that reassures customers.">
+            <DataRow
+              label="Daily cap"
+              value={
+                merchant.clawbackDailyCapRaw > 0n
+                  ? `${fromRaw(merchant.clawbackDailyCapRaw)} pts`
+                  : 'unlimited'
+              }
+            />
+            <FieldRow label="New daily cap (0 = unlimited)">
+              <div className="flex gap-2">
+                <Input
+                  value={cap}
+                  inputMode="decimal"
+                  onChange={(e) => setCap(e.target.value.replace(/[^0-9.]/g, ''))}
+                />
+                <Button
+                  size="sm"
+                  className="shrink-0"
+                  disabled={busyKey === 'cap' || !publicKey}
+                  onClick={() =>
+                    publicKey &&
+                    run('cap', 'Set clawback cap', [
+                      setClawbackCapIx(publicKey, merchantPda, raw(cap)),
+                    ])
+                  }
+                >
+                  Save
+                </Button>
+              </div>
+            </FieldRow>
+          </Group>
+        </div>
+      </Section>
+
+      <Section
+        icon={Trash2}
+        title="Danger zone"
+        desc="Irreversible actions live here — read twice."
+      >
+        <div className="max-w-lg overflow-hidden rounded-2xl border border-red-500/30">
+          <ActionPanel
+            title="Close merchant"
+            description="Deletes this merchant and reclaims rent. Only possible when the point supply is zero — clear all outstanding points first."
+            cta="Close merchant"
+            run={async ({ wallet, connection, send }) => {
+              if (!wallet.publicKey) throw new Error('Connect a wallet')
+              return send(connection, wallet, [
+                closeMerchantIx(wallet.publicKey, merchantPda, merchant.pointMint),
+              ])
+            }}
+          >
+            <div className="flex items-center gap-2 text-red-400/90 text-sm">
+              <Trash2 className="size-4" aria-hidden />
+              Irreversible — supply must be zero
+            </div>
+          </ActionPanel>
+        </div>
+      </Section>
     </div>
-  )
-}
-
-// ── shared bits ───────────────────────────────────────────────────────────────
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-muted-foreground text-xs">{label}</dt>
-      <dd className="mt-0.5 font-heading font-semibold text-xl tabular-nums">{value}</dd>
-    </div>
-  )
-}
-
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string
-  checked: boolean
-  onChange: (v: boolean) => void
-}) {
-  return (
-    <label className="flex cursor-pointer items-center gap-2 text-muted-foreground text-sm">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="size-4 accent-flame"
-      />
-      {label}
-    </label>
-  )
-}
-
-/** A tiny inline "close/remove" button used inside on-chain list rows. */
-function RowClose({
-  label = 'close',
-  onClose,
-}: {
-  label?: string
-  onClose: (
-    wallet: ReturnType<typeof useWallet>,
-    connection: ReturnType<typeof useConnection>['connection'],
-  ) => Promise<unknown>
-}) {
-  const { connection } = useConnection()
-  const wallet = useWallet()
-  const queryClient = useQueryClient()
-  const [busy, setBusy] = useState(false)
-  if (!wallet.publicKey) return null
-  return (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={async () => {
-        setBusy(true)
-        try {
-          await onClose(wallet, connection)
-          await queryClient.invalidateQueries()
-        } finally {
-          setBusy(false)
-        }
-      }}
-      className="text-muted-foreground/60 text-xs transition-colors hover:text-red-400"
-    >
-      {busy ? '…' : label}
-    </button>
   )
 }

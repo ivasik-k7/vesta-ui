@@ -22,6 +22,7 @@ export const DISCRIMINATOR = {
   Alliance: [80, 135, 160, 6, 114, 44, 211, 15],
   Campaign: [50, 40, 49, 11, 157, 220, 229, 192],
   Attestation: [152, 125, 183, 86, 36, 146, 121, 73],
+  Achievement: [30, 253, 162, 142, 30, 160, 66, 62],
 } as const
 
 /** Campaign kinds (`Campaign.kind`). */

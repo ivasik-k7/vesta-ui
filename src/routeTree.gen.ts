@@ -22,6 +22,7 @@ import { Route as AppDiscoverRouteImport } from './routes/app.discover'
 import { Route as AppNetworkRouteImport } from './routes/app.network'
 import { Route as AppVerifyRouteImport } from './routes/app.verify'
 import { Route as AppWalletRouteImport } from './routes/app.wallet'
+import { Route as AppConsoleTabRouteImport } from './routes/app.console_.$tab'
 import { Route as AppMerchantAddressRouteImport } from './routes/app.merchant.$address'
 import { Route as AppTokenMintRouteImport } from './routes/app.token.$mint'
 
@@ -90,6 +91,11 @@ const AppWalletRoute = AppWalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => AppRoute,
 } as any)
+const AppConsoleTabRoute = AppConsoleTabRouteImport.update({
+  id: '/console_/$tab',
+  path: '/console/$tab',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMerchantAddressRoute = AppMerchantAddressRouteImport.update({
   id: '/merchant/$address',
   path: '/merchant/$address',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
+  '/app/console/$tab': typeof AppConsoleTabRoute
   '/app/merchant/$address': typeof AppMerchantAddressRoute
   '/app/token/$mint': typeof AppTokenMintRoute
 }
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app': typeof AppIndexRoute
+  '/app/console/$tab': typeof AppConsoleTabRoute
   '/app/merchant/$address': typeof AppMerchantAddressRoute
   '/app/token/$mint': typeof AppTokenMintRoute
 }
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
+  '/app/console_/$tab': typeof AppConsoleTabRoute
   '/app/merchant/$address': typeof AppMerchantAddressRoute
   '/app/token/$mint': typeof AppTokenMintRoute
 }
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/app/verify'
     | '/app/wallet'
     | '/app/'
+    | '/app/console/$tab'
     | '/app/merchant/$address'
     | '/app/token/$mint'
   fileRoutesByTo: FileRoutesByTo
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/app/verify'
     | '/app/wallet'
     | '/app'
+    | '/app/console/$tab'
     | '/app/merchant/$address'
     | '/app/token/$mint'
   id:
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/app/verify'
     | '/app/wallet'
     | '/app/'
+    | '/app/console_/$tab'
     | '/app/merchant/$address'
     | '/app/token/$mint'
   fileRoutesById: FileRoutesById
@@ -305,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWalletRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/console_/$tab': {
+      id: '/app/console_/$tab'
+      path: '/console/$tab'
+      fullPath: '/app/console/$tab'
+      preLoaderRoute: typeof AppConsoleTabRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/merchant/$address': {
       id: '/app/merchant/$address'
       path: '/merchant/$address'
@@ -332,6 +351,7 @@ interface AppRouteChildren {
   AppVerifyRoute: typeof AppVerifyRoute
   AppWalletRoute: typeof AppWalletRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppConsoleTabRoute: typeof AppConsoleTabRoute
   AppMerchantAddressRoute: typeof AppMerchantAddressRoute
   AppTokenMintRoute: typeof AppTokenMintRoute
 }
@@ -346,6 +366,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppVerifyRoute: AppVerifyRoute,
   AppWalletRoute: AppWalletRoute,
   AppIndexRoute: AppIndexRoute,
+  AppConsoleTabRoute: AppConsoleTabRoute,
   AppMerchantAddressRoute: AppMerchantAddressRoute,
   AppTokenMintRoute: AppTokenMintRoute,
 }

@@ -333,6 +333,29 @@ export function decodeAllianceMember(address: PublicKey, data: Uint8Array): Alli
   }
 }
 
+export interface Achievement {
+  address: PublicKey
+  merchant: PublicKey
+  id: bigint
+  name: string
+  uri: string
+  thresholdLifetime: bigint
+  badgeCount: number
+}
+
+export function decodeAchievement(address: PublicKey, data: Uint8Array): Achievement {
+  const c = new Cursor(data, 8)
+  return {
+    address,
+    merchant: c.pubkey(),
+    id: c.u64(),
+    name: c.string(),
+    uri: c.string(),
+    thresholdLifetime: c.u64(),
+    badgeCount: c.u32(),
+  }
+}
+
 // ── argus ─────────────────────────────────────────────────────────────────
 
 export interface GuardConfig {

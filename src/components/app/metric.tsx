@@ -22,21 +22,27 @@ export function Metric({
   accent?: boolean
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-line-strong">
-      <div className="flex items-center justify-between">
-        <p className="font-medium text-[13px] text-muted-foreground">{label}</p>
+    <div className="rounded-2xl border border-border bg-card/50 p-4 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-line-strong">
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
+          {label}
+        </p>
         {Icon ? (
-          <Icon className={accent ? 'size-4 text-flame' : 'size-4 text-muted-foreground/50'} />
+          <Icon
+            className={
+              accent ? 'size-4 shrink-0 text-flame' : 'size-4 shrink-0 text-muted-foreground/40'
+            }
+          />
         ) : null}
       </div>
       {loading ? (
-        <Skeleton className="mt-3 h-9 w-24" />
+        <Skeleton className="mt-2.5 h-8 w-24" />
       ) : (
-        <p className="mt-2 font-heading font-semibold text-3xl tabular-nums tracking-tight">
+        <p className="mt-1.5 font-heading font-semibold text-2xl tabular-nums tracking-tight">
           {value}
         </p>
       )}
-      {hint ? <p className="mt-1 text-muted-foreground/70 text-xs">{hint}</p> : null}
+      {hint ? <p className="mt-0.5 text-[11px] text-muted-foreground/60">{hint}</p> : null}
     </div>
   )
 }

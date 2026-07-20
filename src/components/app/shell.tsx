@@ -2,15 +2,21 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   Activity,
   ArrowLeft,
+  Award,
   BadgeCheck,
   BarChart3,
   Coins,
   Compass,
   Flame,
+  Gauge,
+  Gift,
   Globe,
   LayoutDashboard,
+  Megaphone,
   Menu,
+  ShieldCheck,
   Store,
+  Ticket,
   User,
   Users,
   Wallet,
@@ -43,9 +49,16 @@ const CUSTOMER_NAV: NavItem[] = [
   { to: '/app/activity', label: 'nav.activity', icon: Activity },
 ]
 const MERCHANT_NAV: NavItem[] = [
-  { to: '/app/console', label: 'nav.console', icon: Store },
+  { to: '/app/console', label: 'Overview', icon: Store },
+  { to: '/app/console/issue', label: 'Issue points', icon: Gift },
+  { to: '/app/console/offers', label: 'Offers', icon: Ticket },
+  { to: '/app/console/achievements', label: 'Achievements', icon: Award },
+  { to: '/app/console/campaigns', label: 'Campaigns', icon: Megaphone },
+  { to: '/app/console/alliance', label: 'Alliance', icon: Users },
+  { to: '/app/console/token', label: 'Token & guard', icon: ShieldCheck },
+  { to: '/app/console/attest', label: 'Attestations', icon: BadgeCheck },
+  { to: '/app/console/advanced', label: 'Advanced', icon: Gauge },
   { to: '/app/analytics', label: 'Analytics', icon: BarChart3 },
-  { to: '/app/alliances', label: 'nav.alliances', icon: Users },
 ]
 const PROTOCOL_NAV: NavItem[] = [
   { to: '/app/network', label: 'Network', icon: Globe },
@@ -311,7 +324,7 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
     <Link
       to={item.to}
       onClick={onNavigate}
-      activeOptions={{ exact: item.to === '/app' }}
+      activeOptions={{ exact: item.to === '/app' || item.to === '/app/console' }}
       className="group relative flex items-center gap-3 rounded-lg py-2 pr-3 pl-4 text-[13.5px] text-muted-foreground transition-all hover:bg-secondary/70 hover:text-foreground data-[status=active]:bg-flame/10 data-[status=active]:font-medium data-[status=active]:text-flame"
     >
       {/* Active indicator bar */}
