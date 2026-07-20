@@ -136,3 +136,18 @@ export function decodeCustomerProfile(data: Uint8Array): CustomerProfile {
     tier: c.u8(),
   }
 }
+
+export interface Config {
+  admin: PublicKey
+  pendingAdmin: PublicKey | null
+  paused: boolean
+}
+
+export function decodeConfig(data: Uint8Array): Config {
+  const c = new Cursor(data, 8)
+  return {
+    admin: c.pubkey(),
+    pendingAdmin: c.option(() => c.pubkey()),
+    paused: c.bool(),
+  }
+}

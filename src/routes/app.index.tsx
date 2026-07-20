@@ -5,6 +5,7 @@ import { ArrowRight, Flame, Store, Users } from 'lucide-react'
 import { FlameBalanceCard } from '@/components/app/flame-balance'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { Button } from '@/components/ui/button'
+import { CardSkeletonGrid } from '@/components/ui/skeleton'
 import { useHoldings, useMerchants } from '@/lib/vesta/queries'
 
 export const Route = createFileRoute('/app/')({
@@ -37,7 +38,12 @@ function Overview() {
             />
           </div>
 
-          {holdings.data && holdings.data.length > 0 ? (
+          {holdings.isLoading ? (
+            <section>
+              <h2 className="mb-3 font-medium text-[13px] text-muted-foreground">Your flames</h2>
+              <CardSkeletonGrid count={3} />
+            </section>
+          ) : holdings.data && holdings.data.length > 0 ? (
             <section>
               <h2 className="mb-3 font-medium text-[13px] text-muted-foreground">Your flames</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

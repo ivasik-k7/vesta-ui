@@ -163,3 +163,30 @@ export function useActivity(limit = 20) {
     staleTime: 10_000,
   })
 }
+
+export function useConfig() {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['config'],
+    queryFn: async () => {
+      const { decodeConfig } = await import('./decode')
+      const info = await connection.getAccountInfo(pdas.config())
+      return info ? decodeConfig(new Uint8Array(info.data)) : null
+    },
+    staleTime: 20_000,
+  })
+}
+
+export function useSolBalance() {
+  const { connection } = useConnection()
+  const { publicKey } = useWallet()
+  return useQuery({
+    queryKey: ['sol-balance', publicKey?.toBase58()],
+    queryFn: async () => {
+      if (!publicKey) return 0
+      return (await connection.getBalance(publicKey)) / 1e9
+    },
+    enabled: !!publicKey,
+    staleTime: 10_000,
+  })
+}

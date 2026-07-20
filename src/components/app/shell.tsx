@@ -1,21 +1,25 @@
-import { useWallet } from '@solana/wallet-adapter-react'
 import { Link } from '@tanstack/react-router'
-import { Activity, LayoutDashboard, Store, Users, Wallet } from 'lucide-react'
+import { Activity, LayoutDashboard, Settings, Shield, Store, Users, Wallet } from 'lucide-react'
 import type { ComponentType } from 'react'
 
+import { BalanceChip } from '@/components/app/balance'
 import { ConnectButton } from '@/components/wallet/connect-button'
+import type { TranslationKey } from '@/lib/i18n/dict'
+import { useSettings } from '@/lib/settings/context'
 
-const NAV: { to: string; label: string; icon: ComponentType<{ className?: string }> }[] = [
-  { to: '/app', label: 'Overview', icon: LayoutDashboard },
-  { to: '/app/wallet', label: 'Wallet', icon: Wallet },
-  { to: '/app/activity', label: 'Activity', icon: Activity },
-  { to: '/app/alliances', label: 'Alliances', icon: Users },
-  { to: '/app/console', label: 'Merchant console', icon: Store },
+const NAV: { to: string; key: TranslationKey; icon: ComponentType<{ className?: string }> }[] = [
+  { to: '/app', key: 'nav.overview', icon: LayoutDashboard },
+  { to: '/app/wallet', key: 'nav.wallet', icon: Wallet },
+  { to: '/app/activity', key: 'nav.activity', icon: Activity },
+  { to: '/app/alliances', key: 'nav.alliances', icon: Users },
+  { to: '/app/console', key: 'nav.console', icon: Store },
+  { to: '/app/admin', key: 'nav.admin', icon: Shield },
+  { to: '/app/settings', key: 'nav.settings', icon: Settings },
 ]
 
 /** Enterprise dashboard shell: persistent sidebar + content area. */
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { publicKey } = useWallet()
+  const { t } = useSettings()
 
   return (
     <div className="mx-auto flex w-full max-w-6xl gap-8 px-4 py-10 md:py-14">
@@ -30,15 +34,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               activeProps={{ className: 'bg-secondary text-foreground' }}
             >
               <item.icon className="size-4" />
-              {item.label}
+              {t(item.key)}
             </Link>
           ))}
         </nav>
-        {publicKey ? (
-          <p className="mt-6 px-3 font-mono text-[11px] text-muted-foreground/70">
-            {publicKey.toBase58().slice(0, 4)}…{publicKey.toBase58().slice(-4)}
-          </p>
-        ) : null}
+        <BalanceChip />
       </aside>
 
       {/* mobile top tabs */}
@@ -52,7 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="shrink-0 rounded-lg px-3 py-1.5 text-muted-foreground text-sm transition-colors"
               activeProps={{ className: 'bg-secondary text-foreground' }}
             >
-              {item.label}
+              {t(item.key)}
             </Link>
           ))}
         </div>

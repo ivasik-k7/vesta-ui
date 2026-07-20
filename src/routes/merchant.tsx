@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
+import { Skeleton } from '@/components/ui/skeleton'
 import { DECIMALS } from '@/lib/vesta/constants'
 import type { Merchant } from '@/lib/vesta/decode'
 import { useMerchants, useOffers } from '@/lib/vesta/queries'
@@ -52,7 +53,11 @@ function MerchantDirectory() {
 
       <div className="mt-6">
         {merchants.isLoading ? (
-          <p className="text-muted-foreground text-sm">Scanning the program…</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 4 }, (_, i) => `msk-${i}`).map((k) => (
+              <Skeleton key={k} className="h-44" />
+            ))}
+          </div>
         ) : filtered.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
             {filtered.map((merchant, i) => (

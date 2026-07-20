@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 
 import { VestaAuthProvider } from '@/lib/auth/context'
+import { SettingsProvider } from '@/lib/settings/context'
 import { routeTree } from '@/routeTree.gen'
 
 // Wallet-adapter hooks need a provider; stub them so route rendering is
@@ -29,11 +30,13 @@ function renderAt(path: string) {
   })
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
-    <VestaAuthProvider>
-      <QueryClientProvider client={client}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </VestaAuthProvider>,
+    <SettingsProvider>
+      <VestaAuthProvider>
+        <QueryClientProvider client={client}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </VestaAuthProvider>
+    </SettingsProvider>,
   )
 }
 

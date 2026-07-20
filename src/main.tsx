@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 
 import { SolanaProvider } from '@/components/wallet/provider'
 import { VestaAuthProvider } from '@/lib/auth/context'
+import { SettingsProvider } from '@/lib/settings/context'
 import { routeTree } from './routeTree.gen'
 import './index.css'
 
@@ -29,12 +30,14 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <SolanaProvider>
-      <VestaAuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
-      </VestaAuthProvider>
-    </SolanaProvider>
+    <SettingsProvider>
+      <SolanaProvider>
+        <VestaAuthProvider>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+          </QueryClientProvider>
+        </VestaAuthProvider>
+      </SolanaProvider>
+    </SettingsProvider>
   </StrictMode>,
 )

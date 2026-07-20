@@ -328,3 +328,66 @@ export function joinOwnAllianceIx(params: {
     data: Buffer.concat([disc('join_alliance'), u32(params.rateBps), u64(params.swapInBudgetRaw)]),
   })
 }
+
+/** Admin: pause or unpause the protocol (config admin signs). */
+export function setPausedIx(admin: PublicKey, paused: boolean): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [m(admin, true, false), m(pdas.config(), false, true)],
+    data: Buffer.concat([disc('set_paused'), Buffer.from([paused ? 1 : 0])]),
+  })
+}
+
+/** argus: initialize the transfer guard (EAML) for a merchant's mint. */
+export function initializeTransferGuardIx(
+  authority: PublicKey,
+  mint: PublicKey,
+): TransactionInstruction {
+  const merchant = pdas.merchant(authority)
+  return new TransactionInstruction({
+    programId: ARGUS,
+    keys: [
+      m(authority, true, true),
+      m(merchant, false, false),
+      m(mint, false, false),
+      m(pdas.extraAccountMetaList(mint), false, true),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: disc('initialize_transfer_guard'),
+  })
+}
+
+/** vesta_core: burn the hook authority after the guard is live (merchant signs). */
+export function finalizeTransferGuardIx(
+  authority: PublicKey,
+  mint: PublicKey,
+): TransactionInstruction {
+  const merchant = pdas.merchant(authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(authority, true, false),
+      m(merchant, false, false),
+      m(mint, false, true),
+      m(pdas.extraAccountMetaList(mint), false, false),
+      m(pdas.config(), false, false),
+      m(TOKEN_2022, false, false),
+    ],
+    data: disc('finalize_transfer_guard'),
+  })
+}
+
+/** Merchant: update mutable fields (currently base earn rate). */
+export function updateMerchantIx(
+  authority: PublicKey,
+  baseEarnRate: bigint | null,
+): TransactionInstruction {
+  const merchant = pdas.merchant(authority)
+  const option =
+    baseEarnRate === null ? Buffer.from([0]) : Buffer.concat([Buffer.from([1]), u64(baseEarnRate)])
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [m(authority, true, false), m(merchant, false, true), m(pdas.config(), false, false)],
+    data: Buffer.concat([disc('update_merchant'), option]),
+  })
+}

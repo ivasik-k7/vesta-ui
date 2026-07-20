@@ -14,6 +14,8 @@ import {
   createAllianceIx,
   createCampaignIx,
   createOfferIx,
+  finalizeTransferGuardIx,
+  initializeTransferGuardIx,
   joinOwnAllianceIx,
   registerMerchantIx,
 } from '@/lib/vesta/ixns'
@@ -184,6 +186,33 @@ function ManageMerchant({ merchant }: { merchant: Merchant }) {
         <CampaignPanel campaignId={nextId} />
         <AlliancePanel authority={merchant.authority} joined={!!merchant.joinedAlliance} />
       </div>
+
+      <GuardPanel mint={merchant.pointMint} />
+    </div>
+  )
+}
+
+function GuardPanel({ mint }: { mint: PublicKey }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <ActionPanel
+        title="Initialize transfer guard"
+        description="Creates the argus policy account for your mint. Required before customers can gift your points — without it, hooked transfers fail closed."
+        cta="Initialize guard"
+        run={async ({ wallet, connection, send }) => {
+          if (!wallet.publicKey) throw new Error('Connect a wallet')
+          return send(connection, wallet, [initializeTransferGuardIx(wallet.publicKey, mint)])
+        }}
+      />
+      <ActionPanel
+        title="Finalize guard (burn authority)"
+        description="Permanently revokes the hook authority. After this, not even you can repoint the transfer rules — the strongest trust signal you can give customers."
+        cta="Finalize guard"
+        run={async ({ wallet, connection, send }) => {
+          if (!wallet.publicKey) throw new Error('Connect a wallet')
+          return send(connection, wallet, [finalizeTransferGuardIx(wallet.publicKey, mint)])
+        }}
+      />
     </div>
   )
 }
