@@ -448,3 +448,120 @@ export function grantAchievementIx(params: {
     data: disc('grant_achievement'),
   })
 }
+
+/** Admin: propose a new protocol admin (current admin signs). */
+export function setAdminIx(admin: PublicKey, newAdmin: PublicKey): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [m(admin, true, false), m(pdas.config(), false, true)],
+    data: Buffer.concat([disc('set_admin'), newAdmin.toBuffer()]),
+  })
+}
+
+/** Admin: accept a pending admin transfer (pending admin signs). */
+export function acceptAdminIx(pendingAdmin: PublicKey): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [m(pendingAdmin, true, false), m(pdas.config(), false, true)],
+    data: disc('accept_admin'),
+  })
+}
+
+/** Merchant: leave an alliance (member closes; rent back to the merchant). */
+export function leaveAllianceIx(authority: PublicKey, alliance: PublicKey): TransactionInstruction {
+  const merchant = pdas.merchant(authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(authority, true, true),
+      m(merchant, false, true),
+      m(alliance, false, true),
+      m(pdas.member(alliance, merchant), false, true),
+    ],
+    data: disc('leave_alliance'),
+  })
+}
+
+/** Set an alliance member's swap rate (member + alliance authority co-sign). */
+export function setSwapRateIx(params: {
+  authority: PublicKey
+  allianceAuthority: PublicKey
+  alliance: PublicKey
+  newRate: number
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, false),
+      m(params.allianceAuthority, true, false),
+      m(merchant, false, false),
+      m(params.alliance, false, false),
+      m(pdas.member(params.alliance, merchant), false, true),
+    ],
+    data: Buffer.concat([disc('set_swap_rate'), u32(params.newRate)]),
+  })
+}
+
+/** Set an alliance member's daily inbound swap budget (member signs). */
+export function setSwapBudgetIx(params: {
+  authority: PublicKey
+  alliance: PublicKey
+  newBudget: bigint
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, false),
+      m(merchant, false, false),
+      m(pdas.member(params.alliance, merchant), false, true),
+    ],
+    data: Buffer.concat([disc('set_swap_budget'), u64(params.newBudget)]),
+  })
+}
+
+/** Clawback: hooked transfer_checked from a customer to the merchant treasury. */
+export function clawbackIx(params: {
+  authority: PublicKey
+  mint: PublicKey
+  customer: PublicKey
+  amountRaw: bigint
+  reasonCode: number
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  const treasury = ata(params.mint, params.authority)
+  const customerAta = ata(params.mint, params.customer)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, false),
+      m(merchant, false, false),
+      m(params.customer, false, false),
+      m(customerAta, false, true),
+      m(treasury, false, true),
+      m(params.mint, false, true),
+      m(pdas.extraAccountMetaList(params.mint), false, false),
+      m(pdas.giftLedger(params.mint, params.customer), false, true),
+      m(params.authority, false, false), // destination_owner = merchant authority (treasury owner)
+      m(ARGUS, false, false),
+      m(pdas.config(), false, false),
+      m(TOKEN_2022, false, false),
+    ],
+    data: Buffer.concat([disc('clawback'), u64(params.amountRaw), u16(params.reasonCode)]),
+  })
+}
+
+/** Close a campaign (merchant signs; rent back to the merchant authority). */
+export function closeCampaignIx(authority: PublicKey, campaignId: bigint): TransactionInstruction {
+  const merchant = pdas.merchant(authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(authority, true, true),
+      m(merchant, false, false),
+      m(pdas.campaign(merchant, campaignId), false, true),
+    ],
+    data: disc('close_campaign'),
+  })
+}

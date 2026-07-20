@@ -151,3 +151,26 @@ export function decodeConfig(data: Uint8Array): Config {
     paused: c.bool(),
   }
 }
+
+export interface Campaign {
+  address: PublicKey
+  merchant: PublicKey
+  id: bigint
+  multiplierBps: number
+  startsAt: bigint
+  endsAt: bigint
+  active: boolean
+}
+
+export function decodeCampaign(address: PublicKey, data: Uint8Array): Campaign {
+  const c = new Cursor(data, 8)
+  return {
+    address,
+    merchant: c.pubkey(),
+    id: c.u64(),
+    multiplierBps: c.u16(),
+    startsAt: c.i64(),
+    endsAt: c.i64(),
+    active: c.bool(),
+  }
+}

@@ -1,11 +1,13 @@
 import { useWallet } from '@solana/wallet-adapter-react'
+import { PublicKey } from '@solana/web3.js'
 import { createFileRoute } from '@tanstack/react-router'
-import { PauseCircle, PlayCircle, ShieldAlert } from 'lucide-react'
+import { PauseCircle, PlayCircle, ShieldAlert, UserCog } from 'lucide-react'
+import { useState } from 'react'
 
-import { ActionPanel } from '@/components/app/action-panel'
+import { ActionPanel, AddressField, isPubkey } from '@/components/app/action-panel'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { Skeleton } from '@/components/ui/skeleton'
-import { setPausedIx } from '@/lib/vesta/ixns'
+import { acceptAdminIx, setAdminIx, setPausedIx } from '@/lib/vesta/ixns'
 import { useConfig } from '@/lib/vesta/queries'
 
 export const Route = createFileRoute('/app/admin')({
@@ -17,6 +19,8 @@ function AdminPage() {
   const config = useConfig()
 
   const isAdmin = !!publicKey && !!config.data && config.data.admin.equals(publicKey)
+  const isPendingAdmin =
+    !!publicKey && !!config.data?.pendingAdmin && config.data.pendingAdmin.equals(publicKey)
 
   return (
     <div>
@@ -90,8 +94,56 @@ function AdminPage() {
               </ActionPanel>
             </div>
           ) : null}
+
+          {isAdmin ? <TransferAdminPanel pendingAdmin={config.data?.pendingAdmin ?? null} /> : null}
+
+          {isPendingAdmin ? (
+            <div className="max-w-lg">
+              <ActionPanel
+                title="Accept admin role"
+                description="You are the pending admin. Accept to complete the two-step handover and take control of the protocol Config."
+                cta="Accept admin"
+                run={async ({ wallet, connection, send }) => {
+                  if (!wallet.publicKey) throw new Error('Connect a wallet')
+                  return send(connection, wallet, [acceptAdminIx(wallet.publicKey)])
+                }}
+              >
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <UserCog className="size-4 text-flame" aria-hidden />
+                  Two-step transfer
+                </div>
+              </ActionPanel>
+            </div>
+          ) : null}
         </div>
       )}
+    </div>
+  )
+}
+
+function TransferAdminPanel({ pendingAdmin }: { pendingAdmin: PublicKey | null }) {
+  const [next, setNext] = useState('')
+  const ready = isPubkey(next)
+
+  return (
+    <div className="max-w-lg">
+      <ActionPanel
+        title="Transfer admin"
+        description="Propose a new protocol admin. The transfer is two-step — the recipient must then accept from their own wallet, so a typo can never lock you out."
+        cta="Propose new admin"
+        disabled={!ready}
+        run={async ({ wallet, connection, send }) => {
+          if (!wallet.publicKey) throw new Error('Connect a wallet')
+          return send(connection, wallet, [setAdminIx(wallet.publicKey, new PublicKey(next))])
+        }}
+      >
+        <AddressField label="New admin wallet" value={next} onChange={setNext} />
+        {pendingAdmin ? (
+          <p className="font-mono text-muted-foreground text-xs">
+            pending: {pendingAdmin.toBase58().slice(0, 8)}…{pendingAdmin.toBase58().slice(-8)}
+          </p>
+        ) : null}
+      </ActionPanel>
     </div>
   )
 }

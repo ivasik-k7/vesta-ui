@@ -2,7 +2,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { ArrowUpRight, CheckCircle2, Store } from 'lucide-react'
+import { ArrowUpRight, CheckCircle2, LogOut, Megaphone, Store } from 'lucide-react'
 import { useState } from 'react'
 
 import { ActionPanel, AddressField, AmountField, isPubkey } from '@/components/app/action-panel'
@@ -10,6 +10,8 @@ import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { DECIMALS } from '@/lib/vesta/constants'
 import type { Merchant } from '@/lib/vesta/decode'
 import {
+  clawbackIx,
+  closeCampaignIx,
   closeOfferIx,
   createAchievementIx,
   createAllianceIx,
@@ -19,10 +21,13 @@ import {
   grantAchievementIx,
   initializeTransferGuardIx,
   joinOwnAllianceIx,
+  leaveAllianceIx,
   registerMerchantIx,
+  setSwapBudgetIx,
+  setSwapRateIx,
 } from '@/lib/vesta/ixns'
 import { pdas } from '@/lib/vesta/pda'
-import { useMyMerchant, useOffers } from '@/lib/vesta/queries'
+import { useMyCampaigns, useMyMerchant, useOffers } from '@/lib/vesta/queries'
 import { sendIxns } from '@/lib/vesta/tx'
 
 export const Route = createFileRoute('/app/console')({
@@ -194,6 +199,12 @@ function ManageMerchant({ merchant }: { merchant: Merchant }) {
         <GrantBadgePanel />
       </div>
 
+      <CampaignList merchant={merchant.address} />
+
+      {merchant.joinedAlliance ? <AllianceManagement alliance={merchant.joinedAlliance} /> : null}
+
+      <ClawbackPanel mint={merchant.pointMint} />
+
       <GuardPanel mint={merchant.pointMint} />
     </div>
   )
@@ -272,6 +283,164 @@ function GrantBadgePanel() {
       </label>
       <AddressField label="Customer wallet" value={customer} onChange={setCustomer} />
     </ActionPanel>
+  )
+}
+
+function CampaignList({ merchant }: { merchant: PublicKey }) {
+  const campaigns = useMyCampaigns(merchant)
+  const now = Date.now() / 1000
+  if (!campaigns.data || campaigns.data.length === 0) return null
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6">
+      <p className="flex items-center gap-1.5 font-medium text-[13px] text-muted-foreground">
+        <Megaphone className="size-3.5" aria-hidden /> Active campaigns
+      </p>
+      <ul className="mt-3 space-y-1.5">
+        {campaigns.data.map((c) => {
+          const live = c.active && Number(c.startsAt) <= now && now < Number(c.endsAt)
+          return (
+            <li
+              key={c.address.toBase58()}
+              className="flex items-center justify-between gap-3 font-mono text-sm"
+            >
+              <span className="text-muted-foreground">#{c.id.toString()}</span>
+              <span>×{(c.multiplierBps / 10_000).toFixed(2)}</span>
+              <span className={live ? 'text-flame text-xs' : 'text-muted-foreground/60 text-xs'}>
+                {live ? 'live' : 'ended'}
+              </span>
+              <CloseCampaignButton campaignId={c.id} />
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+function CloseCampaignButton({ campaignId }: { campaignId: bigint }) {
+  const { publicKey } = useWallet()
+  const { connection } = useConnection()
+  const wallet = useWallet()
+  const queryClient = useQueryClient()
+  const [busy, setBusy] = useState(false)
+  if (!publicKey) return null
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true)
+        try {
+          await sendIxns(connection, wallet, [closeCampaignIx(publicKey, campaignId)])
+          await queryClient.invalidateQueries()
+        } finally {
+          setBusy(false)
+        }
+      }}
+      className="text-muted-foreground/60 text-xs transition-colors hover:text-red-400"
+    >
+      {busy ? '…' : 'close'}
+    </button>
+  )
+}
+
+function AllianceManagement({ alliance }: { alliance: PublicKey }) {
+  const [rate, setRate] = useState('')
+  const [budget, setBudget] = useState('')
+  const rateBps = Math.round(Number(rate) * 100)
+  const budgetRaw = (() => {
+    const n = Number(budget)
+    return Number.isFinite(n) && n > 0 ? BigInt(Math.round(n * 10 ** DECIMALS)) : 0n
+  })()
+
+  return (
+    <div className="grid gap-4 md:grid-cols-3">
+      <ActionPanel
+        title="Set swap rate"
+        description="Update your points' rate to the alliance unit. Needs the alliance authority co-sign — here you're both (self-founded)."
+        cta="Set rate"
+        disabled={!(rateBps > 0)}
+        run={async ({ wallet, connection, send }) => {
+          if (!wallet.publicKey) throw new Error('Connect a wallet')
+          return send(connection, wallet, [
+            setSwapRateIx({
+              authority: wallet.publicKey,
+              allianceAuthority: wallet.publicKey,
+              alliance,
+              newRate: rateBps,
+            }),
+          ])
+        }}
+      >
+        <AmountField label="Rate (× alliance unit)" value={rate} onChange={setRate} suffix="×" />
+      </ActionPanel>
+
+      <ActionPanel
+        title="Set inbound budget"
+        description="Your daily cap on points others can mint into via swaps — your self-chosen exposure to partner economies."
+        cta="Set budget"
+        disabled={!(budgetRaw > 0n)}
+        run={async ({ wallet, connection, send }) => {
+          if (!wallet.publicKey) throw new Error('Connect a wallet')
+          return send(connection, wallet, [
+            setSwapBudgetIx({ authority: wallet.publicKey, alliance, newBudget: budgetRaw }),
+          ])
+        }}
+      >
+        <AmountField label="Daily inbound budget" value={budget} onChange={setBudget} />
+      </ActionPanel>
+
+      <ActionPanel
+        title="Leave alliance"
+        description="Exit the alliance. Your membership closes and rent returns to you; customers can no longer swap into your points."
+        cta="Leave alliance"
+        run={async ({ wallet, connection, send }) => {
+          if (!wallet.publicKey) throw new Error('Connect a wallet')
+          return send(connection, wallet, [leaveAllianceIx(wallet.publicKey, alliance)])
+        }}
+      >
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+          <LogOut className="size-4 text-flame" aria-hidden />
+          Departure is one signature
+        </div>
+      </ActionPanel>
+    </div>
+  )
+}
+
+function ClawbackPanel({ mint }: { mint: PublicKey }) {
+  const [customer, setCustomer] = useState('')
+  const [amount, setAmount] = useState('')
+  const amountRaw = (() => {
+    const n = Number(amount)
+    return Number.isFinite(n) && n > 0 ? BigInt(Math.round(n * 10 ** DECIMALS)) : 0n
+  })()
+  const ready = isPubkey(customer) && amountRaw > 0n
+
+  return (
+    <div className="max-w-lg">
+      <ActionPanel
+        title="Clawback"
+        description="Reclaim points from a holder to your treasury for refunds or fraud. It's a hooked transfer — argus audits it, and it's a public, reason-coded transaction. Disclosed to customers by design."
+        cta="Clawback to treasury"
+        disabled={!ready}
+        run={async ({ wallet, connection, send }) => {
+          if (!wallet.publicKey) throw new Error('Connect a wallet')
+          return send(connection, wallet, [
+            clawbackIx({
+              authority: wallet.publicKey,
+              mint,
+              customer: new PublicKey(customer),
+              amountRaw,
+              reasonCode: 1,
+            }),
+          ])
+        }}
+      >
+        <AddressField label="Customer wallet" value={customer} onChange={setCustomer} />
+        <AmountField label="Amount" value={amount} onChange={setAmount} />
+      </ActionPanel>
+    </div>
   )
 }
 

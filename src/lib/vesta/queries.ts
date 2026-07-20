@@ -214,3 +214,41 @@ export function useDecodedTransaction(signature: string | null) {
     staleTime: 60_000,
   })
 }
+
+export function useMyCampaigns(merchant: PublicKey | undefined) {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['campaigns', merchant?.toBase58()],
+    queryFn: async () => {
+      if (!merchant) return []
+      const { DISCRIMINATOR } = await import('./constants')
+      const { decodeCampaign } = await import('./decode')
+      const bs58 = (bytes: readonly number[]) => {
+        const A = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+        let v = 0n
+        for (const b of bytes) v = v * 256n + BigInt(b)
+        let out = ''
+        while (v > 0n) {
+          out = A[Number(v % 58n)] + out
+          v /= 58n
+        }
+        for (const b of bytes) {
+          if (b === 0) out = `1${out}`
+          else break
+        }
+        return out
+      }
+      const accounts = await connection.getProgramAccounts(VESTA_CORE, {
+        filters: [
+          { memcmp: { offset: 0, bytes: bs58(DISCRIMINATOR.Campaign) } },
+          { memcmp: { offset: 8, bytes: merchant.toBase58() } },
+        ],
+      })
+      return accounts
+        .map(({ pubkey, account }) => decodeCampaign(pubkey, new Uint8Array(account.data)))
+        .sort((a, b) => Number(a.id - b.id))
+    },
+    enabled: !!merchant,
+    staleTime: 20_000,
+  })
+}
