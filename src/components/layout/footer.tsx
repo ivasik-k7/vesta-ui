@@ -11,7 +11,8 @@ const COLUMNS = [
     heading: 'Protocol',
     links: [
       { label: 'Customer app', to: '/app' },
-      { label: 'Merchant dashboard', to: '/merchant' },
+      { label: 'Merchant console', to: '/app/console' },
+      { label: 'Merchant directory', to: '/merchant' },
     ],
   },
   {

@@ -25,6 +25,20 @@ function u64(n: bigint): Buffer {
   new DataView(b.buffer).setBigUint64(0, n, true)
   return Buffer.from(b)
 }
+function u32(n: number): Buffer {
+  const b = new Uint8Array(4)
+  new DataView(b.buffer).setUint32(0, n, true)
+  return Buffer.from(b)
+}
+function i16(n: number): Buffer {
+  const b = new Uint8Array(2)
+  new DataView(b.buffer).setInt16(0, n, true)
+  return Buffer.from(b)
+}
+function borshString(v: string): Buffer {
+  const body = utf8.encode(v)
+  return Buffer.concat([u32(body.length), Buffer.from(body)])
+}
 const m = (pubkey: PublicKey, isSigner: boolean, isWritable: boolean): AccountMeta => ({
   pubkey,
   isSigner,
@@ -155,6 +169,68 @@ export function swapPointsIx(params: {
       u64(params.uiAmount),
       u64(params.maxRawIn),
       u64(params.minRawOut),
+    ]),
+  })
+}
+
+/** Register the connected wallet as a merchant (creates the Token-2022 mint). */
+export function registerMerchantIx(params: {
+  authority: PublicKey
+  name: string
+  symbol: string
+  uri: string
+  decayRateBps: number
+  baseEarnRate: bigint
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  const mint = pdas.mint(merchant)
+  const treasury = ata(mint, params.authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, true),
+      m(merchant, false, true),
+      m(mint, false, true),
+      m(treasury, false, true),
+      m(pdas.config(), false, false),
+      m(TOKEN_2022, false, false),
+      m(ASSOCIATED_TOKEN, false, false),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: Buffer.concat([
+      disc('register_merchant'),
+      borshString(params.name),
+      borshString(params.symbol),
+      borshString(params.uri),
+      i16(params.decayRateBps),
+      u64(params.baseEarnRate),
+      Buffer.from([DECIMALS]),
+    ]),
+  })
+}
+
+/** Create a redemption offer under the connected merchant. */
+export function createOfferIx(params: {
+  authority: PublicKey
+  id: bigint
+  pricePoints: bigint
+  supply: number
+}): TransactionInstruction {
+  const merchant = pdas.merchant(params.authority)
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, true),
+      m(merchant, false, false),
+      m(pdas.offer(merchant, params.id), false, true),
+      m(pdas.config(), false, false),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: Buffer.concat([
+      disc('create_offer'),
+      u64(params.id),
+      u64(params.pricePoints),
+      u32(params.supply),
     ]),
   })
 }

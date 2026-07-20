@@ -34,10 +34,10 @@ test('landing renders the VESTA hero', async () => {
   expect(screen.getAllByText('vesta_core').length).toBeGreaterThan(0)
 })
 
-test('customer app prompts to connect a wallet', async () => {
+test('customer app overview prompts to connect a wallet', async () => {
   renderAt('/app')
-  expect(await screen.findByText(/your loyalty/i)).toBeInTheDocument()
-  expect(screen.getByText(/connect a phantom/i)).toBeInTheDocument()
+  expect(await screen.findByRole('heading', { name: /overview/i })).toBeInTheDocument()
+  expect(screen.getByText(/connect a devnet wallet/i)).toBeInTheDocument()
 })
 
 test('merchant directory renders its live-scan header', async () => {

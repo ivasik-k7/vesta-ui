@@ -125,3 +125,41 @@ export function useCustomerProfile(merchant: PublicKey | undefined) {
     enabled: !!merchant && !!publicKey,
   })
 }
+
+export function useMyMerchant() {
+  const { connection } = useConnection()
+  const { publicKey } = useWallet()
+  return useQuery({
+    queryKey: ['my-merchant', publicKey?.toBase58()],
+    queryFn: async () => {
+      if (!publicKey) return null
+      const info = await connection.getAccountInfo(pdas.merchant(publicKey))
+      return info ? decodeMerchant(pdas.merchant(publicKey), new Uint8Array(info.data)) : null
+    },
+    enabled: !!publicKey,
+  })
+}
+
+export interface ActivityEntry {
+  signature: string
+  slot: number
+  blockTime: number | null
+  err: boolean
+}
+
+export function useActivity(limit = 20) {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['activity', limit],
+    queryFn: async (): Promise<ActivityEntry[]> => {
+      const sigs = await connection.getSignaturesForAddress(VESTA_CORE, { limit })
+      return sigs.map((s) => ({
+        signature: s.signature,
+        slot: s.slot,
+        blockTime: s.blockTime ?? null,
+        err: s.err !== null,
+      }))
+    },
+    staleTime: 10_000,
+  })
+}
