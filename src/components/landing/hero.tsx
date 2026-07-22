@@ -6,12 +6,6 @@ import { useEnterApp } from '@/components/landing/launch'
 import { EASE } from '@/components/landing/reveal'
 import { Button } from '@/components/ui/button'
 
-const PROGRAMS = [
-  { name: 'vesta_core', role: 'economy' },
-  { name: 'argus', role: 'policy' },
-  { name: 'aegis', role: 'identity' },
-] as const
-
 export function Hero() {
   const reduce = useReducedMotion()
   const enterApp = useEnterApp()
@@ -26,72 +20,58 @@ export function Hero() {
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-grid-fade" />
         {/* ambient flame glow behind the product visual (§3.2) */}
-        <div className="-translate-x-1/2 absolute top-[46%] left-1/2 h-[40rem] w-[64rem] rounded-full bg-[radial-gradient(ellipse_at_center,rgb(122_38_4/0.35),transparent_65%)]" />
+        <div className="absolute top-[30%] right-[-20%] h-[36rem] w-[48rem] rounded-full bg-[radial-gradient(ellipse_at_center,rgb(122_38_4/0.35),transparent_65%)]" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-7 px-4 pt-20 pb-28 text-center md:pt-28">
-        <motion.h1
-          {...enter(0.06)}
-          className="max-w-3xl text-balance font-heading text-6xl leading-[1.04] tracking-tight md:text-7xl"
-        >
-          <span className="font-normal text-foreground/90">Loyalty that burns</span>
-          <br />
-          <motion.span
-            className="bg-clip-text font-bold text-transparent"
-            style={{
-              backgroundImage: 'linear-gradient(90deg,#f25c1f,#ffb27a,#f25c1f)',
-              backgroundSize: '200% 100%',
-            }}
-            animate={reduce ? undefined : { backgroundPositionX: ['0%', '200%'] }}
-            transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }}
+      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-14 px-4 pt-24 pb-24 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:pt-32 md:pb-32">
+        <div>
+          <motion.h1
+            {...enter(0.06)}
+            className="text-balance font-heading text-5xl leading-[1.05] tracking-tight md:text-6xl lg:text-7xl"
           >
-            brighter every visit
-          </motion.span>
-        </motion.h1>
-
-        <motion.p
-          {...enter(0.12)}
-          className="max-w-2xl text-lg text-muted-foreground leading-relaxed"
-        >
-          The living loyalty protocol on Solana. Points cool when ignored and compound with streaks,
-          move only under governed on-chain policy, and unlock rewards gated by privacy-preserving
-          identity — value that behaves like a flame across every brand you tend.
-        </motion.p>
-
-        <motion.div {...enter(0.15)} className="flex flex-wrap items-center justify-center gap-2">
-          {PROGRAMS.map((program) => (
-            <span
-              key={program.name}
-              className="group inline-flex items-center gap-2 rounded-lg border border-border bg-card/60 px-3 py-1.5 font-mono text-xs backdrop-blur transition-colors hover:border-flame/40"
+            <span className="font-normal text-foreground/90">Loyalty that burns</span>{' '}
+            <motion.span
+              className="bg-clip-text font-bold text-transparent"
+              style={{
+                backgroundImage: 'linear-gradient(90deg,#f25c1f,#ffb27a,#f25c1f)',
+                backgroundSize: '200% 100%',
+              }}
+              animate={reduce ? undefined : { backgroundPositionX: ['0%', '200%'] }}
+              transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }}
             >
-              <span className="text-flame">{program.name}</span>
-              <span aria-hidden className="text-line-strong">
-                ::
-              </span>
-              <span className="text-muted-foreground">{program.role}</span>
-            </span>
-          ))}
-        </motion.div>
+              brighter every visit
+            </motion.span>
+          </motion.h1>
 
-        <motion.div {...enter(0.18)} className="flex flex-wrap items-center justify-center gap-3">
-          <Button size="lg" className="group" onClick={enterApp}>
-            Launch app
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-          </Button>
-          <Button asChild size="lg" variant="outline" className="group border-line-strong">
-            <a
-              href="https://github.com/ivasik-k7/vesta-core/blob/main/README.md#architecture"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Read the architecture
-              <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </a>
-          </Button>
-        </motion.div>
+          <motion.p
+            {...enter(0.12)}
+            className="mt-6 max-w-xl text-lg text-muted-foreground leading-relaxed"
+          >
+            The living loyalty protocol on Solana. Points cool when ignored and compound with
+            streaks, move only under governed on-chain policy, and unlock rewards gated by
+            privacy-preserving identity.
+          </motion.p>
+
+          <motion.div {...enter(0.18)} className="mt-8 flex flex-wrap items-center gap-3">
+            <Button size="lg" className="group" onClick={enterApp}>
+              Launch app
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            </Button>
+            <Button asChild size="lg" variant="outline" className="group border-line-strong">
+              <a
+                href="https://github.com/ivasik-k7/vesta-core/blob/main/README.md#architecture"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Read the architecture
+                <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
+            </Button>
+          </motion.div>
+        </div>
 
         {/* the product visual slot (§1.2): our product shot is alive */}
-        <motion.div {...enter(0.26)} className="mt-10 w-full max-w-2xl">
+        <motion.div {...enter(0.2)} className="w-full">
           <FlameDemo />
         </motion.div>
       </div>

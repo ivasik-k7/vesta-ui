@@ -147,7 +147,11 @@ export function Bento() {
 
         {/* program tabs */}
         <Reveal delay={0.06} className="mt-12">
-          <div role="tablist" aria-label="Programs" className="flex flex-wrap gap-2">
+          <div
+            role="tablist"
+            aria-label="Programs"
+            className="flex gap-6 border-border/60 border-b"
+          >
             {PROGRAMS.map((p) => {
               const on = p.id === activeId
               return (
@@ -158,13 +162,18 @@ export function Bento() {
                   type="button"
                   onClick={() => setActiveId(p.id)}
                   className={cn(
-                    'relative rounded-full border px-4 py-2 font-mono text-sm transition-colors',
-                    on
-                      ? 'border-flame/50 bg-flame/10 text-flame'
-                      : 'border-border text-muted-foreground hover:border-line-strong hover:text-foreground',
+                    'relative pb-3 font-mono text-sm transition-colors',
+                    on ? 'text-flame' : 'text-muted-foreground hover:text-foreground',
                   )}
                 >
                   {p.name}
+                  {on ? (
+                    <motion.span
+                      layoutId="bento-tab"
+                      className="absolute inset-x-0 -bottom-px h-px bg-flame"
+                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                    />
+                  ) : null}
                 </button>
               )
             })}
@@ -243,19 +252,21 @@ export function Bento() {
                 <p className="font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
                   PDA namespace
                 </p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <p className="mt-2 font-mono text-[11px] text-foreground/70 leading-relaxed">
                   {program.seeds.map((seed, index) => (
                     <motion.span
                       key={`${program.id}-${seed}`}
-                      initial={reduce ? false : { opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      initial={reduce ? false : { opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       transition={{ delay: 0.05 + index * 0.03, duration: 0.18 }}
-                      className="rounded-md border border-border bg-background/60 px-2 py-0.5 font-mono text-[11px] text-foreground/75"
                     >
                       "{seed}"
+                      {index < program.seeds.length - 1 ? (
+                        <span className="text-muted-foreground/50"> · </span>
+                      ) : null}
                     </motion.span>
                   ))}
-                </div>
+                </p>
               </div>
 
               <div className="mt-auto flex items-end justify-between pt-5">
