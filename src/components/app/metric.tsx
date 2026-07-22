@@ -22,7 +22,7 @@ export function Metric({
   accent?: boolean
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card/50 p-4 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-line-strong">
+    <div className="rounded-2xl border border-border bg-card/50 p-4 shadow-panel ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-line-strong">
       <div className="flex items-center justify-between gap-2">
         <p className="truncate font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
           {label}

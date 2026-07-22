@@ -383,7 +383,7 @@ function MiniSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boo
       className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? 'bg-flame' : 'bg-secondary'}`}
     >
       <span
-        className={`absolute top-0.5 size-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`}
+        className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`}
       />
     </button>
   )

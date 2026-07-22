@@ -40,6 +40,13 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    /* Brand accent + strong hairline resolve per theme (deep flame on light
+       for AA-legible text; vivid flame on dark). */
+    --color-flame: var(--flame);
+    --color-flame-hover: var(--flame-hover);
+    --color-flame-active: var(--flame-active);
+    --color-flame-deep: var(--flame-deep);
+    --color-line-strong: var(--line-strong);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -50,38 +57,49 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Light — "the brand at noon": warm paper background, pure-white cards
+     lifting off it, warm greys, deep flame for AA-legible accents. */
+  --background: oklch(0.985 0.006 70);
+  --foreground: #201b17;
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: #201b17;
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: #201b17;
   --primary: #c23a05;
   --primary-foreground: #fff7f2;
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.955 0.006 70);
+  --secondary-foreground: #201b17;
+  --muted: oklch(0.955 0.006 70);
+  --muted-foreground: oklch(0.44 0.012 60);
+  --accent: oklch(0.955 0.006 70);
+  --accent-foreground: #201b17;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: oklch(0.9 0.008 70);
+  --input: oklch(0.9 0.008 70);
+  --ring: #c23a05;
+  /* flame-family charts (shared across themes) */
+  --chart-1: #e2470a;
+  --chart-2: #f2872f;
+  --chart-3: #f4b15e;
+  --chart-4: #7a2604;
+  --chart-5: #c23a05;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.975 0.006 70);
+  --sidebar-foreground: #201b17;
+  --sidebar-primary: #c23a05;
+  --sidebar-primary-foreground: #fff7f2;
+  --sidebar-accent: oklch(0.955 0.006 70);
+  --sidebar-accent-foreground: #201b17;
+  --sidebar-border: oklch(0.9 0.008 70);
+  --sidebar-ring: #c23a05;
+  /* brand accent (deep flame reads AA on paper) + strong hairline */
+  --flame: #c23a05;
+  --flame-hover: #e2470a;
+  --flame-active: #a83204;
+  --flame-deep: #7a2604;
+  --line-strong: oklch(0.86 0.01 70);
+  --shadow-card: 0 1px 2px rgb(31 24 20 / 0.04), 0 8px 24px -12px rgb(31 24 20 / 0.14);
+  --shadow-card-lg: 0 2px 4px rgb(31 24 20 / 0.05), 0 18px 40px -20px rgb(31 24 20 / 0.2);
 }
 
 .dark {
@@ -104,19 +122,28 @@
   --border: #2a2622;
   --input: #2a2622;
   --ring: #e2470a;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  /* flame-family charts (shared across themes) */
+  --chart-1: #e2470a;
+  --chart-2: #f2872f;
+  --chart-3: #f4b15e;
+  --chart-4: #7a2604;
+  --chart-5: #c23a05;
+  --sidebar: #121110;
+  --sidebar-foreground: #f5efe9;
+  --sidebar-primary: #e2470a;
+  --sidebar-primary-foreground: #180b04;
+  --sidebar-accent: #1e1b18;
+  --sidebar-accent-foreground: #f5efe9;
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: #e2470a;
+  /* brand accent (vivid flame on dark) + strong hairline */
+  --flame: #e2470a;
+  --flame-hover: #f25c1f;
+  --flame-active: #c23a05;
+  --flame-deep: #7a2604;
+  --line-strong: #3a342e;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -18px rgb(0 0 0 / 0.75);
+  --shadow-card-lg: 0 2px 6px rgb(0 0 0 / 0.5), 0 24px 48px -24px rgb(0 0 0 / 0.85);
 }
 
 @layer base {
@@ -185,14 +212,18 @@
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+  /* Theme-aware elevation — soft & cool on light, deep on dark. Named
+     "panel" to avoid Tailwind's shadow-<color> utility (card is a color). */
+  .shadow-panel {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-panel-lg {
+    box-shadow: var(--shadow-card-lg);
+  }
 }
 @theme {
-    /* sicilian orange scale (REFERENCES.md §3.1) */
-    --color-flame: #e2470a;
-    --color-flame-hover: #f25c1f;
-    --color-flame-active: #c23a05;
-    --color-flame-deep: #7a2604;
-    --color-line-strong: #3a342e;
+    /* sicilian orange scale (REFERENCES.md §3.1) — per-theme values live in
+       :root / .dark as --flame*; charts share a flame family (below). */
     --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
     --animate-flicker: flicker 2.6s ease-in-out infinite;
     --animate-aurora: aurora 16s ease-in-out infinite alternate;

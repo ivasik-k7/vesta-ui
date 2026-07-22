@@ -103,7 +103,7 @@ function DiscoverPage() {
       />
 
       {/* Controls */}
-      <div className="mb-8 space-y-3 rounded-2xl border border-border bg-card/50 p-4 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm">
+      <div className="mb-8 space-y-3 rounded-2xl border border-border bg-card/50 p-4 shadow-panel ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-background/60 px-3 shadow-inner transition-colors focus-within:border-flame/60">
             <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -228,7 +228,7 @@ function FilterChip({
 /** Standardized directory card — same anatomy and height as wallet TokenCards. */
 function DiscoverCard({ merchant, held }: { merchant: Merchant; held: boolean }) {
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card/50 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-flame/40">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card/50 shadow-panel ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-flame/40">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-3.5 pb-2.5">
         <span

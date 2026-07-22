@@ -173,7 +173,7 @@ function MerchantSummary({ merchant }: { merchant: Merchant }) {
         </Link>
       }
     >
-      <div className="overflow-hidden rounded-2xl border border-border bg-card/50 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card/50 shadow-panel ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-2 px-4 pt-3.5 pb-2.5">
           <span
             aria-hidden

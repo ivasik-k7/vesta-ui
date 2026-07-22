@@ -19,7 +19,7 @@ export function Group({
   children: ReactNode
 }) {
   return (
-    <section className="group/card fade-in-0 slide-in-from-bottom-2 animate-in overflow-hidden rounded-2xl border border-border bg-card/50 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-line-strong">
+    <section className="group/card fade-in-0 slide-in-from-bottom-2 animate-in overflow-hidden rounded-2xl border border-border bg-card/50 shadow-panel ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-line-strong">
       <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-2.5">
         {Icon ? (
           <span className="grid size-6 shrink-0 place-items-center rounded-lg border border-flame/20 bg-flame/10 text-flame">
@@ -169,7 +169,7 @@ export function Switch({
       }`}
     >
       <span
-        className={`inline-block size-4 rounded-full bg-white shadow-sm transition-transform duration-200 ease-out ${
+        className={`inline-block size-4 rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-transform duration-200 ease-out ${
           checked ? 'translate-x-6' : 'translate-x-1'
         }`}
       />

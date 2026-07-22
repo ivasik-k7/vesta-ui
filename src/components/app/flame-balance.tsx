@@ -61,7 +61,7 @@ export function TokenCard({ holding }: { holding: Holding }) {
   const mint = holding.merchant.pointMint.toBase58()
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card/50 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.75)] ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-flame/40">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card/50 shadow-panel ring-1 ring-foreground/[0.02] ring-inset backdrop-blur-sm transition-colors duration-300 hover:border-flame/40">
       <div
         aria-hidden
         className="-right-10 -top-10 pointer-events-none absolute size-28 rounded-full bg-flame/10 blur-3xl transition-opacity duration-1000"
