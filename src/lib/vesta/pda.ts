@@ -46,8 +46,17 @@ export const pdas = {
   member: (alliance: PublicKey, merchant: PublicKey) =>
     derive([s('member'), alliance.toBytes(), merchant.toBytes()]),
 
+  /** Per-merchant verified-segment definitions (spec 12). */
+  merchantSegments: (merchant: PublicKey) => derive([s('segments'), merchant.toBytes()]),
+  /** Per-(merchant, customer) cached segment verdicts (spec 12). */
+  customerEligibility: (merchant: PublicKey, customer: PublicKey) =>
+    derive([s('celig'), merchant.toBytes(), customer.toBytes()]),
+
   // ── argus (transfer-hook policy engine) ─────────────────────────────────────
   guardConfig: (mint: PublicKey) => derive([s('guard'), mint.toBytes()], ARGUS),
+  /** Cached eligibility capability the hook reads (spec 09). */
+  capability: (mint: PublicKey, subject: PublicKey) =>
+    derive([s('cap'), mint.toBytes(), subject.toBytes()], ARGUS),
   walletState: (mint: PublicKey, owner: PublicKey) =>
     derive([s('wstate'), mint.toBytes(), owner.toBytes()], ARGUS),
   listEntry: (mint: PublicKey, target: PublicKey) =>
@@ -58,8 +67,9 @@ export const pdas = {
   // ── aegis (attestation issuer) ──────────────────────────────────────────────
   issuer: (authority: PublicKey, id: bigint) =>
     derive([s('issuer'), authority.toBytes(), u64le(id)], AEGIS),
-  attestation: (issuer: PublicKey, subject: PublicKey) =>
-    derive([s('attestation'), issuer.toBytes(), subject.toBytes()], AEGIS),
+  /** Multi-credential: one attestation per (issuer, subject, schema). */
+  attestation: (issuer: PublicKey, subject: PublicKey, schemaId: bigint) =>
+    derive([s('attestation'), issuer.toBytes(), subject.toBytes(), u64le(schemaId)], AEGIS),
 }
 
 /** ATA under Token-2022 (off-curve owners allowed for PDA treasuries). */

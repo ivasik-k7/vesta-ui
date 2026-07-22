@@ -64,6 +64,17 @@ class Cursor {
   option<T>(read: () => T): T | null {
     return this.bool() ? read() : null
   }
+  bytes(n: number): Uint8Array {
+    const out = this.data.subarray(this.offset, this.offset + n)
+    this.offset += n
+    return out
+  }
+  skip(n: number): void {
+    this.offset += n
+  }
+  remaining(): number {
+    return this.data.byteLength - this.offset
+  }
 }
 
 // ── vesta_core ──────────────────────────────────────────────────────────────
@@ -148,18 +159,20 @@ export interface Offer {
   pricePoints: bigint
   supplyRemaining: number
   active: boolean
+  /** 0 = open to all; else verified-segment index + 1 (spec 12 §4.5). */
+  requiredSegment: number
 }
 
 export function decodeOffer(address: PublicKey, data: Uint8Array): Offer {
   const c = new Cursor(data, 8)
-  return {
-    address,
-    merchant: c.pubkey(),
-    id: c.u64(),
-    pricePoints: c.u64(),
-    supplyRemaining: c.u32(),
-    active: c.bool(),
-  }
+  const merchant = c.pubkey()
+  const id = c.u64()
+  const pricePoints = c.u64()
+  const supplyRemaining = c.u32()
+  const active = c.bool()
+  c.u8() // bump
+  const requiredSegment = c.remaining() >= 1 ? c.u8() : 0
+  return { address, merchant, id, pricePoints, supplyRemaining, active, requiredSegment }
 }
 
 export interface CustomerProfile {
@@ -359,10 +372,15 @@ export function decodeAchievement(address: PublicKey, data: Uint8Array): Achieve
 // ── argus ─────────────────────────────────────────────────────────────────
 
 export interface GuardConfig {
+  version: number
   mint: PublicKey
   authority: PublicKey
   treasury: PublicKey
+  aegisProgram: PublicKey
   attestationIssuer: PublicKey
+  policy: PublicKey
+  policyEpoch: bigint
+  screeningEpoch: bigint
   paused: boolean
   flags: number
   dailyGiftCap: bigint
@@ -370,17 +388,24 @@ export interface GuardConfig {
   maxWalletBalance: bigint
   transfersPerDayCap: number
   cooldownSecs: number
-  attestationSchema: number
-  attestationMask: bigint
+  attestationSchema: bigint
+  capabilityTtlSecs: bigint
+  governed: boolean
+  degradeMode: number
 }
 
 export function decodeGuardConfig(data: Uint8Array): GuardConfig {
   const c = new Cursor(data, 8)
+  const version = c.u8()
   const mint = c.pubkey()
   const authority = c.pubkey()
   c.option(() => c.pubkey()) // pending_authority
   const treasury = c.pubkey()
+  const aegisProgram = c.pubkey()
   const attestationIssuer = c.pubkey()
+  const policy = c.pubkey()
+  const policyEpoch = c.u64()
+  const screeningEpoch = c.u64()
   const paused = c.bool()
   const flags = c.u16()
   const dailyGiftCap = c.u64()
@@ -388,13 +413,21 @@ export function decodeGuardConfig(data: Uint8Array): GuardConfig {
   const maxWalletBalance = c.u64()
   const transfersPerDayCap = c.u16()
   const cooldownSecs = c.u32()
-  const attestationSchema = c.u16()
-  const attestationMask = c.u64()
+  const attestationSchema = c.u64()
+  const capabilityTtlSecs = c.i64()
+  const governed = c.bool()
+  c.skip(32) // active_policy_hash
+  const degradeMode = c.u8()
   return {
+    version,
     mint,
     authority,
     treasury,
+    aegisProgram,
     attestationIssuer,
+    policy,
+    policyEpoch,
+    screeningEpoch,
     paused,
     flags,
     dailyGiftCap,
@@ -403,7 +436,9 @@ export function decodeGuardConfig(data: Uint8Array): GuardConfig {
     transfersPerDayCap,
     cooldownSecs,
     attestationSchema,
-    attestationMask,
+    capabilityTtlSecs,
+    governed,
+    degradeMode,
   }
 }
 
@@ -411,29 +446,101 @@ export function decodeGuardConfig(data: Uint8Array): GuardConfig {
 
 export interface Attestation {
   address: PublicKey
+  version: number
   issuer: PublicKey
   subject: PublicKey
-  schema: number
-  value: bigint
+  schemaId: bigint
+  commitment: Uint8Array
   issuedAt: bigint
   validFrom: bigint
   expiresAt: bigint
-  revoked: boolean
+  /** attestation_status: 0 active · 1 revoked · 2 erased */
+  status: number
 }
 
 export function decodeAttestation(address: PublicKey, data: Uint8Array): Attestation {
   const c = new Cursor(data, 8)
+  const version = c.u8()
+  const issuer = c.pubkey()
+  const subject = c.pubkey()
+  const schemaId = c.u64()
+  const commitment = c.bytes(32)
+  c.skip(32) // attr_root
+  const issuedAt = c.i64()
+  const validFrom = c.i64()
+  const expiresAt = c.i64()
+  const status = c.u8()
   return {
     address,
-    issuer: c.pubkey(),
-    subject: c.pubkey(),
-    schema: c.u16(),
-    value: c.u64(),
-    issuedAt: c.i64(),
-    validFrom: c.i64(),
-    expiresAt: c.i64(),
-    revoked: c.bool(),
+    version,
+    issuer,
+    subject,
+    schemaId,
+    commitment,
+    issuedAt,
+    validFrom,
+    expiresAt,
+    status,
   }
+}
+
+// ── verified segmentation (spec 12) ─────────────────────────────────────────
+
+export interface Segment {
+  issuer: PublicKey
+  schemaId: bigint
+  ttlSecs: bigint
+  boostBps: number
+  active: boolean
+}
+
+export interface MerchantSegments {
+  merchant: PublicKey
+  policyEpoch: bigint
+  segments: Segment[]
+}
+
+export function decodeMerchantSegments(data: Uint8Array): MerchantSegments {
+  const c = new Cursor(data, 8)
+  c.u8() // version
+  const merchant = c.pubkey()
+  const policyEpoch = c.u64()
+  const segments: Segment[] = []
+  for (let i = 0; i < 8; i++) {
+    const issuer = c.pubkey()
+    const schemaId = c.u64()
+    const ttlSecs = c.i64()
+    const boostBps = c.u16()
+    const active = c.bool()
+    if (active) segments.push({ issuer, schemaId, ttlSecs, boostBps, active })
+    else segments.push({ issuer, schemaId, ttlSecs, boostBps, active })
+  }
+  return { merchant, policyEpoch, segments }
+}
+
+export interface CustomerEligibility {
+  merchant: PublicKey
+  customer: PublicKey
+  verdicts: number
+  kycTier: number
+  jurisdiction: number
+  issuedAt: bigint
+  expiresAt: bigint
+  policyEpoch: bigint
+}
+
+export function decodeCustomerEligibility(data: Uint8Array): CustomerEligibility {
+  const c = new Cursor(data, 8)
+  c.u8() // version
+  const merchant = c.pubkey()
+  const customer = c.pubkey()
+  const verdicts = c.u32()
+  const kycTier = c.u8()
+  const jurisdiction = c.u16()
+  const issuedAt = c.i64()
+  const expiresAt = c.i64()
+  const policyEpoch = c.u64()
+  return { merchant, customer, verdicts, kycTier, jurisdiction, issuedAt, expiresAt, policyEpoch }
 }
 
 export interface Issuer {

@@ -6,7 +6,7 @@ import { Bento } from '@/components/landing/bento'
 import { ChallengeWidget } from '@/components/landing/challenge-widget'
 import { CookieConsent } from '@/components/landing/cookie-consent'
 // import { Ecosystem } from '@/components/landing/ecosystem'
-import { Enterprise } from '@/components/landing/enterprise'
+// import { Enterprise } from '@/components/landing/enterprise'
 import { Faq } from '@/components/landing/faq'
 import { Flow } from '@/components/landing/flow'
 import { Follow } from '@/components/landing/follow'
@@ -53,7 +53,7 @@ function LandingPage() {
       {/* <Ecosystem /> */}
       <Flow />
       <Stats />
-      <Enterprise />
+      {/* <Enterprise /> */}
       <Bento />
       <Steps />
       <Faq />

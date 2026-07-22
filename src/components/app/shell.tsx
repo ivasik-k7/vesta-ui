@@ -1,7 +1,6 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   Activity,
-  ArrowLeft,
   Award,
   BadgeCheck,
   BarChart3,
@@ -28,7 +27,6 @@ import { useTranslation } from 'react-i18next'
 
 import { AccountMenu } from '@/components/app/account-menu'
 import { AccountOverlayProvider } from '@/components/app/account-overlay'
-import { BalanceChip } from '@/components/app/balance'
 import { CreateMerchantProvider, useCreateMerchant } from '@/components/app/create-merchant'
 import { NotificationBell } from '@/components/app/notification-bell'
 import { ConnectButton } from '@/components/wallet/connect-button'
@@ -260,19 +258,6 @@ function SidebarContent({
           ))}
         </NavSection>
       </nav>
-
-      {/* Footer: balance + escape hatch */}
-      <div className="relative shrink-0 space-y-1.5 border-border/60 border-t p-3">
-        <BalanceChipCompact />
-        <Link
-          to="/"
-          onClick={onNavigate}
-          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-muted-foreground text-sm transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Back to site
-        </Link>
-      </div>
     </div>
   )
 }
@@ -335,15 +320,6 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
       <item.icon className="size-[17px] shrink-0 text-muted-foreground/70 transition-colors group-hover:text-foreground group-data-[status=active]:text-flame" />
       {item.label}
     </Link>
-  )
-}
-
-function BalanceChipCompact() {
-  // Reuse the existing chip but without its default top margin.
-  return (
-    <div className="[&>div]:mt-0">
-      <BalanceChip />
-    </div>
   )
 }
 

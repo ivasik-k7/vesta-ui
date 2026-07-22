@@ -466,13 +466,17 @@ export function useMyIssuer() {
 }
 
 /** Public lookup: one subject's attestation under a given issuer. */
-export function useAttestation(issuer: PublicKey | null, subject: PublicKey | null) {
+export function useAttestation(
+  issuer: PublicKey | null,
+  subject: PublicKey | null,
+  schemaId = 1n, // well-known: REGION
+) {
   const { connection } = useConnection()
   return useQuery({
-    queryKey: ['attestation', issuer?.toBase58(), subject?.toBase58()],
+    queryKey: ['attestation', issuer?.toBase58(), subject?.toBase58(), schemaId.toString()],
     queryFn: async (): Promise<Attestation | null> => {
       if (!issuer || !subject) return null
-      const pda = pdas.attestation(issuer, subject)
+      const pda = pdas.attestation(issuer, subject, schemaId)
       const info = await connection.getAccountInfo(pda)
       return info ? decodeAttestation(pda, new Uint8Array(info.data)) : null
     },

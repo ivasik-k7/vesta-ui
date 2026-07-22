@@ -1707,13 +1707,17 @@ function IssuerConsole({
             if (!wallet.publicKey) throw new Error('Connect a wallet')
             const now = BigInt(Math.floor(Date.now() / 1000))
             const dayNum = Number.parseInt(days, 10) || 365
+            // Commitment model: the claim itself never leaves this device — only
+            // its sha256 commitment is written on-chain (GDPR-erasable).
+            const claim = new TextEncoder().encode(`${schema}:${subject}:${value || 'attested'}`)
+            const commitment = new Uint8Array(await crypto.subtle.digest('SHA-256', claim))
             return send(connection, wallet, [
               issueAttestationIx({
                 signer: wallet.publicKey,
                 issuer,
                 subject: new PublicKey(subject),
-                schema,
-                value: BigInt(Number.parseInt(value, 10) || 1),
+                schemaId: BigInt(schema),
+                commitment,
                 validFrom: now,
                 expiresAt: now + BigInt(dayNum) * 86_400n,
               }),
@@ -1731,7 +1735,12 @@ function IssuerConsole({
               { value: 3, label: 'Age band' },
             ]}
           />
-          <AmountField label="Value" value={value} onChange={setValue} suffix="=" />
+          <AmountField
+            label="Claim (hashed locally — never on-chain)"
+            value={value}
+            onChange={setValue}
+            suffix="#"
+          />
           <AmountField label="Valid for" value={days} onChange={setDays} suffix="days" />
         </ActionPanel>
 
@@ -1747,6 +1756,7 @@ function IssuerConsole({
                 signer: wallet.publicKey,
                 issuer,
                 subject: new PublicKey(revokeSubject),
+                schemaId: BigInt(schema),
                 reasonCode: 1,
               }),
             ])

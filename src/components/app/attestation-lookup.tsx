@@ -92,13 +92,14 @@ function Result({ att }: { att: Attestation }) {
   const expired = Number(att.expiresAt) > 0 && Number(att.expiresAt) < now
   const notYet = Number(att.validFrom) > now
 
-  const status = att.revoked
-    ? { tone: 'bad' as const, icon: CircleX, label: 'Revoked' }
-    : expired
-      ? { tone: 'warn' as const, icon: CircleAlert, label: 'Expired' }
-      : notYet
-        ? { tone: 'warn' as const, icon: CircleAlert, label: 'Not yet valid' }
-        : { tone: 'good' as const, icon: CircleCheck, label: 'Valid' }
+  const status =
+    att.status !== 0
+      ? { tone: 'bad' as const, icon: CircleX, label: att.status === 2 ? 'Erased' : 'Revoked' }
+      : expired
+        ? { tone: 'warn' as const, icon: CircleAlert, label: 'Expired' }
+        : notYet
+          ? { tone: 'warn' as const, icon: CircleAlert, label: 'Not yet valid' }
+          : { tone: 'good' as const, icon: CircleCheck, label: 'Valid' }
 
   const toneCls =
     status.tone === 'good'
@@ -122,10 +123,13 @@ function Result({ att }: { att: Attestation }) {
     >
       <DataRow
         label="Schema"
-        value={SCHEMA_LABEL[att.schema] ?? `Schema ${att.schema}`}
+        value={SCHEMA_LABEL[Number(att.schemaId)] ?? `Schema ${att.schemaId}`}
         mono={false}
       />
-      <DataRow label="Attested value" value={att.value.toString()} />
+      <DataRow
+        label="Commitment"
+        value={`0x${Array.from(att.commitment.slice(0, 8), (b) => b.toString(16).padStart(2, '0')).join('')}… (PII off-chain)`}
+      />
       <DataRow label="Issued" value={fmtDate(att.issuedAt)} mono={false} />
       <DataRow label="Valid from" value={fmtDate(att.validFrom)} mono={false} />
       <DataRow

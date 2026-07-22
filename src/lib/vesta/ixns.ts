@@ -3,7 +3,12 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   createTransferCheckedInstruction,
 } from '@solana/spl-token'
-import { type AccountMeta, PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js'
+import {
+  type AccountMeta,
+  type PublicKey,
+  SystemProgram,
+  TransactionInstruction,
+} from '@solana/web3.js'
 import { Buffer } from 'buffer'
 
 import { AEGIS, ARGUS, ASSOCIATED_TOKEN, DECIMALS, TOKEN_2022, VESTA_CORE } from './constants'
@@ -96,16 +101,14 @@ export function argusExtras(
   mint: PublicKey,
   sourceOwner: PublicKey,
   destOwner: PublicKey,
-  issuer: PublicKey = PublicKey.default,
 ): AccountMeta[] {
   return [
     m(pdas.guardConfig(mint), false, false),
     m(pdas.walletState(mint, sourceOwner), false, true),
     m(destOwner, false, false),
     m(pdas.listEntry(mint, destOwner), false, false),
-    m(AEGIS, false, false),
-    m(issuer, false, false),
-    m(pdas.attestation(issuer, destOwner), false, false),
+    // spec 09: the hook reads the cached eligibility capability — never aegis.
+    m(pdas.capability(mint, destOwner), false, false),
     m(ARGUS, false, false),
     m(pdas.extraAccountMetaList(mint), false, false),
   ]
@@ -136,7 +139,6 @@ export function giftIxns(params: {
   rawAmount: bigint
   ensureWalletState: boolean
   ensureDestAta: boolean
-  issuer?: PublicKey
 }): TransactionInstruction[] {
   const ixns: TransactionInstruction[] = []
   const fromAta = ata(params.mint, params.from)
@@ -163,7 +165,7 @@ export function giftIxns(params: {
     [],
     TOKEN_2022,
   )
-  transfer.keys.push(...argusExtras(params.mint, params.from, params.to, params.issuer))
+  transfer.keys.push(...argusExtras(params.mint, params.from, params.to))
   ixns.push(transfer)
   return ixns
 }
@@ -176,8 +178,15 @@ export function redeemOfferIx(params: {
   offerId: bigint
   redemptionIndex: number
   maxRawAmount: bigint
+  /** Pass true for segment-gated offers: supplies the real eligibility PDAs. */
+  withEligibility?: boolean
 }): TransactionInstruction {
   const offer = pdas.offer(params.merchant, params.offerId)
+  // Anchor optional accounts: None is encoded as the program id itself.
+  const segments = params.withEligibility ? pdas.merchantSegments(params.merchant) : VESTA_CORE
+  const eligibility = params.withEligibility
+    ? pdas.customerEligibility(params.merchant, params.customer)
+    : VESTA_CORE
   return new TransactionInstruction({
     programId: VESTA_CORE,
     keys: [
@@ -189,6 +198,8 @@ export function redeemOfferIx(params: {
       m(params.mint, false, true),
       m(ata(params.mint, params.customer), false, true),
       m(pdas.config(), false, false),
+      m(segments, false, false),
+      m(eligibility, false, false),
       m(TOKEN_2022, false, false),
       m(ASSOCIATED_TOKEN, false, false),
       m(SystemProgram.programId, false, false),
@@ -474,6 +485,8 @@ export function earnPointsIx(params: {
       m(params.mint, false, true),
       m(ata(params.mint, params.customer), false, true),
       m(pdas.config(), false, false),
+      m(VESTA_CORE, false, false), // merchant_segments: None
+      m(VESTA_CORE, false, false), // customer_eligibility: None
       m(TOKEN_2022, false, false),
       m(ASSOCIATED_TOKEN, false, false),
       m(SystemProgram.programId, false, false),
@@ -542,7 +555,7 @@ export function clawbackIx(params: {
       m(TOKEN_2022, false, false),
       m(SystemProgram.programId, false, false),
       // remaining_accounts: the argus hook extras (dest owner = treasury owner).
-      ...argusExtras(params.mint, params.customer, params.treasuryOwner, params.issuer),
+      ...argusExtras(params.mint, params.customer, params.treasuryOwner),
     ],
     data: Buffer.concat([disc('clawback'), u64(params.amountRaw), u16(params.reasonCode)]),
   })
@@ -1009,8 +1022,10 @@ export function issueAttestationIx(params: {
   signer: PublicKey
   issuer: PublicKey
   subject: PublicKey
-  schema: number
-  value: bigint
+  schemaId: bigint
+  /** sha256 commitment over the off-chain claims (no PII on-chain). */
+  commitment: Uint8Array
+  attrRoot?: Uint8Array
   validFrom: bigint
   expiresAt: bigint
 }): TransactionInstruction {
@@ -1019,14 +1034,15 @@ export function issueAttestationIx(params: {
     keys: [
       m(params.signer, true, true),
       m(params.issuer, false, true),
-      m(pdas.attestation(params.issuer, params.subject), false, true),
+      m(pdas.attestation(params.issuer, params.subject, params.schemaId), false, true),
       m(SystemProgram.programId, false, false),
     ],
     data: Buffer.concat([
       disc('issue_attestation'),
       params.subject.toBuffer(),
-      u16(params.schema),
-      u64(params.value),
+      u64(params.schemaId),
+      Buffer.from(params.commitment),
+      Buffer.from(params.attrRoot ?? new Uint8Array(32)),
       i64(params.validFrom),
       i64(params.expiresAt),
     ]),
@@ -1037,6 +1053,7 @@ export function revokeAttestationIx(params: {
   signer: PublicKey
   issuer: PublicKey
   subject: PublicKey
+  schemaId: bigint
   reasonCode: number
 }): TransactionInstruction {
   return new TransactionInstruction({
@@ -1044,8 +1061,34 @@ export function revokeAttestationIx(params: {
     keys: [
       m(params.signer, true, false),
       m(params.issuer, false, false),
-      m(pdas.attestation(params.issuer, params.subject), false, true),
+      m(pdas.attestation(params.issuer, params.subject, params.schemaId), false, true),
     ],
     data: Buffer.concat([disc('revoke_attestation'), u16(params.reasonCode)]),
+  })
+}
+
+/** Refresh one verified-segment verdict for a customer (permissionless — the
+ * customer can self-activate their boost; CPIs aegis verify off the hot path). */
+export function refreshCustomerEligibilityIx(params: {
+  payer: PublicKey
+  merchant: PublicKey
+  customer: PublicKey
+  issuer: PublicKey
+  schemaId: bigint
+  segmentIndex: number
+}): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.payer, true, true),
+      m(params.merchant, false, false),
+      m(params.customer, false, false),
+      m(pdas.merchantSegments(params.merchant), false, false),
+      m(pdas.customerEligibility(params.merchant, params.customer), false, true),
+      m(pdas.attestation(params.issuer, params.customer, params.schemaId), false, false),
+      m(AEGIS, false, false),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: Buffer.concat([disc('refresh_customer_eligibility'), Buffer.from([params.segmentIndex])]),
   })
 }
