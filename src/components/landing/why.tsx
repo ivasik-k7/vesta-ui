@@ -74,26 +74,48 @@ function SwapOrbit() {
   )
 }
 
-function BadgeShine() {
+function AegisVerify() {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-card p-6">
+    <div className="relative overflow-hidden rounded-xl border border-border bg-card p-6 font-mono text-xs">
       <div
         aria-hidden
         className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent motion-safe:animate-shine"
       />
-      <p className="flex items-center gap-2 font-mono text-muted-foreground text-xs">
-        <Lock className="size-3.5 text-flame" aria-hidden />
-        NonTransferable · supply can never increase
+      <p className="flex items-center gap-2 text-muted-foreground">
+        <Eye className="size-3.5 text-flame" aria-hidden /> aegis · verify(subject, policy)
       </p>
-      <p className="mt-3 font-heading font-semibold text-2xl">First Flame</p>
-      <p className="text-muted-foreground text-sm">kleos badge · earned 2026-07-19</p>
+      <div className="mt-4 space-y-1.5">
+        <p className="text-foreground/80">
+          region ∈ EU <span className="text-flame-hover">✓</span>
+        </p>
+        <p className="text-foreground/80">
+          KYC tier ≥ 2 <span className="text-flame-hover">✓</span>
+        </p>
+        <p className="text-foreground/80">
+          age band 18+ <span className="text-flame-hover">✓</span>
+        </p>
+      </div>
+      <div className="mt-4 border-border/60 border-t pt-3">
+        <p className="text-flame-hover">
+          <Check className="mr-1.5 inline size-3.5" aria-hidden />
+          verdict: eligible
+        </p>
+        <p className="mt-1 flex items-center gap-2 text-muted-foreground">
+          <Lock className="size-3.5" aria-hidden /> PII seen on-chain: never
+        </p>
+      </div>
     </div>
   )
 }
 
 const ARGUS_LOG = [
-  { text: 'transfer → gift(friend, 25)', ok: true, verdict: 'approved · within daily limit' },
+  {
+    text: 'transfer → gift(friend, 25)',
+    ok: true,
+    verdict: 'approved · policy v7 · within limits',
+  },
   { text: 'transfer → dex_pool(dump_all)', ok: false, verdict: 'rejected · not a loyalty flow' },
+  { text: 'transfer → sanctioned_wallet', ok: false, verdict: 'rejected · screening freeze' },
 ] as const
 
 function ArgusFeed() {
@@ -107,7 +129,8 @@ function ArgusFeed() {
   return (
     <div className="rounded-xl border border-border bg-card p-5 font-mono text-xs">
       <p className="mb-3 flex items-center gap-2 text-muted-foreground">
-        <Eye className="size-3.5 text-flame" aria-hidden /> argus · watching every transfer
+        <Eye className="size-3.5 text-flame" aria-hidden /> argus · every transfer, &lt;3k CU, no
+        CPI
       </p>
       <AnimatePresence mode="wait">
         <motion.div
@@ -150,16 +173,20 @@ const REASONS: {
     visual: <SwapOrbit />,
   },
   {
-    title: 'Proof no one can buy',
-    body: 'Achievements are non-transferable badges. Any dApp can gate on them without asking us — devotion becomes portable reputation.',
-    visual: <BadgeShine />,
+    title: 'Verified, never surveilled',
+    body: 'aegis proves the rule that matters — verified region, KYC tier, age band, accredited status — from on-chain commitments alone. Merchants learn that a predicate holds; the customer’s data is never on-chain, and is GDPR-erasable.',
+    link: {
+      label: 'How aegis verifies privately',
+      href: 'https://github.com/ivasik-k7/vesta-core/tree/main/docs/specs',
+    },
+    visual: <AegisVerify />,
   },
   {
-    title: 'Rules that travel with the token',
-    body: 'A transfer hook audits every move: gifting within limits passes, mercenary dumping never clears. Fail-closed by construction.',
+    title: 'Policy that governs itself',
+    body: 'argus checks every transfer against an editable, versioned policy — velocity, lists, eligibility, jurisdiction, sanctions — decided off the hot path and cached, so the guard runs in under 3k compute units with no cross-program call. A revoked issuer auto-degrades; a compliance change is data, never a redeploy.',
     link: {
-      label: 'How the guard works',
-      href: 'https://github.com/ivasik-k7/vesta-core/blob/main/docs/TECHNICAL_SPEC.md',
+      label: 'How the policy engine works',
+      href: 'https://github.com/ivasik-k7/vesta-core/blob/main/docs/specs/09-argus-policy-vm.md',
     },
     visual: <ArgusFeed />,
   },
@@ -169,7 +196,12 @@ export function Why() {
   return (
     <section className="border-border/60 border-t">
       <div className="mx-auto w-full max-w-6xl px-4 py-24 md:py-32">
-        <SectionHeader kicker="Why VESTA?" title="Four reasons loyalty" emphasis="finally moves" />
+        <SectionHeader
+          kicker="Why VESTA?"
+          title="Four reasons loyalty"
+          emphasis="finally moves"
+          sub="A living economy, a governed transfer layer, and a privacy-preserving identity layer — three programs that make points behave like value people actually keep."
+        />
 
         <div className="mt-16 flex flex-col gap-20 md:gap-24">
           {REASONS.map((reason, index) => (

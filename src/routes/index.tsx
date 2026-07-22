@@ -1,8 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 import { Bento } from '@/components/landing/bento'
+import { ChallengeWidget } from '@/components/landing/challenge-widget'
 import { Ecosystem } from '@/components/landing/ecosystem'
+import { Enterprise } from '@/components/landing/enterprise'
 import { Faq } from '@/components/landing/faq'
+import { Flow } from '@/components/landing/flow'
 import { Follow } from '@/components/landing/follow'
 import { Hero } from '@/components/landing/hero'
 import { BrandQuote } from '@/components/landing/quote'
@@ -20,8 +23,9 @@ export const Route = createFileRoute('/')({
   component: LandingPage,
 })
 
-// Section order per docs/REFERENCES.md §1: promise → proof → reasons → reach
-// → numbers → features → social proof → onboarding → objections → capture.
+// Section order: promise → proof → reasons → architecture → capability flow →
+// numbers → enterprise controls → features → social proof → onboarding →
+// objections → capture. A floating Superteam-challenge badge overlays it all.
 function LandingPage() {
   return (
     <main>
@@ -29,12 +33,15 @@ function LandingPage() {
       <BrandQuote />
       <Why />
       <Ecosystem />
+      <Flow />
       <Stats />
+      <Enterprise />
       <Bento />
       <Verification />
       <Steps />
       <Faq />
       <Follow />
+      <ChallengeWidget />
     </main>
   )
 }

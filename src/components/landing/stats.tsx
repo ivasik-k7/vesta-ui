@@ -3,9 +3,9 @@ import { SectionHeader } from '@/components/landing/section-header'
 
 // §1.6 — three big honest numbers, N+ format, no paragraphs.
 const STATS = [
-  { value: '43+', label: 'audit findings resolved' },
-  { value: '11+', label: 'adversarial tests green' },
-  { value: '2', label: 'programs live on devnet' },
+  { value: '3', label: 'programs · one-directional trust' },
+  { value: '83', label: 'adversarial tests green' },
+  { value: '0', label: 'bytes of PII on-chain' },
 ] as const
 
 export function Stats() {

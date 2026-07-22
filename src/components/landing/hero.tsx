@@ -34,11 +34,33 @@ export function Hero() {
 
         <motion.p
           {...enter(0.12)}
-          className="max-w-xl text-lg text-muted-foreground leading-relaxed"
+          className="max-w-2xl text-lg text-muted-foreground leading-relaxed"
         >
-          VESTA turns points into a living asset — value cools when ignored, compounds with streaks,
-          and moves freely across merchants.
+          The living loyalty protocol on Solana. Points cool when ignored and compound with streaks,
+          move only under governed on-chain policy, and unlock rewards gated by privacy-preserving
+          identity — value that behaves like a flame across every brand you tend.
         </motion.p>
+
+        <motion.div
+          {...enter(0.15)}
+          className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-muted-foreground text-xs"
+        >
+          <span className="text-flame">vesta_core</span>
+          <span aria-hidden>·</span>
+          <span>living economy</span>
+          <span aria-hidden className="text-line-strong">
+            /
+          </span>
+          <span className="text-flame">argus</span>
+          <span aria-hidden>·</span>
+          <span>governed transfer policy</span>
+          <span aria-hidden className="text-line-strong">
+            /
+          </span>
+          <span className="text-flame">aegis</span>
+          <span aria-hidden>·</span>
+          <span>private identity &amp; trust</span>
+        </motion.div>
 
         <motion.div {...enter(0.18)} className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg" className="group">
@@ -49,7 +71,7 @@ export function Hero() {
           </Button>
           <Button asChild size="lg" variant="outline" className="group border-line-strong">
             <a
-              href="https://github.com/ivasik-k7/vesta-core/blob/main/docs/TECHNICAL_SPEC.md"
+              href="https://github.com/ivasik-k7/vesta-core/blob/main/README.md#architecture"
               target="_blank"
               rel="noreferrer"
             >

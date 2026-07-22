@@ -47,15 +47,15 @@ export function Verification() {
       <div className="mx-auto w-full max-w-6xl px-4 py-24 md:py-32">
         <SectionHeader
           kicker="Reviewed like it matters"
-          title="What the auditors"
+          title="What the reviewers"
           emphasis="said"
-          sub="Three adversarial verification rounds shaped this protocol before a line of instruction code was written. Every quote below is verbatim from the review record."
+          sub="Every track was shaped by three independent design studies, then hardened by adversarial security passes that verified each finding line-by-line against source. Every quote below is verbatim from the review record."
         />
 
         <Reveal delay={0.08} className="mt-8">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm">
-            <BadgeCheck className="size-4 text-flame" aria-hidden />6 verifier agents · 4-lens judge
-            panel · 43+ findings applied
+            <BadgeCheck className="size-4 text-flame" aria-hidden />
+            multi-agent ideation · adversarial audits · 83 tests green
           </span>
         </Reveal>
 

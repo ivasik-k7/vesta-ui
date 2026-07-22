@@ -6,16 +6,13 @@ import { SectionHeader } from '@/components/landing/section-header'
 import { env } from '@/env'
 import { cn } from '@/lib/utils'
 
-const INIT_CONFIG_TX =
-  '2AafQDwvTa7UDVMo3DTPFH4f8yqyzevBAZP6wpjLdyttZmugQccoBRxheXsYXjyRxt2AwFUi9cmV8JNKULWoEp61'
-
 const LINES = [
-  { text: `$ solana program show ${env.VITE_VESTA_CORE_PROGRAM_ID.slice(0, 20)}…`, tone: 'cmd' },
+  { text: `$ solana program show ${env.VITE_VESTA_CORE_PROGRAM_ID.slice(0, 16)}…`, tone: 'cmd' },
   { text: 'Status: deployed · IDL published on-chain', tone: 'out' },
-  { text: '$ vesta tx init_config', tone: 'cmd' },
-  { text: `✓ ${INIT_CONFIG_TX.slice(0, 18)}…${INIT_CONFIG_TX.slice(-6)}`, tone: 'ok' },
   { text: '$ vesta spike token-2022 --extensions all', tone: 'cmd' },
-  { text: '✓ metadata + decay + hook + clawback on one mint', tone: 'ok' },
+  { text: '✓ decay + hook + delegate + metadata on one mint', tone: 'ok' },
+  { text: '$ argus refresh_eligibility --via aegis', tone: 'cmd' },
+  { text: '✓ verdict cached · execute reads it, 0 hot-path CPI', tone: 'ok' },
 ] as const
 
 const TONE = {
@@ -104,15 +101,15 @@ export function Bento() {
           />
           <Card
             title="Streaks up to ×1.6"
-            body="Thirty consecutive days of showing up outruns a full year of decay. Devotion pays."
+            body="Thirty consecutive days of showing up outruns a full year of decay; verified-segment and campaign boosts stack on top, jointly capped."
+          />
+          <Card
+            title="Soulbound proof"
+            body="Achievements are non-transferable kleos badges any dApp can gate on without asking us — devotion becomes portable reputation."
           />
           <Card
             title="Fail-closed guard"
-            body="Omit the hook accounts and the transfer aborts. Policy cannot be skipped, only satisfied."
-          />
-          <Card
-            title="Audited clawback"
-            body="Issuer refunds are transfers, so the guard sees every one — reason-coded and public."
+            body="Omit the hook accounts and the transfer aborts. Policy cannot be skipped, only satisfied — and it runs in under 3k CU."
           />
           <Card
             title="Open IDL + SDKs"
