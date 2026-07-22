@@ -1,13 +1,14 @@
 import { BadgeCheck } from 'lucide-react'
-
+import { useTranslation } from 'react-i18next'
 import { Reveal } from '@/components/landing/reveal'
 
 // §1.3 — the brand statement, staged as a signed on-chain memo: crypto-native
 // framing for the one sentence that carries the whole thesis.
 export function BrandQuote() {
+  const { t } = useTranslation()
   return (
     <section className="border-border/60 border-t">
-      <div className="mx-auto w-full max-w-6xl px-4 py-24 md:py-32">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-24 md:py-32">
         <Reveal className="mx-auto max-w-2xl">
           <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
             <div
@@ -20,7 +21,7 @@ export function BrandQuote() {
                 <span className="size-2 rounded-full bg-border" />
                 <span className="size-2 rounded-full bg-flame/60" />
               </span>
-              <span className="ml-1">memo · signed message</span>
+              <span className="ml-1">{t('landing.quote.header')}</span>
             </div>
 
             <div className="p-6 md:p-8">
@@ -28,19 +29,21 @@ export function BrandQuote() {
                 $ memo sign --keypair vesta.json
               </p>
               <blockquote className="mt-4 text-balance font-heading text-2xl text-foreground/90 leading-snug md:text-3xl">
-                “Loyalty programs treat devotion like a spreadsheet. We treat it like a{' '}
-                <span className="font-bold text-flame">flame</span> — it lives if you tend it.”
+                “{t('landing.quote.q1')}
+                <span className="font-bold text-flame">{t('landing.quote.flame')}</span>
+                {t('landing.quote.q2')}”
               </blockquote>
 
               <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs">
                 <span className="text-muted-foreground">
-                  sig <span className="text-foreground/70">3VstaF1…keEp5r</span>
+                  {t('landing.quote.sig')}{' '}
+                  <span className="text-foreground/70">3VstaF1…keEp5r</span>
                 </span>
                 <span className="inline-flex items-center gap-1 text-flame-hover">
                   <BadgeCheck className="size-3.5" aria-hidden />
-                  verified
+                  {t('landing.quote.verified')}
                 </span>
-                <span className="text-muted-foreground">— the VESTA team</span>
+                <span className="text-muted-foreground">{t('landing.quote.team')}</span>
                 <span aria-hidden className="text-flame motion-safe:animate-blink">
                   ▍
                 </span>

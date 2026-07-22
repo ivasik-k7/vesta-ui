@@ -49,5 +49,197 @@
     "connectPrompt": "Połącz portfel devnet, aby kontynuować.",
     "loading": "Ładowanie…",
     "devnet": "Devnet"
+  },
+  "landing": {
+    "cta": {
+      "launch": "Uruchom aplikację",
+      "architecture": "Poznaj architekturę",
+      "console": "Otwórz konsolę sprzedawcy",
+      "source": "Zobacz kod źródłowy"
+    },
+    "hero": {
+      "h1a": "Lojalność, która płonie",
+      "h1b": "jaśniej z każdą wizytą",
+      "sub": "Żywy protokół lojalnościowy w sieci Solana. Punkty stygną, gdy o nich zapominasz, i procentują dzięki seriom wizyt; przemieszczają się wyłącznie w ramach zarządzanej polityki on-chain, a nagrody odblokowuje tożsamość chroniąca prywatność."
+    },
+    "quote": {
+      "header": "memo · podpisana wiadomość",
+      "q1": "Programy lojalnościowe traktują przywiązanie jak arkusz kalkulacyjny. My traktujemy je jak ",
+      "flame": "płomień",
+      "q2": " — żyje, jeśli o niego dbasz.",
+      "verified": "zweryfikowano",
+      "team": "— zespół VESTA",
+      "sig": "sig"
+    },
+    "why": {
+      "kicker": "Dlaczego VESTA?",
+      "title": "Cztery powody, dla których lojalność",
+      "emphasis": "wreszcie krąży",
+      "sub": "Żywa gospodarka, zarządzana warstwa transferów i chroniąca prywatność warstwa tożsamości — trzy programy, dzięki którym punkty zachowują się jak wartość, którą ludzie naprawdę chcą trzymać.",
+      "r1t": "Punkty z pulsem",
+      "r1b": "Każdy mint niesie ujemną stopę procentową — zaniedbane salda stygną on-chain, bez żadnych cronów. Serie wizyt mintują mnożniki, które wyprzedzają spalanie.",
+      "r2t": "Wartość, która przekracza marki",
+      "r2b": "Sprzedawcy zawiązują alianse; klienci atomowo wymieniają punkty kawiarni na punkty księgarni, po kursach ustalanych przez alians i z samodzielnie dobranym budżetem ryzyka.",
+      "r3t": "Zweryfikowani, nigdy inwigilowani",
+      "r3b": "aegis dowodzi reguły, która ma znaczenie — zweryfikowany region, poziom KYC, przedział wiekowy, status akredytowany — wyłącznie na podstawie zobowiązań on-chain. Sprzedawca dowiaduje się, że predykat jest spełniony; dane klienta nigdy nie trafiają on-chain i są usuwalne zgodnie z GDPR.",
+      "r3l": "Jak aegis weryfikuje prywatnie",
+      "r4t": "Polityka, która zarządza sama sobą",
+      "r4b": "argus sprawdza każdy transfer względem edytowalnej, wersjonowanej polityki — prędkość, listy, uprawnienia, jurysdykcja, sankcje — decyzje zapadają poza gorącą ścieżką i są cache'owane, więc strażnik działa w mniej niż 3k jednostek obliczeniowych bez wywołań między programami. Odwołany emitent degraduje się automatycznie; zmiana compliance to dane, nigdy redeploy.",
+      "r4l": "Jak działa silnik polityk",
+      "pulse": {
+        "visit": "✓ wizyta — płomień dostaje paliwo",
+        "cooling": "stygnie…",
+        "streak": "seria",
+        "multiplier": "mnożnik"
+      },
+      "swap": {
+        "settled": "✓ rozliczono — obie nogi albo żadna · kurs 0.80 · opłata 25 bps",
+        "settling": "· rozliczanie — obie nogi albo żadna · kurs 0.80 · opłata 25 bps",
+        "note": "denominacja w wartości UI — wiek mintu nigdy nie zdradza przewagi"
+      },
+      "verify": {
+        "learns": "sprzedawca dowiaduje się",
+        "stores": "łańcuch przechowuje",
+        "verdict": "→ werdykt: uprawniony",
+        "erasable": "usuwalne · GDPR art. 17",
+        "fields": {
+          "name": "imię i nazwisko",
+          "birthdate": "data urodzenia",
+          "address": "adres",
+          "document": "dokument"
+        }
+      },
+      "policy": {
+        "footer": "każda decyzja z kodem przyczyny · <3k CU · 0 CPI · fail-closed"
+      }
+    },
+    "flow": {
+      "kicker": "Jak rozlicza się chroniony transfer",
+      "title": "Zapłać za tożsamość raz,",
+      "emphasis": "potem transferuj tanio",
+      "sub": "Kosztowna decyzja tożsamościowa jest opłacana poza ścieżką transferu i cache'owana; sam hook nie wykonuje żadnych wywołań między programami. Compliance jedzie z każdym transferem, nie obciążając go.",
+      "d1": "Portfel lub relayer z góry opłaca kosztowną weryfikację tożsamości — da się ją bundlować i wykonuje się tylko wtedy, gdy cache'a brakuje lub jest przeterminowany.",
+      "d2": "aegis odpowiada na podstawie zobowiązań on-chain — region, poziom KYC, przedział wiekowy, akredytacja. Dowodzi, że reguła jest spełniona, i nie ujawnia żadnych PII.",
+      "d3": "Werdykt jest cache'owany wraz z epoką polityki i epoką screeningu. Zmiana konfiguracji lub zamrożenie sankcyjne unieważnia go natychmiast, niezależnie od TTL.",
+      "d4": "Token-2022 odpala hook przy każdym transferze. Ten odczytuje cache'owaną bitmapę oraz lokalne limity i prędkość — poniżej 3k CU, zero wywołań między programami.",
+      "d5": "Świeży i uprawniony — rozlicza się. Przeterminowany, odwołany, zdegradowany lub ponad limitem — fail-closed z typowaną przyczyną. Nie ma pobłażliwego fallbacku."
+    },
+    "stats": {
+      "kicker": "Liczby, które wyprowadzisz sam",
+      "title": "Zmierzone",
+      "emphasis": "on-chain",
+      "sub": "Żadnych metryk próżności — każdą liczbę poniżej da się odtworzyć z publicznego repo lub eksploratora devnet.",
+      "m1": "publicznych instrukcji w 3 programach",
+      "m2": "adwersarialnych testów LiteSVM, wszystkie zielone",
+      "m3": "CU na gorącej ścieżce transferu — zero CPI",
+      "m4": "bajtów PII klientów przechowywanych on-chain"
+    },
+    "enterprise": {
+      "kicker": "Zbudowane dla regulowanych emitentów",
+      "title": "Kontrole klasy enterprise,",
+      "emphasis": "domyślnie on-chain",
+      "sub": "Lojalność w skali marki to najpierw problem kontroli, a dopiero potem problem punktów. VESTA odpowiada na niego prymitywami, które bank lub regulowany emitent naprawdę by zaakceptował.",
+      "identity": {
+        "tab": "Akredytowana tożsamość",
+        "title": "Prawo do emisji się zdobywa, nie deklaruje",
+        "body": "Prawo sprzedawcy do mintowania wywodzi się z korzenia akredytacji aegis. Permissionless crank sprawdza je ponownie i, jeśli akredytacja zostanie odwołana, automatycznie zamraża emisję — bez ludzkiego klucza w pętli.",
+        "p1": "On-chain kotwica zaufania z konfigurowalnym oknem karencji",
+        "p2": "Auto-degradacja zamraża naliczanie, nigdy wykup ani clawback",
+        "p3": "Wraca do sprawności samoczynnie w chwili przywrócenia akredytacji"
+      },
+      "reserve": {
+        "tab": "Zabezpieczone rezerwą",
+        "title": "Zobowiązanie, którego pokrycie można udowodnić",
+        "body": "Zdeponuj stablecoina w escrow pod otwarte zobowiązanie punktowe, mierzone na surowej podaży. Wypłaty nigdy nie zejdą poniżej wymaganego pokrycia, a każdy może opublikować on-chain snapshot proof-of-reserves.",
+        "p1": "Niezmiennik pokrycia egzekwowany tam, gdzie wartość wychodzi",
+        "p2": "Wartość jednostkowa ustalana przez governance — bez zależności od oracle'a",
+        "p3": "Permissionless atestacja rezerw, gotowa dla nadzorcy"
+      },
+      "duties": {
+        "tab": "Rozdział obowiązków",
+        "title": "Żaden pojedynczy klucz nie wydrenuje programu",
+        "body": "Zastąp płaskich operatorów rolami o ograniczonym zakresie — kasjer, menedżer kampanii, właściciel — z których każda strzeże tylko własnych akcji. Dzienny bezpiecznik emisji ogranicza promień rażenia skompromitowanego gorącego klucza.",
+        "p1": "Role najmniejszych uprawnień, opt-in i addytywne",
+        "p2": "Dzienny limit mintu per sprzedawca, symetryczny do clawbacku",
+        "p3": "Clawback tylko dla właściciela, z limitem i kodem przyczyny"
+      },
+      "governed": {
+        "tab": "Zarządzane i audytowalne",
+        "title": "Odpowiada na trzy pytania nadzorcy",
+        "body": "Kto może zmienić kontrolę, co ona zrobiła i na mocy jakiego umocowania ten podmiot ją prowadzi — każde z pytań ma odpowiedź on-chain. Zmiany polityki są wersjonowane, z zatwierdzaniem maker/checker i timelockiem; każda decyzja składa się w odporne na manipulacje zestawienie.",
+        "p1": "Zaproponuj → zatwierdź (≠ autor) → timelock → aktywuj → wycofaj",
+        "p2": "Adresowane treścią, niemutowalne wersje polityk",
+        "p3": "Dowodliwie kompletne zestawienia decyzji (korzeń Merkle + licznik)"
+      },
+      "segments": {
+        "tab": "Zweryfikowana segmentacja",
+        "title": "Celuj w zweryfikowane atrybuty — prywatnie",
+        "body": "Nagradzaj klientów za to, czego dowodzi poświadczenie — tylko UE, poziom KYC, 18+, akredytacja — boostem, winbackiem lub ekskluzywną ofertą. Sprzedawca dowiaduje się, że predykat jest spełniony; dane źródłowe nigdy nie trafiają on-chain.",
+        "p1": "Weryfikuj raz, czytaj tanio: zero kosztu tożsamości per transakcja",
+        "p2": "Zamrożenie sankcyjne natychmiast unieważnia cache'owane uprawnienia",
+        "p3": "Usuwalne zgodnie z GDPR — zobowiązania on-chain, PII off-chain"
+      }
+    },
+    "explore": {
+      "kicker": "Poznaj system",
+      "title": "Wybierz program,",
+      "emphasis": "zobacz, jak działa",
+      "sub": "Trzy wdrożone programy, 108 publicznych instrukcji, każde konto to deterministyczny PDA. To rzeczywista powierzchnia on-chain — adresy, przestrzenie nazw seedów i przepływy.",
+      "roleCore": "żywa gospodarka",
+      "roleArgus": "zarządzana polityka transferów",
+      "roleAegis": "prywatna tożsamość i zaufanie",
+      "pda": "przestrzeń nazw PDA",
+      "instructions": "publiczne instrukcje",
+      "idl": "IDL on-chain ✓",
+      "explorer": "eksplorator",
+      "copy": "Skopiuj adres programu"
+    },
+    "steps": {
+      "kicker": "Wejdź do VESTA",
+      "title": "Dwie podróże,",
+      "emphasis": "jeden protokół",
+      "sub": "Klienci pielęgnują żywe saldo; sprzedawcy prowadzą akredytowany, świadomy tożsamości program. Obie drogi zaczynają się w tej samej aplikacji.",
+      "customers": "Dla klientów",
+      "merchants": "Dla sprzedawców",
+      "c1": "Podłącz portfel devnet i otwórz swój płomień.",
+      "c2": "Patrz, jak stygnie na żywo — zamelduj się i poczuj, jak seria wyprzedza spalanie.",
+      "c3": "Podaruj w ramach limitu, wymieniaj między markami, zrealizuj ofertę tylko dla zweryfikowanych.",
+      "m1": "Zarejestruj markę — mintuj wygasające punkty w jednej transakcji.",
+      "m2": "Skonfiguruj strażnika, zdefiniuj zweryfikowane segmenty, ustaw role i limit emisji.",
+      "m3": "Nagradzaj według atrybutów, prowadź winbacki i zakotwicz audytowalne zestawienie."
+    },
+    "faq": {
+      "kicker": "Mamy odpowiedzi",
+      "title": "Uczciwe",
+      "emphasis": "pytania",
+      "q1": "Dlaczego moje punkty tracą wartość?",
+      "a1": "Każdy mint punktów niesie ujemną stopę procentową, egzekwowaną przez sam Token-2022 — wartość stygnie nieprzerwanie, chyba że wracasz. Mnożniki serii są zaprojektowane tak, by u każdego, kto się pojawia, przebijać spadek, a boosty zweryfikowanych segmentów i kampanii nakładają się na to (ze wspólnym limitem). Używasz albo tracisz — transparentnie.",
+      "q2": "Jak sprzedawca może nagrodzić „zweryfikowane UE” albo „18+” bez moich danych?",
+      "a2": "aegis przechowuje on-chain wyłącznie kryptograficzne zobowiązania — nigdy twoje dane osobowe, które zostają u ciebie i są usuwalne zgodnie z GDPR. Sprzedawca zadaje aegis pytanie tak/nie („czy ta reguła jest spełniona?”) i dostaje werdykt. Dowiaduje się, że się kwalifikujesz; nigdy nie pozna, kim jesteś ani jakie masz atrybuty.",
+      "q3": "Czy mogę wysłać punkty znajomemu?",
+      "a3": "Tak — podarunek to zwykły transfer tokenów, sprawdzany przez silnik polityk argus. Każdy portfel ma dzienny limit i inne reguły ustawione przez sprzedawcę; w ich granicach transfery przechodzą. Zrzut do puli giełdowej nie jest przepływem lojalnościowym i nigdy się nie rozliczy — strażnik jest fail-closed i działa w mniej niż 3k jednostek obliczeniowych, bez dodatkowych wywołań sieciowych.",
+      "q4": "Czy sprzedawca może odebrać mi punkty?",
+      "a4": "Na potrzeby zwrotów i obsługi fraudów — tak: emitenci mają stałego delegata nad własnym mintem, a clawback jest tylko dla właściciela, z dziennym limitem, kodem przyczyny i publicznym audytem. Jeśli sprzedawca straci akredytację lub trafi na listę sankcyjną, protokół zamraża nową emisję, a twoje istniejące saldo pozostaje wymienialne — porażka compliance nigdy nie blokuje twoich aktywów.",
+      "q5": "Co czyni to „enterprise-ready” dla prawdziwej marki?",
+      "a5": "Sprzedawca to akredytowany, wypłacalny, zarządzany emitent: tożsamość wywodzi się z on-chain korzenia zaufania i auto-degraduje się po odwołaniu; wyemitowane zobowiązania mogą być zabezpieczone rezerwą w stablecoinie z publicznym proof-of-reserves; operatorzy mają rozdzielone role (kasjer ≠ menedżer kampanii ≠ właściciel) i dzienny limit emisji; a każda decyzja ekonomiczna składa się w odporne na manipulacje, dowodliwie kompletne zestawienie, które nadzorca może zweryfikować.",
+      "q6": "Czy to działa na mainnet?",
+      "a6": "Jeszcze nie — VESTA działa na Solana devnet. Trzy programy i ich IDL-e są publicznie weryfikowalne w eksploratorze devnet, a pełny kod jest na GitHub. Mainnet czeka na niezależny audyt zewnętrzny i custody multisig.",
+      "q7": "Jak zintegrować mój dApp lub backend?",
+      "a7": "Każda mechanika to publiczna instrukcja z IDL on-chain. SDK w Pythonie celuje w backendy sprzedawców; klient TypeScript napędza aplikację. Dowolny program może konsumować werdykt aegis, a bramkowanie odznak to kilka linijek — wyprowadź adres pokwitowania kleos i sprawdź, czy istnieje. Specyfikacje enterprise pokrywają każdy przepływ."
+    },
+    "follow": {
+      "title1": "Nie pozwól mu",
+      "emphasis": "zgasnąć",
+      "sub": "Trzy programy budowane publicznie — każde wydanie, spec i runda audytu ląduje najpierw na GitHub, a każde konto jest o jedno zapytanie eksploratora stąd."
+    },
+    "challenge": {
+      "badge": "Superteam Earn",
+      "pill": "Zgłoszenie do Superteam Challenge",
+      "title": "Zbudowane na wyzwanie On-Chain Loyalty Rewards System",
+      "body": "VESTA to praca konkursowa — trzy programy Solana, budowane publicznie i weryfikowalne on-chain.",
+      "cta": "Zobacz wyzwanie",
+      "collapse": "Zwiń",
+      "dismiss": "Zamknij"
+    }
   }
 }

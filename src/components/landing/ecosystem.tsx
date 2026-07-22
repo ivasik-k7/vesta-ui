@@ -27,7 +27,7 @@ const STACK = ['Token-2022', 'Anchor 1.1.2', 'IDL on-chain', 'Python SDK', 'Type
 export function Ecosystem() {
   return (
     <section className="border-border/60 border-t">
-      <div className="mx-auto w-full max-w-6xl px-4 py-24 md:py-32">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-24 md:py-32">
         <SectionHeader
           kicker="Three programs, one protocol"
           title="Built to be"

@@ -49,5 +49,197 @@
     "connectPrompt": "Conecta una cartera devnet para continuar.",
     "loading": "Cargando…",
     "devnet": "Devnet"
+  },
+  "landing": {
+    "cta": {
+      "launch": "Abrir la app",
+      "architecture": "Leer la arquitectura",
+      "console": "Abrir la consola de comercios",
+      "source": "Leer el código fuente"
+    },
+    "hero": {
+      "h1a": "Lealtad que arde",
+      "h1b": "más fuerte con cada visita",
+      "sub": "El protocolo de lealtad vivo en Solana. Los puntos se enfrían si se ignoran y se componen con las rachas, se mueven solo bajo una política on-chain gobernada y desbloquean recompensas condicionadas por una identidad que preserva la privacidad."
+    },
+    "quote": {
+      "header": "memo · mensaje firmado",
+      "q1": "Los programas de lealtad tratan la devoción como una hoja de cálculo. Nosotros la tratamos como una ",
+      "flame": "llama",
+      "q2": " — vive si la cuidas.",
+      "verified": "verificado",
+      "team": "— el equipo de VESTA",
+      "sig": "sig"
+    },
+    "why": {
+      "kicker": "¿Por qué VESTA?",
+      "title": "Cuatro razones por las que la lealtad",
+      "emphasis": "por fin se mueve",
+      "sub": "Una economía viva, una capa de transferencia gobernada y una capa de identidad que preserva la privacidad — tres programas que hacen que los puntos se comporten como valor que la gente de verdad conserva.",
+      "r1t": "Puntos con pulso",
+      "r1b": "Cada mint lleva una tasa de interés negativa — los saldos desatendidos se enfrían on-chain, sin cron jobs. Las rachas acuñan multiplicadores que superan la quema.",
+      "r2t": "Valor que cruza marcas",
+      "r2b": "Los comercios forman alianzas; los clientes cambian puntos de cafetería por puntos de librería de forma atómica, a tasas gobernadas por la alianza y con presupuestos de riesgo elegidos por cada uno.",
+      "r3t": "Verificado, nunca vigilado",
+      "r3b": "aegis prueba la regla que importa — región verificada, nivel KYC, franja de edad, estatus acreditado — solo a partir de compromisos on-chain. El comercio aprende que un predicado se cumple; los datos del cliente nunca están on-chain y son borrables conforme al GDPR.",
+      "r3l": "Cómo verifica aegis en privado",
+      "r4t": "Política que se gobierna sola",
+      "r4b": "argus comprueba cada transferencia contra una política editable y versionada — velocidad, listas, elegibilidad, jurisdicción, sanciones — decidida fuera del hot path y cacheada, de modo que el guard corre en menos de 3k unidades de cómputo sin ninguna llamada cross-program. Un emisor revocado se degrada automáticamente; un cambio de cumplimiento es un dato, nunca un redespliegue.",
+      "r4l": "Cómo funciona el motor de políticas",
+      "pulse": {
+        "visit": "✓ visita — la llama se alimenta",
+        "cooling": "enfriándose…",
+        "streak": "racha",
+        "multiplier": "multiplicador"
+      },
+      "swap": {
+        "settled": "✓ liquidado — ambas patas o ninguna · tasa 0.80 · comisión 25 bps",
+        "settling": "· liquidando — ambas patas o ninguna · tasa 0.80 · comisión 25 bps",
+        "note": "Denominado en valor de UI — la antigüedad del mint nunca filtra una ventaja"
+      },
+      "verify": {
+        "learns": "el comercio aprende",
+        "stores": "la cadena guarda",
+        "verdict": "→ veredicto: elegible",
+        "erasable": "borrable · GDPR art. 17",
+        "fields": {
+          "name": "nombre",
+          "birthdate": "fecha de nacimiento",
+          "address": "dirección",
+          "document": "documento"
+        }
+      },
+      "policy": {
+        "footer": "cada decisión con código de razón · <3k CU · 0 CPI · fail-closed"
+      }
+    },
+    "flow": {
+      "kicker": "Cómo se liquida una transferencia protegida",
+      "title": "Paga la identidad una vez,",
+      "emphasis": "luego transfiere barato",
+      "sub": "La costosa decisión de identidad se paga fuera de la ruta de transferencia y se cachea; el hook en sí no hace ninguna llamada cross-program. El cumplimiento acompaña cada transferencia sin gravarla.",
+      "d1": "Una wallet o un relayer prepaga la costosa verificación de identidad — agrupable, y solo cuando la caché falta o está obsoleta.",
+      "d2": "aegis responde sobre compromisos on-chain — región, nivel KYC, franja de edad, acreditación. Prueba que la regla se cumple y no expone ninguna PII.",
+      "d3": "El veredicto se cachea con una época de política y una época de screening. Un cambio de configuración o una congelación por sanciones lo invalida al instante, sin importar el TTL.",
+      "d4": "Token-2022 dispara el hook en cada transferencia. Lee el bitmap cacheado más los topes y la velocidad locales — menos de 3k CU, cero llamadas cross-program.",
+      "d5": "Fresco y elegible, se liquida. Obsoleto, revocado, degradado o por encima de un tope, falla fail-closed con una razón tipada. No hay fallback permisivo."
+    },
+    "stats": {
+      "kicker": "Números que puedes rederivar",
+      "title": "Medido",
+      "emphasis": "on-chain",
+      "sub": "Sin métricas de vanidad — cada cifra de abajo es reproducible desde el repositorio público o el explorador de devnet.",
+      "m1": "instrucciones públicas en 3 programas",
+      "m2": "tests adversariales con LiteSVM, todos en verde",
+      "m3": "CU en el hot path de transferencia — cero CPI",
+      "m4": "bytes de PII de clientes guardados on-chain"
+    },
+    "enterprise": {
+      "kicker": "Construido para emisores regulados",
+      "title": "Controles de nivel empresarial,",
+      "emphasis": "on-chain por defecto",
+      "sub": "La lealtad a escala de marca es un problema de controles antes que un problema de puntos. VESTA lo responde con primitivas que un banco o un emisor regulado aceptaría de verdad.",
+      "identity": {
+        "tab": "Identidad acreditada",
+        "title": "La autoridad para emitir se gana, no se afirma",
+        "body": "El derecho de un comercio a mintear se encadena a una raíz de acreditación de aegis. Un crank permissionless lo re-verifica y, si la acreditación se revoca, congela la emisión automáticamente — sin ninguna clave humana en el circuito.",
+        "p1": "Ancla de confianza on-chain con ventana de gracia configurable",
+        "p2": "La auto-degradación congela la emisión de recompensas, nunca el canje ni el clawback",
+        "p3": "Se recupera solo en cuanto la acreditación se restaura"
+      },
+      "reserve": {
+        "tab": "Respaldado por reservas",
+        "title": "Un pasivo cuyo respaldo puedes probar",
+        "body": "Deposita en escrow un stablecoin contra el pasivo de puntos en circulación, medido sobre la oferta bruta. Los retiros nunca pueden caer por debajo de la cobertura requerida, y cualquiera puede publicar un snapshot de proof-of-reserves on-chain.",
+        "p1": "Invariante de cobertura aplicado donde el valor sale",
+        "p2": "Valor unitario fijado por gobernanza — sin dependencia de oráculos",
+        "p3": "Atestación de reservas permissionless, orientada al examinador"
+      },
+      "duties": {
+        "tab": "Separación de funciones",
+        "title": "Ninguna clave por sí sola puede drenar el programa",
+        "body": "Reemplaza operadores planos por roles acotados — cajero, gestor de campañas, propietario — cada uno controlando solo sus propias acciones. Un circuit breaker de emisión diaria acota el radio de impacto de una hot key comprometida.",
+        "p1": "Roles de mínimo privilegio, opcionales y aditivos",
+        "p2": "Tope diario de mint por comercio, simétrico al clawback",
+        "p3": "Clawback solo del propietario, con tope y código de razón"
+      },
+      "governed": {
+        "tab": "Gobernado y auditable",
+        "title": "Responde las tres preguntas de un examinador",
+        "body": "Quién puede cambiar el control, qué hizo y con qué autoridad lo opera esta entidad — cada una respondida on-chain. Los cambios de política se versionan con aprobación maker/checker y un timelock; cada decisión se consolida en un estado a prueba de manipulaciones.",
+        "p1": "Proponer → aprobar (≠ autor) → timelock → activar → rollback",
+        "p2": "Versiones de política inmutables y direccionadas por contenido",
+        "p3": "Estados de decisión demostrablemente completos (raíz de Merkle + conteo)"
+      },
+      "segments": {
+        "tab": "Segmentación verificada",
+        "title": "Apunta a atributos verificados, en privado",
+        "body": "Recompensa a los clientes por lo que una credencial prueba — solo UE, nivel KYC, 18+, acreditado — con un boost, un winback o una oferta exclusiva. El comercio aprende que un predicado se cumple; los datos subyacentes nunca están on-chain.",
+        "p1": "Verificar una vez, leer barato: sin coste de identidad por transacción",
+        "p2": "Una congelación por sanciones invalida al instante la elegibilidad cacheada",
+        "p3": "Borrable conforme al GDPR — compromisos on-chain, PII off-chain"
+      }
+    },
+    "explore": {
+      "kicker": "Explora el sistema",
+      "title": "Elige un programa,",
+      "emphasis": "míralo funcionar",
+      "sub": "Tres programas desplegados, 108 instrucciones públicas, cada cuenta una PDA determinista. Esta es la superficie on-chain real — direcciones, espacios de nombres de seeds y flujos.",
+      "roleCore": "la economía viva",
+      "roleArgus": "política de transferencia gobernada",
+      "roleAegis": "identidad privada y confianza",
+      "pda": "espacio de nombres PDA",
+      "instructions": "instrucciones públicas",
+      "idl": "IDL on-chain ✓",
+      "explorer": "explorador",
+      "copy": "Copiar la dirección del programa"
+    },
+    "steps": {
+      "kicker": "Entra en VESTA",
+      "title": "Dos recorridos,",
+      "emphasis": "un solo protocolo",
+      "sub": "Los clientes cuidan un saldo vivo; los comercios operan un programa acreditado y consciente de la identidad. Ambos empiezan en la misma app.",
+      "customers": "Para clientes",
+      "merchants": "Para comercios",
+      "c1": "Conecta una wallet de devnet y abre tu llama.",
+      "c2": "Mírala enfriarse en vivo — haz check-in y siente cómo la racha supera la quema.",
+      "c3": "Regala dentro del tope, intercambia entre marcas, canjea una oferta solo para verificados.",
+      "m1": "Registra una marca — mintea puntos con decaimiento en una sola transacción.",
+      "m2": "Configura el guard, define segmentos verificados, fija roles y un tope de emisión.",
+      "m3": "Recompensa por atributo, lanza winbacks y ancla un estado auditable."
+    },
+    "faq": {
+      "kicker": "Tenemos respuestas",
+      "title": "Preguntas",
+      "emphasis": "legítimas",
+      "q1": "¿Por qué mis puntos pierden valor?",
+      "a1": "Cada mint de puntos lleva una tasa de interés negativa, aplicada por el propio Token-2022 — el valor se enfría continuamente a menos que sigas visitando. Los multiplicadores de racha están diseñados para ganar más de lo que se decae para cualquiera que aparezca, y los boosts de segmento verificado o de campaña se suman encima (con tope conjunto). Úsalos o piérdelos, con total transparencia.",
+      "q2": "¿Cómo puede un comercio recompensar «UE verificada» o «18+» sin mis datos?",
+      "a2": "aegis solo guarda compromisos criptográficos on-chain — nunca tus datos personales, que se quedan contigo y son borrables conforme al GDPR. Un comercio le hace a aegis una pregunta de sí/no («¿se cumple esta regla?») y recibe un veredicto. Aprende que calificas; nunca aprende quién eres ni cuáles son tus atributos.",
+      "q3": "¿Puedo enviar puntos a un amigo?",
+      "a3": "Sí — regalar es una transferencia de tokens normal, comprobada por el motor de políticas argus. Cada wallet tiene una asignación diaria y otras reglas fijadas por el comercio; dentro de ellas, las transferencias pasan. Volcar puntos en un pool de exchange no es un flujo de lealtad y nunca se liquida — el guard es fail-closed y corre en menos de 3k unidades de cómputo sin llamadas de red adicionales.",
+      "q4": "¿Puede un comercio quitarme los puntos?",
+      "a4": "Para reembolsos y gestión de fraude, sí — los emisores tienen un delegado permanente sobre su propio mint, y el clawback es solo del propietario, con tope diario, código de razón y auditoría pública. Si el comercio pierde su acreditación o es sancionado, el protocolo congela la nueva emisión mientras tu saldo existente sigue siendo canjeable — un fallo de cumplimiento nunca deja tus activos varados.",
+      "q5": "¿Qué lo hace «enterprise-ready» para una marca real?",
+      "a5": "Un comercio es un emisor acreditado, solvente y gobernado: su identidad se encadena a una raíz de confianza on-chain y se auto-degrada si se revoca; el pasivo emitido puede respaldarse con reservas en stablecoin con proof-of-reserves público; los operadores tienen roles separados (cajero ≠ gestor de campañas ≠ propietario) con un tope de emisión diario; y cada decisión económica se consolida en un estado a prueba de manipulaciones y demostrablemente completo que un examinador puede verificar.",
+      "q6": "¿Está en mainnet?",
+      "a6": "Todavía no — VESTA corre en la devnet de Solana. Los tres programas y sus IDL son verificables públicamente en el explorador de devnet, y todo el código está en GitHub. Mainnet está condicionada a una auditoría independiente de terceros y a custodia multisig.",
+      "q7": "¿Cómo integro mi dApp o mi backend?",
+      "a7": "Cada mecánica es una instrucción pública con el IDL on-chain. El SDK de Python apunta a backends de comercios; el cliente de TypeScript impulsa la app. Cualquier programa puede consumir un veredicto de aegis, y el gating por insignias son unas pocas líneas — deriva la dirección del recibo kleos y comprueba que existe. Las especificaciones enterprise cubren cada flujo."
+    },
+    "follow": {
+      "title1": "No dejes que",
+      "emphasis": "se apague",
+      "sub": "Tres programas, construidos en público — cada release, spec y ronda de auditoría llega primero a GitHub, y cada cuenta está a una sola consulta del explorador."
+    },
+    "challenge": {
+      "badge": "Superteam Earn",
+      "pill": "Participación en el Superteam Challenge",
+      "title": "Construido para el desafío On-Chain Loyalty Rewards System",
+      "body": "VESTA es una participación en la competencia — tres programas de Solana, construidos en público y verificables on-chain.",
+      "cta": "Ver el desafío",
+      "collapse": "Contraer",
+      "dismiss": "Descartar"
+    }
   }
 }

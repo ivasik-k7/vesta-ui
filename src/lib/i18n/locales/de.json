@@ -49,5 +49,197 @@
     "connectPrompt": "Verbinde eine Devnet-Wallet, um fortzufahren.",
     "loading": "Wird geladen…",
     "devnet": "Devnet"
+  },
+  "landing": {
+    "cta": {
+      "launch": "App starten",
+      "architecture": "Architektur lesen",
+      "console": "Händler-Konsole öffnen",
+      "source": "Quellcode lesen"
+    },
+    "hero": {
+      "h1a": "Loyalität, die mit jedem Besuch",
+      "h1b": "heller brennt",
+      "sub": "Das lebendige Loyalitätsprotokoll auf Solana. Punkte kühlen ab, wenn man sie ignoriert, und wachsen mit Streaks; sie bewegen sich nur unter einer governance-gesteuerten On-Chain-Policy und schalten Belohnungen frei, die an eine privatsphärewahrende Identität geknüpft sind."
+    },
+    "quote": {
+      "header": "Memo · signierte Nachricht",
+      "q1": "Treueprogramme behandeln Hingabe wie eine Tabellenkalkulation. Wir behandeln sie wie eine ",
+      "flame": "Flamme",
+      "q2": " — sie lebt, wenn man sie pflegt.",
+      "verified": "verifiziert",
+      "team": "— das VESTA-Team",
+      "sig": "sig"
+    },
+    "why": {
+      "kicker": "Warum VESTA?",
+      "title": "Vier Gründe, warum Loyalität",
+      "emphasis": "endlich in Bewegung kommt",
+      "sub": "Eine lebendige Ökonomie, eine gesteuerte Transferschicht und eine privatsphärewahrende Identitätsschicht — drei Programme, die Punkte zu einem Wert machen, den Menschen wirklich behalten.",
+      "r1t": "Punkte mit Puls",
+      "r1b": "Jeder Mint trägt einen negativen Zinssatz — ungepflegte Guthaben kühlen on-chain ab, ohne Cronjobs. Streaks prägen Multiplikatoren, die dem Verfall davonlaufen.",
+      "r2t": "Wert, der Markengrenzen überschreitet",
+      "r2b": "Händler bilden Allianzen; Kundinnen und Kunden tauschen Café-Punkte atomar gegen Buchladen-Punkte — zu allianzgesteuerten Kursen und mit selbst gewählten Risikobudgets.",
+      "r3t": "Verifiziert, nie überwacht",
+      "r3b": "aegis beweist die Regel, auf die es ankommt — verifizierte Region, KYC-Stufe, Altersband, akkreditierter Status — allein aus On-Chain-Commitments. Der Händler erfährt, dass ein Prädikat gilt; die Daten des Kunden liegen nie on-chain und sind GDPR-konform löschbar.",
+      "r3l": "Wie aegis privat verifiziert",
+      "r4t": "Policy, die sich selbst steuert",
+      "r4b": "argus prüft jeden Transfer gegen eine editierbare, versionierte Policy — Velocity, Listen, Berechtigung, Jurisdiktion, Sanktionen — entschieden abseits des Hot Path und gecacht, sodass der Guard in unter 3k Compute Units läuft, ohne Cross-Program-Call. Ein widerrufener Emittent degradiert automatisch; eine Compliance-Änderung ist Daten, nie ein Redeploy.",
+      "r4l": "Wie die Policy-Engine funktioniert",
+      "pulse": {
+        "visit": "✓ Besuch — die Flamme wird genährt",
+        "cooling": "kühlt ab…",
+        "streak": "Streak",
+        "multiplier": "Multiplikator"
+      },
+      "swap": {
+        "settled": "✓ abgewickelt — beide Legs oder keins · Kurs 0.80 · Gebühr 25 bps",
+        "settling": "· in Abwicklung — beide Legs oder keins · Kurs 0.80 · Gebühr 25 bps",
+        "note": "In UI-Wert denominiert — das Mint-Alter verrät nie einen Vorteil"
+      },
+      "verify": {
+        "learns": "der Händler erfährt",
+        "stores": "die Chain speichert",
+        "verdict": "→ Verdikt: berechtigt",
+        "erasable": "löschbar · GDPR Art. 17",
+        "fields": {
+          "name": "Name",
+          "birthdate": "Geburtsdatum",
+          "address": "Adresse",
+          "document": "Dokument"
+        }
+      },
+      "policy": {
+        "footer": "jede Entscheidung mit Reason-Code · <3k CU · 0 CPI · fail-closed"
+      }
+    },
+    "flow": {
+      "kicker": "Wie ein bewachter Transfer durchgeht",
+      "title": "Identität einmal bezahlen,",
+      "emphasis": "dann günstig transferieren",
+      "sub": "Die teure Identitätsentscheidung wird abseits des Transferpfads bezahlt und gecacht; der Hook selbst macht keinen Cross-Program-Call. Compliance läuft auf jedem Transfer mit, ohne ihn zu belasten.",
+      "d1": "Eine Wallet oder ein Relayer zahlt die teure Identitätsprüfung vor — bündelbar, und nur wenn der Cache fehlt oder veraltet ist.",
+      "d2": "aegis antwortet über On-Chain-Commitments — Region, KYC-Stufe, Altersband, Akkreditierung. Es beweist, dass die Regel gilt, und legt keine PII offen.",
+      "d3": "Das Verdikt wird mit einer Policy-Epoche und einer Screening-Epoche gecacht. Eine Konfigurationsänderung oder ein Sanktions-Freeze invalidiert es sofort, unabhängig von der TTL.",
+      "d4": "Token-2022 feuert den Hook bei jedem Transfer. Er liest die gecachte Bitmap plus lokale Caps und Velocity — unter 3k CU, null Cross-Program-Calls.",
+      "d5": "Frisch und berechtigt wird abgewickelt. Veraltet, widerrufen, degradiert oder über einem Cap schlägt fail-closed fehl, mit typisiertem Grund. Es gibt keinen permissiven Fallback."
+    },
+    "stats": {
+      "kicker": "Zahlen, die Sie selbst herleiten können",
+      "title": "Gemessen",
+      "emphasis": "on-chain",
+      "sub": "Keine Vanity-Metriken — jede Zahl unten ist aus dem öffentlichen Repo oder dem devnet-Explorer reproduzierbar.",
+      "m1": "öffentliche Instructions über 3 Programme",
+      "m2": "adversariale LiteSVM-Tests, alle grün",
+      "m3": "CU auf dem Transfer-Hot-Path — null CPI",
+      "m4": "Bytes Kunden-PII on-chain gespeichert"
+    },
+    "enterprise": {
+      "kicker": "Gebaut für regulierte Emittenten",
+      "title": "Enterprise-Kontrollen,",
+      "emphasis": "standardmäßig on-chain",
+      "sub": "Loyalität im Markenmaßstab ist zuerst ein Kontrollproblem und erst dann ein Punkteproblem. VESTA beantwortet es mit Primitiven, die eine Bank oder ein regulierter Emittent tatsächlich akzeptieren würde.",
+      "identity": {
+        "tab": "Akkreditierte Identität",
+        "title": "Die Befugnis zu emittieren wird verdient, nicht behauptet",
+        "body": "Das Mint-Recht eines Händlers kettet sich an eine aegis-Akkreditierungswurzel. Ein permissionless Crank prüft sie fortlaufend nach und friert die Ausgabe automatisch ein, wenn die Akkreditierung widerrufen wird — kein menschlicher Schlüssel in der Schleife.",
+        "p1": "On-Chain-Vertrauensanker mit konfigurierbarem Kulanzfenster",
+        "p2": "Auto-Degradierung friert das Verdienen ein, nie Einlösung oder Clawback",
+        "p3": "Erholt sich von selbst, sobald die Akkreditierung wiederhergestellt ist"
+      },
+      "reserve": {
+        "tab": "Reservegedeckt",
+        "title": "Verbindlichkeiten mit beweisbarer Deckung",
+        "body": "Hinterlegen Sie einen Stablecoin als Escrow gegen die ausstehende Punkteverbindlichkeit, gemessen an der Roh-Supply. Abhebungen können nie unter die erforderliche Deckung fallen, und jeder kann einen Proof-of-Reserves-Snapshot on-chain veröffentlichen.",
+        "p1": "Deckungsinvariante durchgesetzt genau dort, wo Wert abfließt",
+        "p2": "Governance-gesetzter Stückwert — keine Oracle-Abhängigkeit",
+        "p3": "Permissionless Reserve-Attestierung, ausgelegt für Prüfer"
+      },
+      "duties": {
+        "tab": "Funktionstrennung",
+        "title": "Kein einzelner Schlüssel kann das Programm leeren",
+        "body": "Ersetzen Sie flache Operatoren durch klar begrenzte Rollen — Kassierer, Kampagnenmanager, Owner — jede schützt nur ihre eigenen Aktionen. Ein täglicher Emissions-Circuit-Breaker begrenzt den Schadensradius eines kompromittierten Hot Keys.",
+        "p1": "Least-Privilege-Rollen, opt-in und additiv",
+        "p2": "Tägliches Mint-Cap pro Händler, symmetrisch zum Clawback",
+        "p3": "Clawback nur durch den Owner, gedeckelt und mit Reason-Code"
+      },
+      "governed": {
+        "tab": "Governed & auditierbar",
+        "title": "Beantwortet die drei Fragen eines Prüfers",
+        "body": "Wer darf die Kontrolle ändern, was hat sie getan, und mit welcher Befugnis betreibt diese Entität sie — jede Frage on-chain beantwortet. Policy-Änderungen sind versioniert, mit Maker/Checker-Freigabe und Timelock; jede Entscheidung fließt in ein manipulationssicheres Statement.",
+        "p1": "Vorschlagen → freigeben (≠ Autor) → Timelock → aktivieren → Rollback",
+        "p2": "Inhaltsadressierte, unveränderliche Policy-Versionen",
+        "p3": "Beweisbar vollständige Entscheidungs-Statements (Merkle-Root + Anzahl)"
+      },
+      "segments": {
+        "tab": "Verifizierte Segmentierung",
+        "title": "Verifizierte Attribute ansprechen — privat",
+        "body": "Belohnen Sie Kundinnen und Kunden für das, was ein Credential beweist — nur EU, KYC-Stufe, 18+, akkreditiert — mit einem Boost, einem Winback oder einem exklusiven Angebot. Der Händler erfährt, dass ein Prädikat gilt; die zugrunde liegenden Daten liegen nie on-chain.",
+        "p1": "Einmal verifizieren, günstig lesen: keine Identitätskosten pro Transaktion",
+        "p2": "Ein Sanktions-Freeze invalidiert gecachte Berechtigungen sofort",
+        "p3": "GDPR-konform löschbar — Commitments on-chain, PII off-chain"
+      }
+    },
+    "explore": {
+      "kicker": "Das System erkunden",
+      "title": "Ein Programm wählen,",
+      "emphasis": "bei der Arbeit zusehen",
+      "sub": "Drei deployte Programme, 108 öffentliche Instructions, jeder Account eine deterministische PDA. Das ist die tatsächliche On-Chain-Oberfläche — Adressen, Seed-Namespaces und Flows.",
+      "roleCore": "die lebendige Ökonomie",
+      "roleArgus": "gesteuerte Transfer-Policy",
+      "roleAegis": "private Identität & Vertrauen",
+      "pda": "PDA-Namespace",
+      "instructions": "öffentliche Instructions",
+      "idl": "IDL on-chain ✓",
+      "explorer": "Explorer",
+      "copy": "Programmadresse kopieren"
+    },
+    "steps": {
+      "kicker": "VESTA betreten",
+      "title": "Zwei Wege,",
+      "emphasis": "ein Protokoll",
+      "sub": "Kunden pflegen ein lebendiges Guthaben; Händler betreiben ein akkreditiertes, identitätsbewusstes Programm. Beide beginnen in derselben App.",
+      "customers": "Für Kunden",
+      "merchants": "Für Händler",
+      "c1": "Eine devnet-Wallet verbinden und die eigene Flamme öffnen.",
+      "c2": "Live zusehen, wie sie abkühlt — einchecken und spüren, wie der Streak dem Verfall davonläuft.",
+      "c3": "Innerhalb des Caps verschenken, markenübergreifend tauschen, ein Angebot nur für Verifizierte einlösen.",
+      "m1": "Eine Marke registrieren — verfallende Punkte in einer Transaktion minten.",
+      "m2": "Den Guard konfigurieren, verifizierte Segmente definieren, Rollen & ein Emissions-Cap festlegen.",
+      "m3": "Nach Attribut belohnen, Winbacks fahren und ein auditierbares Statement verankern."
+    },
+    "faq": {
+      "kicker": "Wir haben Antworten",
+      "title": "Berechtigte",
+      "emphasis": "Fragen",
+      "q1": "Warum verlieren meine Punkte an Wert?",
+      "a1": "Jeder Punkte-Mint trägt einen negativen Zinssatz, durchgesetzt von Token-2022 selbst — der Wert kühlt kontinuierlich ab, wenn Sie nicht wiederkommen. Streak-Multiplikatoren sind so ausgelegt, dass sie den Verfall für alle übertreffen, die regelmäßig auftauchen, und Boosts für verifizierte Segmente oder Kampagnen kommen obendrauf (gemeinsam gedeckelt). Nutzen oder verlieren — völlig transparent.",
+      "q2": "Wie kann ein Händler „verifiziert EU“ oder „18+“ belohnen, ohne meine Daten zu sehen?",
+      "a2": "aegis speichert on-chain nur kryptografische Commitments — nie Ihre persönlichen Daten; die bleiben bei Ihnen und sind GDPR-konform löschbar. Ein Händler stellt aegis eine Ja/Nein-Frage („gilt diese Regel?“) und erhält ein Verdikt. Er erfährt, dass Sie qualifiziert sind; er erfährt nie, wer Sie sind oder welche Attribute Sie haben.",
+      "q3": "Kann ich Punkte an Freunde senden?",
+      "a3": "Ja — Verschenken ist ein gewöhnlicher Token-Transfer, geprüft von der argus-Policy-Engine. Jede Wallet hat ein tägliches Kontingent und weitere händlerdefinierte Regeln; innerhalb davon gehen Transfers durch. Punkte in einen Exchange-Pool zu kippen ist kein Loyalitätsflow und geht nie durch — der Guard ist fail-closed und läuft in unter 3k Compute Units, ohne zusätzliche Netzwerkaufrufe.",
+      "q4": "Kann ein Händler meine Punkte zurücknehmen?",
+      "a4": "Für Erstattungen und Betrugsfälle ja — Emittenten halten einen permanenten Delegate über ihren eigenen Mint, und Clawback ist owner-only, täglich gedeckelt, mit Reason-Code versehen und öffentlich auditiert. Verliert der Händler seine Akkreditierung oder wird er sanktioniert, friert das Protokoll neue Emissionen ein, während Ihr bestehendes Guthaben einlösbar bleibt — ein Compliance-Versagen lässt Ihre Assets nie stranden.",
+      "q5": "Was macht es „enterprise-ready“ für eine echte Marke?",
+      "a5": "Ein Händler ist ein akkreditierter, solventer, kontrollierter Emittent: Die Identität kettet sich an eine On-Chain-Vertrauenswurzel und degradiert bei Widerruf automatisch; emittierte Verbindlichkeiten können stablecoin-reservegedeckt sein, mit öffentlichem Proof-of-Reserves; Operatoren sind rollengetrennt (Kassierer ≠ Kampagnenmanager ≠ Owner) mit täglichem Emissions-Cap; und jede ökonomische Entscheidung fließt in ein manipulationssicheres, beweisbar vollständiges Statement, das ein Prüfer verifizieren kann.",
+      "q6": "Läuft das auf Mainnet?",
+      "a6": "Noch nicht — VESTA läuft auf dem Solana-devnet. Die drei Programme und ihre IDLs sind im devnet-Explorer öffentlich verifizierbar, und die vollständige Codebasis liegt auf GitHub. Mainnet ist an ein unabhängiges Dritt-Audit und Multisig-Verwahrung geknüpft.",
+      "q7": "Wie integriere ich meine dApp oder mein Backend?",
+      "a7": "Jede Mechanik ist eine öffentliche Instruction mit IDL on-chain. Das Python-SDK zielt auf Händler-Backends; der TypeScript-Client treibt die App. Jedes Programm kann ein aegis-Verdikt konsumieren, und Badge-Gating braucht nur wenige Zeilen — die kleos-Receipt-Adresse ableiten und prüfen, ob sie existiert. Die Enterprise-Specs decken jeden Flow ab."
+    },
+    "follow": {
+      "title1": "Lassen Sie sie nicht",
+      "emphasis": "erlöschen",
+      "sub": "Drei Programme, öffentlich gebaut — jedes Release, jede Spec und jede Audit-Runde landet zuerst auf GitHub, und jeder Account ist nur eine Explorer-Abfrage entfernt."
+    },
+    "challenge": {
+      "badge": "Superteam Earn",
+      "pill": "Superteam-Challenge-Beitrag",
+      "title": "Gebaut für die On-Chain Loyalty Rewards System Challenge",
+      "body": "VESTA ist ein Wettbewerbsbeitrag — drei Solana-Programme, öffentlich gebaut und on-chain verifizierbar.",
+      "cta": "Challenge ansehen",
+      "collapse": "Einklappen",
+      "dismiss": "Ausblenden"
+    }
   }
 }

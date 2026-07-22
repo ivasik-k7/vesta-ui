@@ -1,6 +1,7 @@
 import { ArrowUpRight, Trophy, X } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const CHALLENGE_URL = 'https://superteam.fun/earn/listing/on-chain-loyalty-rewards-system-challenge'
 const STORAGE_KEY = 'vesta:challenge-widget'
@@ -10,6 +11,7 @@ const STORAGE_KEY = 'vesta:challenge-widget'
 // persists so it never nags a returning visitor.
 export function ChallengeWidget() {
   const reduce = useReducedMotion()
+  const { t } = useTranslation()
   const [dismissed, setDismissed] = useState(true)
   const [open, setOpen] = useState(false)
 
@@ -52,13 +54,13 @@ export function ChallengeWidget() {
             <div className="flex items-start justify-between gap-3">
               <span className="inline-flex items-center gap-2 rounded-full border border-flame/30 bg-flame/10 px-2.5 py-1 font-medium text-flame text-xs">
                 <Trophy className="size-3.5" aria-hidden />
-                Superteam Earn
+                {t('landing.challenge.badge')}
               </span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  aria-label="Collapse"
+                  aria-label={t('landing.challenge.collapse')}
                   className="grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 >
                   <span aria-hidden className="-mt-1 text-base leading-none">
@@ -68,7 +70,7 @@ export function ChallengeWidget() {
                 <button
                   type="button"
                   onClick={dismiss}
-                  aria-label="Dismiss"
+                  aria-label={t('landing.challenge.dismiss')}
                   className="grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 >
                   <X className="size-3.5" aria-hidden />
@@ -77,11 +79,10 @@ export function ChallengeWidget() {
             </div>
 
             <p className="mt-3 font-heading font-semibold text-base leading-tight">
-              Built for the On-Chain Loyalty Rewards System challenge
+              {t('landing.challenge.title')}
             </p>
             <p className="mt-1.5 text-muted-foreground text-sm leading-relaxed">
-              VESTA is a competition entry — three Solana programs, built in public and verifiable
-              on-chain.
+              {t('landing.challenge.body')}
             </p>
 
             <a
@@ -90,7 +91,7 @@ export function ChallengeWidget() {
               rel="noreferrer"
               className="group mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-flame px-3 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-flame-hover"
             >
-              View the challenge
+              {t('landing.challenge.cta')}
               <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
           </motion.div>
@@ -115,7 +116,9 @@ export function ChallengeWidget() {
                 />
               )}
             </span>
-            <span className="font-medium text-foreground text-xs">Superteam Challenge entry</span>
+            <span className="font-medium text-foreground text-xs">
+              {t('landing.challenge.pill')}
+            </span>
           </motion.button>
         )}
       </AnimatePresence>

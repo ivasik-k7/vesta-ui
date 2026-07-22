@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useState } from 'react'
-
+import { useTranslation } from 'react-i18next'
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
 import { cn } from '@/lib/utils'
@@ -8,46 +8,22 @@ import { cn } from '@/lib/utils'
 type Trace = {
   label: string
   meta: string
-  detail: string
+  key: string
 }
 
 // The signature mechanic, staged as a transaction trace: identity is paid once
 // off the hot path, cached, and the hook itself never crosses a program.
 const TRACE: Trace[] = [
-  {
-    label: 'refresh_eligibility(mint, subject)',
-    meta: 'off hot path · permissionless',
-    detail:
-      'A wallet or relayer prepays the expensive identity check — bundleable, and only when the cache is missing or stale.',
-  },
-  {
-    label: 'aegis::verify → verdict ok',
-    meta: 'return-data · never reverts',
-    detail:
-      'aegis answers over on-chain commitments — region, KYC tier, age band, accreditation. It proves the rule holds and exposes no PII.',
-  },
-  {
-    label: 'write EligibilityCapability',
-    meta: 'bitmap · TTL · epochs',
-    detail:
-      'The verdict is cached with a policy epoch and a screening epoch. A config change or sanctions freeze invalidates it instantly, regardless of TTL.',
-  },
-  {
-    label: 'token-2022 transfer → argus::execute',
-    meta: 'hot path · every transfer',
-    detail:
-      'Token-2022 fires the hook on every transfer. It reads the cached bitmap plus local caps and velocity — under 3k CU, zero cross-program calls.',
-  },
-  {
-    label: 'allow — settled',
-    meta: '2,801 CU · 0 CPI',
-    detail:
-      'Fresh and eligible settles. Stale, revoked, degraded, or over a cap fails closed with a typed reason. There is no permissive fallback.',
-  },
+  { label: 'refresh_eligibility(mint, subject)', meta: 'off hot path · permissionless', key: 'd1' },
+  { label: 'aegis::verify → verdict ok', meta: 'return-data · never reverts', key: 'd2' },
+  { label: 'write EligibilityCapability', meta: 'bitmap · TTL · epochs', key: 'd3' },
+  { label: 'token-2022 transfer → argus::execute', meta: 'hot path · every transfer', key: 'd4' },
+  { label: 'allow — settled', meta: '2,801 CU · 0 CPI', key: 'd5' },
 ]
 
 export function Flow() {
   const reduce = useReducedMotion()
+  const { t } = useTranslation()
   const [active, setActive] = useState(0)
   const [pinned, setPinned] = useState(false)
 
@@ -59,12 +35,12 @@ export function Flow() {
 
   return (
     <section className="border-border/60 border-t">
-      <div className="mx-auto w-full max-w-6xl px-4 py-24 md:py-32">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-24 md:py-32">
         <SectionHeader
-          kicker="How a guarded transfer clears"
-          title="Pay identity once,"
-          emphasis="then transfer cheaply"
-          sub="The expensive identity decision is paid off the transfer path and cached; the hook itself does no cross-program call. Compliance rides on every transfer without taxing it."
+          kicker={t('landing.flow.kicker')}
+          title={t('landing.flow.title')}
+          emphasis={t('landing.flow.emphasis')}
+          sub={t('landing.flow.sub')}
         />
 
         <Reveal delay={0.08} className="mt-14">
@@ -137,7 +113,7 @@ export function Flow() {
                           className="block overflow-hidden"
                         >
                           <span className="block max-w-2xl pt-2 pl-6 font-sans text-muted-foreground text-sm leading-relaxed">
-                            {step.detail}
+                            {t(`landing.flow.${step.key}`)}
                           </span>
                         </motion.span>
                       ) : null}

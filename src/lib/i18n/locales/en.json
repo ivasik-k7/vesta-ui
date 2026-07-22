@@ -49,5 +49,197 @@
     "connectPrompt": "Connect a devnet wallet to continue.",
     "loading": "Loading…",
     "devnet": "Devnet"
+  },
+  "landing": {
+    "cta": {
+      "launch": "Launch app",
+      "architecture": "Read the architecture",
+      "console": "Open the merchant console",
+      "source": "Read the source"
+    },
+    "hero": {
+      "h1a": "Loyalty that burns",
+      "h1b": "brighter every visit",
+      "sub": "The living loyalty protocol on Solana. Points cool when ignored and compound with streaks, move only under governed on-chain policy, and unlock rewards gated by privacy-preserving identity."
+    },
+    "quote": {
+      "header": "memo · signed message",
+      "q1": "Loyalty programs treat devotion like a spreadsheet. We treat it like a ",
+      "flame": "flame",
+      "q2": " — it lives if you tend it.",
+      "verified": "verified",
+      "team": "— the VESTA team",
+      "sig": "sig"
+    },
+    "why": {
+      "kicker": "Why VESTA?",
+      "title": "Four reasons loyalty",
+      "emphasis": "finally moves",
+      "sub": "A living economy, a governed transfer layer, and a privacy-preserving identity layer — three programs that make points behave like value people actually keep.",
+      "r1t": "Points with a pulse",
+      "r1b": "Every mint carries a negative interest rate — untended balances cool on-chain, no cron jobs. Streaks mint multipliers that outrun the burn.",
+      "r2t": "Value that crosses brands",
+      "r2b": "Merchants form alliances; customers swap café points for bookstore points atomically, at alliance-governed rates with self-chosen risk budgets.",
+      "r3t": "Verified, never surveilled",
+      "r3b": "aegis proves the rule that matters — verified region, KYC tier, age band, accredited status — from on-chain commitments alone. Merchants learn that a predicate holds; the customer’s data is never on-chain, and is GDPR-erasable.",
+      "r3l": "How aegis verifies privately",
+      "r4t": "Policy that governs itself",
+      "r4b": "argus checks every transfer against an editable, versioned policy — velocity, lists, eligibility, jurisdiction, sanctions — decided off the hot path and cached, so the guard runs in under 3k compute units with no cross-program call. A revoked issuer auto-degrades; a compliance change is data, never a redeploy.",
+      "r4l": "How the policy engine works",
+      "pulse": {
+        "visit": "✓ visit — the flame feeds",
+        "cooling": "cooling…",
+        "streak": "streak",
+        "multiplier": "multiplier"
+      },
+      "swap": {
+        "settled": "✓ settled — both legs or neither · rate 0.80 · fee 25 bps",
+        "settling": "· settling — both legs or neither · rate 0.80 · fee 25 bps",
+        "note": "UI-value denominated — mint age never leaks an edge"
+      },
+      "verify": {
+        "learns": "the merchant learns",
+        "stores": "the chain stores",
+        "verdict": "→ verdict: eligible",
+        "erasable": "erasable · GDPR art. 17",
+        "fields": {
+          "name": "name",
+          "birthdate": "birthdate",
+          "address": "address",
+          "document": "document"
+        }
+      },
+      "policy": {
+        "footer": "every decision reason-coded · <3k CU · 0 CPI · fail-closed"
+      }
+    },
+    "flow": {
+      "kicker": "How a guarded transfer clears",
+      "title": "Pay identity once,",
+      "emphasis": "then transfer cheaply",
+      "sub": "The expensive identity decision is paid off the transfer path and cached; the hook itself does no cross-program call. Compliance rides on every transfer without taxing it.",
+      "d1": "A wallet or relayer prepays the expensive identity check — bundleable, and only when the cache is missing or stale.",
+      "d2": "aegis answers over on-chain commitments — region, KYC tier, age band, accreditation. It proves the rule holds and exposes no PII.",
+      "d3": "The verdict is cached with a policy epoch and a screening epoch. A config change or sanctions freeze invalidates it instantly, regardless of TTL.",
+      "d4": "Token-2022 fires the hook on every transfer. It reads the cached bitmap plus local caps and velocity — under 3k CU, zero cross-program calls.",
+      "d5": "Fresh and eligible settles. Stale, revoked, degraded, or over a cap fails closed with a typed reason. There is no permissive fallback."
+    },
+    "stats": {
+      "kicker": "Numbers you can re-derive",
+      "title": "Measured",
+      "emphasis": "on-chain",
+      "sub": "No vanity metrics — every figure below is reproducible from the public repo or the devnet explorer.",
+      "m1": "public instructions across 3 programs",
+      "m2": "adversarial LiteSVM tests, all green",
+      "m3": "CU on the transfer hot path — zero CPI",
+      "m4": "bytes of customer PII stored on-chain"
+    },
+    "enterprise": {
+      "kicker": "Built for regulated issuers",
+      "title": "Enterprise controls,",
+      "emphasis": "on-chain by default",
+      "sub": "Loyalty at brand scale is a controls problem before it is a points problem. VESTA answers it with primitives a bank or a regulated issuer would actually accept.",
+      "identity": {
+        "tab": "Accredited identity",
+        "title": "Authority to issue is earned, not asserted",
+        "body": "A merchant’s right to mint chains to an aegis accreditation root. A permissionless crank re-checks it and, if the accreditation is revoked, freezes issuance automatically — no human key in the loop.",
+        "p1": "On-chain trust anchor with a configurable grace window",
+        "p2": "Auto-degrade freezes earn, never redemption or clawback",
+        "p3": "Recovers on its own the moment accreditation is restored"
+      },
+      "reserve": {
+        "tab": "Reserve-backed",
+        "title": "Liability you can prove is backed",
+        "body": "Escrow a stablecoin against outstanding point liability, measured on raw supply. Withdrawals can never drop below required coverage, and anyone can publish a proof-of-reserves snapshot on-chain.",
+        "p1": "Coverage invariant enforced where value leaves",
+        "p2": "Governance-set unit value — no oracle dependency",
+        "p3": "Permissionless, examiner-facing reserve attestation"
+      },
+      "duties": {
+        "tab": "Separation of duties",
+        "title": "No single key can drain the program",
+        "body": "Replace flat operators with scoped roles — cashier, campaign manager, owner — each gating only its own actions. A daily issuance circuit breaker bounds the blast radius of a compromised hot key.",
+        "p1": "Least-privilege roles, opt-in and additive",
+        "p2": "Per-merchant daily mint cap, symmetric to clawback",
+        "p3": "Owner-only, capped, reason-coded clawback"
+      },
+      "governed": {
+        "tab": "Governed & auditable",
+        "title": "Answers an examiner’s three questions",
+        "body": "Who can change the control, what did it do, and by what authority does this entity run it — each answered on-chain. Policy changes are versioned with maker/checker approval and a timelock; every decision folds into a tamper-evident statement.",
+        "p1": "Propose → approve (≠ author) → timelock → activate → rollback",
+        "p2": "Content-addressed, immutable policy versions",
+        "p3": "Provably-complete decision statements (Merkle root + count)"
+      },
+      "segments": {
+        "tab": "Verified segmentation",
+        "title": "Target verified attributes, privately",
+        "body": "Reward customers for what a credential proves — EU-only, KYC-tier, 18+, accredited — with a boost, a winback, or an exclusive offer. The merchant learns that a predicate holds; the underlying data is never on-chain.",
+        "p1": "Verify-once, read-cheap: no per-transaction identity cost",
+        "p2": "Sanctions freeze invalidates cached eligibility instantly",
+        "p3": "GDPR-erasable — commitments on-chain, PII off-chain"
+      }
+    },
+    "explore": {
+      "kicker": "Explore the system",
+      "title": "Pick a program,",
+      "emphasis": "watch it work",
+      "sub": "Three deployed programs, 108 public instructions, every account a deterministic PDA. This is the actual on-chain surface — addresses, seed namespaces, and flows.",
+      "roleCore": "the living economy",
+      "roleArgus": "governed transfer policy",
+      "roleAegis": "private identity & trust",
+      "pda": "PDA namespace",
+      "instructions": "public instructions",
+      "idl": "IDL on-chain ✓",
+      "explorer": "explorer",
+      "copy": "Copy program address"
+    },
+    "steps": {
+      "kicker": "Enter VESTA",
+      "title": "Two journeys,",
+      "emphasis": "one protocol",
+      "sub": "Customers tend a living balance; merchants run an accredited, identity-aware program. Both start in the same app.",
+      "customers": "For customers",
+      "merchants": "For merchants",
+      "c1": "Connect a devnet wallet and open your flame.",
+      "c2": "Watch it cool live — check in, and feel the streak outrun the burn.",
+      "c3": "Gift within the cap, swap across brands, redeem a verified-only offer.",
+      "m1": "Register a brand — mint decaying points in one transaction.",
+      "m2": "Configure the guard, define verified segments, set roles & an issuance cap.",
+      "m3": "Reward by attribute, run winbacks, and anchor an auditable statement."
+    },
+    "faq": {
+      "kicker": "We've got answers",
+      "title": "Fair",
+      "emphasis": "questions",
+      "q1": "Why do my points lose value?",
+      "a1": "Every point mint carries a negative interest rate, enforced by Token-2022 itself — value cools continuously unless you keep visiting. Streak multipliers are designed to out-earn the decay for anyone who shows up, and verified-segment or campaign boosts stack on top (jointly capped). Use it or lose it, transparently.",
+      "q2": "How can a merchant reward “verified EU” or “18+” without my data?",
+      "a2": "aegis stores only cryptographic commitments on-chain — never your personal data, which stays with you and is GDPR-erasable. A merchant asks aegis a yes/no question (“does this rule hold?”) and gets back a verdict. They learn that you qualify; they never learn who you are or what your attributes are.",
+      "q3": "Can I send points to a friend?",
+      "a3": "Yes — gifting is a plain token transfer, checked by the argus policy engine. Each wallet has a daily allowance and other merchant-set rules; within them, transfers pass. Dumping into an exchange pool is not a loyalty flow and never clears — the guard is fail-closed and runs in under 3k compute units with no extra network calls.",
+      "q4": "Can a merchant take my points back?",
+      "a4": "For refunds and fraud handling, yes — issuers hold a permanent delegate over their own mint, and clawback is owner-only, daily-capped, reason-coded, and publicly audited. If the merchant loses its accreditation or is sanctioned, the protocol freezes new issuance while your existing balance stays redeemable — a compliance failure never strands your assets.",
+      "q5": "What makes it “enterprise-ready” for a real brand?",
+      "a5": "A merchant is an accredited, solvent, governed issuer: identity chains to an on-chain trust root and auto-degrades if revoked; issued liability can be stablecoin-reserve-backed with public proof-of-reserves; operators are role-separated (cashier ≠ campaign manager ≠ owner) with a daily issuance cap; and every economic decision folds into a tamper-evident, provably-complete statement an examiner can verify.",
+      "q6": "Is this on mainnet?",
+      "a6": "Not yet — VESTA runs on Solana devnet. The three programs and their IDLs are publicly verifiable on the devnet explorer, and the full codebase is on GitHub. Mainnet is gated on an independent third-party audit and multisig custody.",
+      "q7": "How do I integrate my dApp or backend?",
+      "a7": "Every mechanic is a public instruction with the IDL on-chain. The Python SDK targets merchant backends; the TypeScript client drives the app. Any program can consume an aegis verdict, and badge-gating is a few lines — derive the kleos receipt address and check it exists. The enterprise specs cover every flow."
+    },
+    "follow": {
+      "title1": "Don't let it",
+      "emphasis": "go out",
+      "sub": "Three programs, built in public — every release, spec, and audit round lands on GitHub first, and every account is one explorer query away."
+    },
+    "challenge": {
+      "badge": "Superteam Earn",
+      "pill": "Superteam Challenge entry",
+      "title": "Built for the On-Chain Loyalty Rewards System challenge",
+      "body": "VESTA is a competition entry — three Solana programs, built in public and verifiable on-chain.",
+      "cta": "View the challenge",
+      "collapse": "Collapse",
+      "dismiss": "Dismiss"
+    }
   }
 }

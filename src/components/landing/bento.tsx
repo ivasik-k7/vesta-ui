@@ -1,7 +1,7 @@
 import { ArrowUpRight, Check, Copy, TerminalSquare } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useState } from 'react'
-
+import { useTranslation } from 'react-i18next'
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
 import { env } from '@/env'
@@ -30,7 +30,7 @@ const PROGRAMS: Program[] = [
   {
     id: 'core',
     name: 'vesta_core',
-    role: 'the living economy',
+    role: 'roleCore',
     address: env.VITE_VESTA_CORE_PROGRAM_ID,
     instructions: 56,
     seeds: [
@@ -59,7 +59,7 @@ const PROGRAMS: Program[] = [
   {
     id: 'argus',
     name: 'argus',
-    role: 'governed transfer policy',
+    role: 'roleArgus',
     address: env.VITE_ARGUS_PROGRAM_ID,
     instructions: 31,
     seeds: [
@@ -86,7 +86,7 @@ const PROGRAMS: Program[] = [
   {
     id: 'aegis',
     name: 'aegis',
-    role: 'private identity & trust',
+    role: 'roleAegis',
     address: env.VITE_AEGIS_PROGRAM_ID,
     instructions: 21,
     seeds: ['issuer', 'attestation', 'schema', 'policy', 'troot', 'accred'],
@@ -131,18 +131,19 @@ function CopyAddress({ address }: { address: string }) {
 // real on-chain surface (address, PDA namespace, instruction count).
 export function Bento() {
   const reduce = useReducedMotion()
+  const { t } = useTranslation()
   const [activeId, setActiveId] = useState('core')
   const program = PROGRAMS.find((p) => p.id === activeId) ?? PROGRAMS[0]
   if (!program) return null
 
   return (
     <section className="border-border/60 border-t">
-      <div className="mx-auto w-full max-w-6xl px-4 py-24 md:py-32">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-24 md:py-32">
         <SectionHeader
-          kicker="Explore the system"
-          title="Pick a program,"
-          emphasis="watch it work"
-          sub="Three deployed programs, 108 public instructions, every account a deterministic PDA. This is the actual on-chain surface — addresses, seed namespaces, and flows."
+          kicker={t('landing.explore.kicker')}
+          title={t('landing.explore.title')}
+          emphasis={t('landing.explore.emphasis')}
+          sub={t('landing.explore.sub')}
         />
 
         {/* program tabs */}
@@ -229,7 +230,7 @@ export function Bento() {
           <Reveal delay={0.14} className="lg:col-span-2">
             <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-5">
               <p className="text-muted-foreground text-xs uppercase tracking-wide">
-                {program.role}
+                {t(`landing.explore.${program.role}`)}
               </p>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -240,7 +241,7 @@ export function Bento() {
                   rel="noreferrer"
                   className="group inline-flex items-center gap-1 text-flame text-xs transition-colors hover:text-flame-hover"
                 >
-                  explorer
+                  {t('landing.explore.explorer')}
                   <ArrowUpRight
                     className="size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     aria-hidden
@@ -250,7 +251,7 @@ export function Bento() {
 
               <div className="mt-5">
                 <p className="font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
-                  PDA namespace
+                  {t('landing.explore.pda')}
                 </p>
                 <p className="mt-2 font-mono text-[11px] text-foreground/70 leading-relaxed">
                   {program.seeds.map((seed, index) => (
@@ -274,9 +275,13 @@ export function Bento() {
                   <p className="font-bold font-heading text-4xl text-flame tabular-nums">
                     {program.instructions}
                   </p>
-                  <p className="text-muted-foreground text-xs">public instructions</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t('landing.explore.instructions')}
+                  </p>
                 </div>
-                <p className="font-mono text-[11px] text-muted-foreground">IDL on-chain ✓</p>
+                <p className="font-mono text-[11px] text-muted-foreground">
+                  {t('landing.explore.idl')}
+                </p>
               </div>
             </div>
           </Reveal>

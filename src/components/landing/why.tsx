@@ -1,7 +1,7 @@
 import { ArrowUpRight } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { type ReactNode, useEffect, useState } from 'react'
-
+import { useTranslation } from 'react-i18next'
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
 import { cn } from '@/lib/utils'
@@ -28,6 +28,7 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
 
 function PulsePanel() {
   const reduce = useReducedMotion()
+  const { t } = useTranslation()
   const [balance, setBalance] = useState(1_284.5)
   const [streak, setStreak] = useState(12)
   const [visited, setVisited] = useState(false)
@@ -68,7 +69,9 @@ function PulsePanel() {
 
       <div className="mt-4 flex items-center justify-between font-mono text-xs">
         <span className="text-muted-foreground">
-          streak <span className="text-foreground/85 tabular-nums">{streak}d</span> · multiplier{' '}
+          {t('landing.why.pulse.streak')}{' '}
+          <span className="text-foreground/85 tabular-nums">{streak}d</span> ·{' '}
+          {t('landing.why.pulse.multiplier')}{' '}
           <span className="text-flame tabular-nums">×{multiplier}</span>
         </span>
         <AnimatePresence>
@@ -79,7 +82,7 @@ function PulsePanel() {
               exit={{ opacity: 0 }}
               className="text-flame-hover"
             >
-              ✓ visit — the flame feeds
+              {t('landing.why.pulse.visit')}
             </motion.span>
           ) : (
             <motion.span
@@ -88,7 +91,7 @@ function PulsePanel() {
               exit={{ opacity: 0 }}
               className="text-muted-foreground/60"
             >
-              cooling…
+              {t('landing.why.pulse.cooling')}
             </motion.span>
           )}
         </AnimatePresence>
@@ -116,6 +119,7 @@ function PulsePanel() {
 
 function SwapPanel() {
   const reduce = useReducedMotion()
+  const { t } = useTranslation()
   const [swapped, setSwapped] = useState(false)
 
   useEffect(() => {
@@ -180,11 +184,9 @@ function SwapPanel() {
             swapped ? 'text-flame-hover' : 'text-muted-foreground/60',
           )}
         >
-          {swapped ? '✓ settled' : '· settling'} — both legs or neither · rate 0.80 · fee 25 bps
+          {swapped ? t('landing.why.swap.settled') : t('landing.why.swap.settling')}
         </p>
-        <p className="mt-1 text-muted-foreground">
-          UI-value denominated — mint age never leaks an edge
-        </p>
+        <p className="mt-1 text-muted-foreground">{t('landing.why.swap.note')}</p>
       </div>
     </Panel>
   )
@@ -202,6 +204,7 @@ const SEALED = [
 
 function VerifyPanel() {
   const reduce = useReducedMotion()
+  const { t } = useTranslation()
   const [phase, setPhase] = useState(reduce ? VERIFY_CHECKS.length + 1 : 0)
 
   useEffect(() => {
@@ -215,7 +218,7 @@ function VerifyPanel() {
       <div className="grid gap-5 font-mono text-xs sm:grid-cols-2">
         <div>
           <p className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
-            the merchant learns
+            {t('landing.why.verify.learns')}
           </p>
           <div className="mt-2.5 space-y-1.5">
             {VERIFY_CHECKS.map((check, index) => {
@@ -236,14 +239,14 @@ function VerifyPanel() {
               transition={{ duration: 0.3 }}
               className="pt-1 text-flame-hover"
             >
-              → verdict: eligible
+              {t('landing.why.verify.verdict')}
             </motion.p>
           </div>
         </div>
 
         <div className="sm:border-border/60 sm:border-l sm:pl-5">
           <p className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
-            the chain stores
+            {t('landing.why.verify.stores')}
           </p>
           <div className="mt-2.5 space-y-1.5">
             <p className="text-foreground/85">
@@ -251,10 +254,11 @@ function VerifyPanel() {
             </p>
             {SEALED.map(([field, redacted]) => (
               <p key={field} className="text-muted-foreground/60">
-                {field} <span className="select-none text-muted-foreground/30">{redacted}</span>
+                {t(`landing.why.verify.fields.${field}`)}{' '}
+                <span className="select-none text-muted-foreground/30">{redacted}</span>
               </p>
             ))}
-            <p className="pt-1 text-muted-foreground">erasable · GDPR art. 17</p>
+            <p className="pt-1 text-muted-foreground">{t('landing.why.verify.erasable')}</p>
           </div>
         </div>
       </div>
@@ -274,6 +278,7 @@ const DECISIONS = [
 
 function PolicyPanel() {
   const reduce = useReducedMotion()
+  const { t } = useTranslation()
   const [head, setHead] = useState(2)
 
   useEffect(() => {
@@ -317,7 +322,7 @@ function PolicyPanel() {
       </div>
 
       <div className="mt-4 border-border/60 border-t pt-3 font-mono text-muted-foreground text-xs">
-        <p>every decision reason-coded · &lt;3k CU · 0 CPI · fail-closed</p>
+        <p>{t('landing.why.policy.footer')}</p>
       </div>
     </Panel>
   )
@@ -325,56 +330,36 @@ function PolicyPanel() {
 
 // ── the section ──────────────────────────────────────────────────────────────
 
-const REASONS: {
-  title: string
-  body: string
-  link?: { label: string; href: string }
-  visual: ReactNode
-}[] = [
+const REASONS: { key: string; link?: string; visual: ReactNode }[] = [
+  { key: 'r1', visual: <PulsePanel /> },
+  { key: 'r2', visual: <SwapPanel /> },
   {
-    title: 'Points with a pulse',
-    body: 'Every mint carries a negative interest rate — untended balances cool on-chain, no cron jobs. Streaks mint multipliers that outrun the burn.',
-    visual: <PulsePanel />,
-  },
-  {
-    title: 'Value that crosses brands',
-    body: 'Merchants form alliances; customers swap café points for bookstore points atomically, at alliance-governed rates with self-chosen risk budgets.',
-    visual: <SwapPanel />,
-  },
-  {
-    title: 'Verified, never surveilled',
-    body: 'aegis proves the rule that matters — verified region, KYC tier, age band, accredited status — from on-chain commitments alone. Merchants learn that a predicate holds; the customer’s data is never on-chain, and is GDPR-erasable.',
-    link: {
-      label: 'How aegis verifies privately',
-      href: 'https://github.com/ivasik-k7/vesta-core/tree/main/docs/specs',
-    },
+    key: 'r3',
+    link: 'https://github.com/ivasik-k7/vesta-core/tree/main/docs/specs',
     visual: <VerifyPanel />,
   },
   {
-    title: 'Policy that governs itself',
-    body: 'argus checks every transfer against an editable, versioned policy — velocity, lists, eligibility, jurisdiction, sanctions — decided off the hot path and cached, so the guard runs in under 3k compute units with no cross-program call. A revoked issuer auto-degrades; a compliance change is data, never a redeploy.',
-    link: {
-      label: 'How the policy engine works',
-      href: 'https://github.com/ivasik-k7/vesta-core/blob/main/docs/specs/09-argus-policy-vm.md',
-    },
+    key: 'r4',
+    link: 'https://github.com/ivasik-k7/vesta-core/blob/main/docs/specs/09-argus-policy-vm.md',
     visual: <PolicyPanel />,
   },
 ]
 
 export function Why() {
+  const { t } = useTranslation()
   return (
     <section className="border-border/60 border-t">
-      <div className="mx-auto w-full max-w-6xl px-4 py-24 md:py-32">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-24 md:py-32">
         <SectionHeader
-          kicker="Why VESTA?"
-          title="Four reasons loyalty"
-          emphasis="finally moves"
-          sub="A living economy, a governed transfer layer, and a privacy-preserving identity layer — three programs that make points behave like value people actually keep."
+          kicker={t('landing.why.kicker')}
+          title={t('landing.why.title')}
+          emphasis={t('landing.why.emphasis')}
+          sub={t('landing.why.sub')}
         />
 
         <div className="mt-16 flex flex-col gap-20 md:gap-24">
           {REASONS.map((reason, index) => (
-            <Reveal key={reason.title} delay={0.05}>
+            <Reveal key={reason.key} delay={0.05}>
               <div
                 className={cn(
                   'grid items-center gap-8 md:grid-cols-2 md:gap-16',
@@ -389,19 +374,19 @@ export function Why() {
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <h3 className="relative font-heading font-semibold text-2xl tracking-tight">
-                    {reason.title}
+                    {t(`landing.why.${reason.key}t`)}
                   </h3>
                   <p className="relative mt-3 max-w-md text-muted-foreground leading-relaxed">
-                    {reason.body}
+                    {t(`landing.why.${reason.key}b`)}
                   </p>
                   {reason.link ? (
                     <a
-                      href={reason.link.href}
+                      href={reason.link}
                       target="_blank"
                       rel="noreferrer"
                       className="group relative mt-4 inline-flex items-center gap-1 text-flame text-sm transition-colors hover:text-flame-hover"
                     >
-                      {reason.link.label}
+                      {t(`landing.why.${reason.key}l`)}
                       <ArrowUpRight
                         className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                         aria-hidden
