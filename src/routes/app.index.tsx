@@ -7,7 +7,6 @@ import {
   Award,
   BadgeCheck,
   CircleDot,
-  Coins,
   Compass,
   Flame,
   Gift,
@@ -18,36 +17,18 @@ import {
   Undo2,
   Users,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
+import { CustomerJourney } from '@/components/app/customer-journey'
 import { fmtCount, fmtPoints, Metric } from '@/components/app/metric'
-import { useMoney } from '@/components/app/money'
 import { EmptySlate, Section } from '@/components/app/section'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { Skeleton } from '@/components/ui/skeleton'
-import { decayHealth, liveUiAmount } from '@/lib/vesta/decay'
 import type { Merchant } from '@/lib/vesta/decode'
-import {
-  type Holding,
-  useActivity,
-  useHoldings,
-  useMyMerchant,
-  useNetworkStats,
-} from '@/lib/vesta/queries'
+import { useActivity, useMyMerchant, useNetworkStats } from '@/lib/vesta/queries'
 import { explorerTx } from '@/lib/vesta/tx'
 
 export const Route = createFileRoute('/app/')({
   component: Overview,
 })
-
-function useNow(intervalMs = 1000) {
-  const [now, setNow] = useState(() => Date.now() / 1000)
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now() / 1000), intervalMs)
-    return () => clearInterval(id)
-  }, [intervalMs])
-  return now
-}
 
 function Overview() {
   const { publicKey } = useWallet()
@@ -62,11 +43,11 @@ function Overview() {
         <ConnectPrompt message="Connect a devnet wallet to see the network, your points, and your merchant business." />
       ) : (
         <div className="space-y-10">
-          <NetworkPulse />
-          <Portfolio />
+          <CustomerJourney />
           <MyBusiness />
           <QuickActions />
           <RecentActivity />
+          <NetworkPulse />
         </div>
       )}
     </div>
@@ -143,89 +124,6 @@ function NetworkPulse() {
         />
       </div>
     </Section>
-  )
-}
-
-// ── the connected wallet's holdings ──────────────────────────────────────────
-
-function Portfolio() {
-  const holdings = useHoldings()
-  const now = useNow()
-  const { format } = useMoney()
-
-  const items = holdings.data ?? []
-  const liveTotal = items.reduce((sum, h) => sum + liveUiAmount(h.raw, h.mint, now), 0)
-
-  return (
-    <Section
-      icon={Flame}
-      title="Your portfolio"
-      desc="Live value across every brand you hold, cooling in real time."
-      right={
-        items.length > 0 ? (
-          <Link
-            to="/app/wallet"
-            className="inline-flex items-center gap-1 text-flame text-xs hover:text-flame-hover"
-          >
-            Manage <ArrowRight className="size-3" />
-          </Link>
-        ) : undefined
-      }
-    >
-      {holdings.isLoading ? (
-        <Skeleton className="h-28" />
-      ) : items.length === 0 ? (
-        <EmptySlate icon={Coins}>
-          No points yet. Merchants earn them to you at the counter — browse{' '}
-          <Link to="/app/discover" className="text-flame hover:text-flame-hover">
-            Discover
-          </Link>{' '}
-          or open your own console.
-        </EmptySlate>
-      ) : (
-        <div className="relative overflow-hidden rounded-2xl border border-flame/30 bg-gradient-to-br from-flame/[0.06] to-transparent p-5">
-          <div
-            aria-hidden
-            className="-right-12 -top-12 pointer-events-none absolute size-40 rounded-full bg-flame/10 blur-3xl"
-          />
-          <div className="relative">
-            <p className="font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
-              Live value across {items.length} brand{items.length > 1 ? 's' : ''}
-            </p>
-            <p className="mt-1 font-heading font-semibold text-4xl tabular-nums tracking-tight">
-              {format(liveTotal)}
-              <span className="ml-2 text-base text-muted-foreground">pts</span>
-            </p>
-          </div>
-          <div className="relative mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((h) => (
-              <HoldingRow key={h.merchant.address.toBase58()} holding={h} now={now} />
-            ))}
-          </div>
-        </div>
-      )}
-    </Section>
-  )
-}
-
-function HoldingRow({ holding, now }: { holding: Holding; now: number }) {
-  const { format } = useMoney()
-  const ui = liveUiAmount(holding.raw, holding.mint, now)
-  const health = decayHealth(holding.mint, now)
-  return (
-    <Link
-      to="/app/token/$mint"
-      params={{ mint: holding.merchant.pointMint.toBase58() }}
-      className="flex items-center gap-3 rounded-xl border border-border bg-background/50 px-4 py-3 transition-colors hover:border-flame/40"
-    >
-      <Flame
-        className="size-4 shrink-0 text-flame"
-        aria-hidden
-        style={{ opacity: 0.4 + health * 0.6 }}
-      />
-      <span className="truncate text-sm">{holding.merchant.name}</span>
-      <span className="ml-auto font-mono text-sm tabular-nums">{format(ui)}</span>
-    </Link>
   )
 }
 

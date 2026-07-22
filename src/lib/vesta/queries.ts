@@ -557,3 +557,88 @@ export function useMyCampaigns(merchant: PublicKey | undefined) {
     staleTime: 20_000,
   })
 }
+
+// ── customer journey (spec 12: verified segmentation + gamification) ─────────
+
+import {
+  type CustomerEligibility,
+  type CustomerProfile,
+  decodeCustomerEligibility,
+  decodeCustomerProfile,
+  decodeMerchantSegments,
+  type MerchantSegments,
+} from './decode'
+
+/** Per-merchant verified-segment definitions (spec 12). */
+export function useMerchantSegments(merchant: PublicKey | null | undefined) {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['segments', merchant?.toBase58()],
+    queryFn: async (): Promise<MerchantSegments | null> => {
+      if (!merchant) return null
+      const info = await connection.getAccountInfo(pdas.merchantSegments(merchant))
+      return info ? decodeMerchantSegments(new Uint8Array(info.data)) : null
+    },
+    enabled: !!merchant,
+    staleTime: 30_000,
+  })
+}
+
+/** The connected wallet's cached eligibility verdict at one merchant (spec 12). */
+export function useCustomerEligibility(merchant: PublicKey | null | undefined) {
+  const { connection } = useConnection()
+  const { publicKey } = useWallet()
+  return useQuery({
+    queryKey: ['eligibility', merchant?.toBase58(), publicKey?.toBase58()],
+    queryFn: async (): Promise<CustomerEligibility | null> => {
+      if (!merchant || !publicKey) return null
+      const info = await connection.getAccountInfo(pdas.customerEligibility(merchant, publicKey))
+      return info ? decodeCustomerEligibility(new Uint8Array(info.data)) : null
+    },
+    enabled: !!merchant && !!publicKey,
+    staleTime: 15_000,
+  })
+}
+
+export interface JourneyStop {
+  merchant: Merchant
+  mint: DecayingMint
+  raw: bigint
+  profile: CustomerProfile | null
+  eligibility: CustomerEligibility | null
+  segments: MerchantSegments | null
+}
+
+/** One consolidated read of the connected wallet's whole loyalty life: every
+ *  merchant it holds points with, plus that relationship's profile (tier,
+ *  streak), cached eligibility, and the merchant's segment definitions. */
+export function useJourney() {
+  const { connection } = useConnection()
+  const { publicKey } = useWallet()
+  const holdings = useHoldings()
+  return useQuery({
+    queryKey: ['journey', publicKey?.toBase58(), holdings.data?.length],
+    queryFn: async (): Promise<JourneyStop[]> => {
+      if (!publicKey || !holdings.data) return []
+      return Promise.all(
+        holdings.data.map(async (h): Promise<JourneyStop> => {
+          const [profileInfo, eligInfo, segInfo] = await connection.getMultipleAccountsInfo([
+            pdas.customerProfile(h.merchant.address, publicKey),
+            pdas.customerEligibility(h.merchant.address, publicKey),
+            pdas.merchantSegments(h.merchant.address),
+          ])
+          return {
+            merchant: h.merchant,
+            mint: h.mint,
+            raw: h.raw,
+            profile: profileInfo ? decodeCustomerProfile(new Uint8Array(profileInfo.data)) : null,
+            eligibility: eligInfo ? decodeCustomerEligibility(new Uint8Array(eligInfo.data)) : null,
+            segments: segInfo ? decodeMerchantSegments(new Uint8Array(segInfo.data)) : null,
+          }
+        }),
+      )
+    },
+    enabled: !!publicKey && !!holdings.data,
+    staleTime: 15_000,
+  })
+}

@@ -23,7 +23,9 @@ import { CAMPAIGN_KIND_LABEL, DECIMALS } from '@/lib/vesta/constants'
 import type { Merchant } from '@/lib/vesta/decode'
 import {
   type Holding,
+  useCustomerEligibility,
   useHoldings,
+  useMerchantSegments,
   useMerchants,
   useMyCampaigns,
   useOffers,
@@ -208,6 +210,8 @@ function MerchantHero({ merchant, holding }: { merchant: Merchant; holding: Hold
 
 function OffersSection({ merchant, holding }: { merchant: Merchant; holding: Holding | null }) {
   const offers = useOffers(merchant.address)
+  const segments = useMerchantSegments(merchant.address)
+  const eligibility = useCustomerEligibility(merchant.address)
 
   return (
     <Section
@@ -240,6 +244,8 @@ function OffersSection({ merchant, holding }: { merchant: Merchant; holding: Hol
                 holding={holding}
                 offer={offer}
                 redemptionIndex={0}
+                segments={segments.data}
+                eligibility={eligibility.data}
               />
             ))}
           </div>
@@ -248,7 +254,7 @@ function OffersSection({ merchant, holding }: { merchant: Merchant; holding: Hol
             {offers.data.map((offer) => (
               <DataRow
                 key={offer.address.toBase58()}
-                label={`Offer #${offer.id.toString()}`}
+                label={`Offer #${offer.id.toString()}${offer.requiredSegment > 0 ? ' · verified-only' : ''}`}
                 value={`${(Number(offer.pricePoints) / 10 ** DECIMALS).toFixed(2)} pts · ${offer.supplyRemaining} left`}
               />
             ))}

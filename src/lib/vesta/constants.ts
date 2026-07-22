@@ -41,4 +41,8 @@ export const GUARD_FLAG = {
 /** aegis attestation schema ids (advisory). */
 export const AEGIS_SCHEMA = { REGION: 1, KYC_TIER: 2, AGE_BAND: 3 } as const
 
+/** Loyalty-tier thresholds (raw lifetime-earned) — mirrors vesta_core. */
+export const TIER_THRESHOLDS = [0n, 100_000n, 1_000_000n, 10_000_000n] as const
+export const TIER_NAMES = ['Ember', 'Kindling', 'Blaze', 'Inferno'] as const
+
 export const MAX_OPERATORS = 4
