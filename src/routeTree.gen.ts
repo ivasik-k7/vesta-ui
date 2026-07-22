@@ -21,6 +21,7 @@ import { Route as AppAlliancesRouteImport } from './routes/app.alliances'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppConsoleRouteImport } from './routes/app.console'
 import { Route as AppDiscoverRouteImport } from './routes/app.discover'
+import { Route as AppGiftRouteImport } from './routes/app.gift'
 import { Route as AppIssuerRouteImport } from './routes/app.issuer'
 import { Route as AppRewardsRouteImport } from './routes/app.rewards'
 import { Route as AppSwapRouteImport } from './routes/app.swap'
@@ -90,6 +91,11 @@ const AppDiscoverRoute = AppDiscoverRouteImport.update({
   path: '/discover',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGiftRoute = AppGiftRouteImport.update({
+  id: '/gift',
+  path: '/gift',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppIssuerRoute = AppIssuerRouteImport.update({
   id: '/issuer',
   path: '/issuer',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
   '/app/discover': typeof AppDiscoverRoute
+  '/app/gift': typeof AppGiftRoute
   '/app/issuer': typeof AppIssuerRoute
   '/app/rewards': typeof AppRewardsRoute
   '/app/swap': typeof AppSwapRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
   '/app/discover': typeof AppDiscoverRoute
+  '/app/gift': typeof AppGiftRoute
   '/app/issuer': typeof AppIssuerRoute
   '/app/rewards': typeof AppRewardsRoute
   '/app/swap': typeof AppSwapRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
   '/app/discover': typeof AppDiscoverRoute
+  '/app/gift': typeof AppGiftRoute
   '/app/issuer': typeof AppIssuerRoute
   '/app/rewards': typeof AppRewardsRoute
   '/app/swap': typeof AppSwapRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/console'
     | '/app/discover'
+    | '/app/gift'
     | '/app/issuer'
     | '/app/rewards'
     | '/app/swap'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/console'
     | '/app/discover'
+    | '/app/gift'
     | '/app/issuer'
     | '/app/rewards'
     | '/app/swap'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/console'
     | '/app/discover'
+    | '/app/gift'
     | '/app/issuer'
     | '/app/rewards'
     | '/app/swap'
@@ -358,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDiscoverRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/gift': {
+      id: '/app/gift'
+      path: '/gift'
+      fullPath: '/app/gift'
+      preLoaderRoute: typeof AppGiftRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/issuer': {
       id: '/app/issuer'
       path: '/issuer'
@@ -425,6 +444,7 @@ interface AppRouteChildren {
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppConsoleRoute: typeof AppConsoleRoute
   AppDiscoverRoute: typeof AppDiscoverRoute
+  AppGiftRoute: typeof AppGiftRoute
   AppIssuerRoute: typeof AppIssuerRoute
   AppRewardsRoute: typeof AppRewardsRoute
   AppSwapRoute: typeof AppSwapRoute
@@ -444,6 +464,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppConsoleRoute: AppConsoleRoute,
   AppDiscoverRoute: AppDiscoverRoute,
+  AppGiftRoute: AppGiftRoute,
   AppIssuerRoute: AppIssuerRoute,
   AppRewardsRoute: AppRewardsRoute,
   AppSwapRoute: AppSwapRoute,

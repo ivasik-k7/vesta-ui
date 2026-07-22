@@ -26,6 +26,7 @@ function deriveKind(path: string): WorkspaceKind | null {
   if (
     path === '/app' ||
     path.startsWith('/app/wallet') ||
+    path.startsWith('/app/gift') ||
     path.startsWith('/app/swap') ||
     path.startsWith('/app/discover') ||
     path.startsWith('/app/rewards') ||

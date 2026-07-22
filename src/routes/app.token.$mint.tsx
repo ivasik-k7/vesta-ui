@@ -13,13 +13,14 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { GiftFlow, RedeemFlow } from '@/components/app/flows'
+import { RedeemFlow } from '@/components/app/flows'
 import { fmtCount, fmtPoints } from '@/components/app/metric'
 import { useMoney } from '@/components/app/money'
 import { EmptySlate, Section, SectionMeta } from '@/components/app/section'
 import { DataRow, Group } from '@/components/app/settings-kit'
 import { ShareButton } from '@/components/app/share-button'
 import { PageHeader } from '@/components/app/shell'
+import { TxHistory } from '@/components/app/tx-history'
 import { Skeleton } from '@/components/ui/skeleton'
 import { decayHealth, liveUiAmount } from '@/lib/vesta/decay'
 import type { Merchant } from '@/lib/vesta/decode'
@@ -28,6 +29,7 @@ import {
   useCustomerProfile,
   useHoldings,
   useMerchants,
+  useMintSupply,
   useOffers,
 } from '@/lib/vesta/queries'
 
@@ -90,11 +92,14 @@ function TokenDetail({
   holding: Holding | null
   mint: string
 }) {
+  const { format } = useMoney()
+  const supply = useMintSupply(merchant.pointMint)
+
   return (
-    <div className="space-y-10">
+    <div className="section-scope space-y-10">
       <PageHeader
         title={merchant.name}
-        sub="Everything about this point token — live value, decay, your standing, and the rewards you can claim with it."
+        sub="Everything about this point token — live value, decay, supply, your standing, on-chain history, and the rewards you can claim with it."
       />
 
       <TokenHero merchant={merchant} holding={holding} mint={mint} />
@@ -107,6 +112,10 @@ function TokenDetail({
       >
         <div className="grid gap-4 lg:grid-cols-2">
           <Group title="Economics">
+            <DataRow
+              label="Circulating supply"
+              value={supply.data ? `${format(supply.data.ui)} pts` : '…'}
+            />
             <DataRow label="Decay rate" value={`${merchant.decayRateBps / 100}%/yr`} />
             <DataRow label="Lifetime issued" value={fmtPoints(merchant.lifetimePointsIssued)} />
             <DataRow label="Redemptions" value={fmtCount(merchant.lifetimeRedemptions)} />
@@ -132,18 +141,23 @@ function TokenDetail({
       <Section
         icon={Send}
         title="Move points"
-        desc="Gift within the daily cap — the argus guard validates the transfer live. Swaps live in your wallet."
+        desc="Gift these points to a friend, or swap them to another brand in the same alliance — each on its own page."
       >
         {holding ? (
-          <div className="grid items-stretch gap-4 md:grid-cols-2">
-            <GiftFlow holding={holding} />
-            <EmptySlate icon={Coins}>
-              Want to swap these points to another brand?{' '}
-              <Link to="/app/wallet" className="text-flame hover:text-flame-hover">
-                Open your wallet
-              </Link>{' '}
-              — swaps need two alliance holdings.
-            </EmptySlate>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/app/gift"
+              search={{ mint }}
+              className="inline-flex items-center gap-2 rounded-xl bg-flame px-4 py-2.5 font-medium text-primary-foreground text-sm transition-colors hover:bg-flame-hover"
+            >
+              <Send className="size-4" aria-hidden /> Gift {merchant.name}
+            </Link>
+            <Link
+              to="/app/swap"
+              className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-muted-foreground text-sm transition-colors hover:border-flame/40 hover:text-flame"
+            >
+              <Coins className="size-4" aria-hidden /> Swap across an alliance
+            </Link>
           </div>
         ) : (
           <EmptySlate icon={Coins}>
@@ -155,6 +169,12 @@ function TokenDetail({
 
       {/* Redeem */}
       <RedeemSection merchant={merchant} holding={holding} />
+
+      {/* History */}
+      <TxHistory
+        address={merchant.pointMint}
+        desc="The newest transactions touching this point mint, straight from the chain."
+      />
     </div>
   )
 }

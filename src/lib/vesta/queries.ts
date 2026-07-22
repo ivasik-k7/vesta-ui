@@ -222,6 +222,53 @@ export interface ActivityEntry {
   err: boolean
 }
 
+export interface MintSupply {
+  supply: bigint
+  decimals: number
+  ui: number
+}
+
+/** Circulating supply of a Token-2022 mint. SPL mint layout: supply u64 at
+ *  offset 36, decimals u8 at 44. */
+export function useMintSupply(mint: PublicKey | undefined) {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['mint-supply', mint?.toBase58()],
+    queryFn: async (): Promise<MintSupply | null> => {
+      if (!mint) return null
+      const info = await connection.getAccountInfo(mint)
+      if (!info || info.data.length < 45) return null
+      const data = new Uint8Array(info.data)
+      const dv = new DataView(data.buffer, data.byteOffset, data.byteLength)
+      const supply = dv.getBigUint64(36, true)
+      const decimals = data[44] ?? 0
+      return { supply, decimals, ui: Number(supply) / 10 ** decimals }
+    },
+    enabled: !!mint,
+    staleTime: 15_000,
+  })
+}
+
+/** Recent on-chain transactions touching any address (mint, merchant PDA, …). */
+export function useAddressActivity(address: PublicKey | undefined, limit = 12) {
+  const { connection } = useConnection()
+  return useQuery({
+    queryKey: ['addr-activity', address?.toBase58(), limit],
+    queryFn: async (): Promise<ActivityEntry[]> => {
+      if (!address) return []
+      const sigs = await connection.getSignaturesForAddress(address, { limit })
+      return sigs.map((s) => ({
+        signature: s.signature,
+        slot: s.slot,
+        blockTime: s.blockTime ?? null,
+        err: s.err !== null,
+      }))
+    },
+    enabled: !!address,
+    staleTime: 10_000,
+  })
+}
+
 export function useActivity(limit = 20) {
   const { connection } = useConnection()
   return useQuery({
