@@ -21,7 +21,7 @@ function AlliancesPage() {
     <div>
       <PageHeader
         title="Alliances"
-        sub="Koinon alliances group merchants so customers can swap points across brands. Built live from on-chain merchant memberships."
+        sub="Koinon alliances group merchants so you can swap points across brands. This is the live directory — creating or joining an alliance is a merchant action, done from the console's Alliances tab."
       />
 
       {merchants.isLoading ? (

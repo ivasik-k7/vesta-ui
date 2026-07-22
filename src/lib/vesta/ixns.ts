@@ -389,6 +389,60 @@ export function setDailyIssueCapIx(authority: PublicKey, merchant: PublicKey, ca
   return ownerOnly('set_daily_issue_cap', authority, merchant, [u64(cap)])
 }
 
+/** Enable/disable scoped operator roles (owner signs). MerchantOwnerOnly.
+ *  When disabled, pass the default pubkey to clear a role. */
+export function setMerchantGovernanceIx(params: {
+  authority: PublicKey
+  merchant: PublicKey
+  enabled: boolean
+  cashier: PublicKey
+  campaignManager: PublicKey
+}): TransactionInstruction {
+  return ownerOnly('set_merchant_governance', params.authority, params.merchant, [
+    bool(params.enabled),
+    params.cashier.toBuffer(),
+    params.campaignManager.toBuffer(),
+  ])
+}
+
+export interface SegmentInput {
+  issuer: PublicKey
+  schemaId: bigint
+  ttlSecs: bigint
+  boostBps: number
+  active: boolean
+}
+
+/** Define the merchant's verified segments (owner signs). Context
+ *  SetMerchantSegments { authority(s,w), merchant(ro), merchant_segments(w,
+ *  init_if_needed), system_program }. Arg: Vec<Segment> (max 8) — each
+ *  issuer(32) schema_id(u64) ttl_secs(i64) boost_bps(u16) active(bool). */
+export function setMerchantSegmentsIx(params: {
+  authority: PublicKey
+  merchant: PublicKey
+  segments: SegmentInput[]
+}): TransactionInstruction {
+  const body = params.segments.map((s) =>
+    Buffer.concat([
+      s.issuer.toBuffer(),
+      u64(s.schemaId),
+      i64(s.ttlSecs),
+      u16(s.boostBps),
+      bool(s.active),
+    ]),
+  )
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, true),
+      m(params.merchant, false, false),
+      m(pdas.merchantSegments(params.merchant), false, true),
+      m(SystemProgram.programId, false, false),
+    ],
+    data: Buffer.concat([disc('set_merchant_segments'), u32(params.segments.length), ...body]),
+  })
+}
+
 /** Admin verifies (or unverifies) a merchant (config admin signs). */
 export function verifyMerchantIx(
   admin: PublicKey,

@@ -178,6 +178,10 @@ function JourneyCard({ stop }: { stop: JourneyStop }) {
               <p className="pt-1 text-flame-hover">▲ multiplier cap reached (×2.40)</p>
             ) : null}
           </div>
+          <p className="mt-3 border-border/60 border-t pt-2.5 text-[11px] text-muted-foreground/70 leading-relaxed">
+            Your streak grows +2%/day automatically each day {merchant.name} issues you points —
+            there's nothing to click. Miss a day and it resets.
+          </p>
         </div>
 
         {/* verified boosts to claim (spec 12 self-activation) */}

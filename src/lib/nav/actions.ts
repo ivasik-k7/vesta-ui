@@ -18,6 +18,7 @@ import {
   Ticket,
   Trophy,
   Undo2,
+  Users,
   Wallet,
 } from 'lucide-react'
 
@@ -254,6 +255,19 @@ const MERCHANT: AppAction[] = [
   },
 
   {
+    id: 'merchant.segments',
+    role: 'merchant',
+    group: 'Customers',
+    label: 'Segments',
+    hint: 'Verified customer segments & boosts',
+    icon: Users,
+    route: '/app/console/segments',
+    instruction: 'set_merchant_segments',
+    gating: 'owner-only',
+    nav: true,
+  },
+
+  {
     id: 'merchant.alliance',
     role: 'merchant',
     group: 'Network',
@@ -378,7 +392,7 @@ export const ACTIONS: AppAction[] = [...CUSTOMER, ...MERCHANT, ...ISSUER, ...ADM
 /** Ordered group labels per role — drives sidebar group sequence. */
 export const GROUP_ORDER: Record<WorkspaceKind, string[]> = {
   customer: ['Overview', 'Wallet', 'Rewards'],
-  merchant: ['Overview', 'Loyalty', 'Network', 'Configuration', 'Insights'],
+  merchant: ['Overview', 'Loyalty', 'Customers', 'Network', 'Configuration', 'Insights'],
   issuer: ['Overview'],
   admin: ['Overview'],
 }

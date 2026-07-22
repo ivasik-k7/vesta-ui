@@ -75,6 +75,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const merchants = useMemo(() => merchantsQ.data ?? [], [merchantsQ.data])
   const issuer = issuerQ.data ?? null
   const isAdmin = !!configQ.data && !!address && configQ.data.admin.toBase58() === address
+  // A pending admin (mid two-step handover) also gets the Admin workspace so it
+  // can navigate in and accept the transfer.
+  const isPendingAdmin =
+    !!configQ.data?.pendingAdmin && !!address && configQ.data.pendingAdmin.toBase58() === address
+  const showAdmin = isAdmin || isPendingAdmin
 
   // Build the ordered workspace list: Customer, then each owned Merchant, then
   // Issuer, then Admin — matching the switcher's grouping.
@@ -97,9 +102,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         seed: issuer.address.toBase58(),
       })
     }
-    if (isAdmin) list.push({ id: 'admin', kind: 'admin', label: 'Admin', seed: address ?? 'admin' })
+    if (showAdmin)
+      list.push({ id: 'admin', kind: 'admin', label: 'Admin', seed: address ?? 'admin' })
     return list
-  }, [merchants, issuer, isAdmin, address])
+  }, [merchants, issuer, showAdmin, address])
 
   const [activeId, setActiveIdRaw] = useState<string>('customer')
 

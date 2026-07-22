@@ -21,7 +21,7 @@ import {
   Undo2,
   Users,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   ActionPanel,
@@ -33,13 +33,14 @@ import {
 } from '@/components/app/action-panel'
 import { fmtCount, fmtPoints, Metric } from '@/components/app/metric'
 import { Section, SectionMeta } from '@/components/app/section'
-import { DataRow, FieldRow, Group, Input, Row } from '@/components/app/settings-kit'
+import { DataRow, FieldRow, Group, Input, Row, Switch } from '@/components/app/settings-kit'
 import { ShareButton } from '@/components/app/share-button'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { humanizeError, useNotify } from '@/lib/notify/context'
 import {
+  AEGIS_SCHEMA,
   CAMPAIGN_KIND,
   CAMPAIGN_KIND_LABEL,
   DECIMALS,
@@ -69,13 +70,16 @@ import {
   leaveAllianceIx,
   registerMerchantIx,
   revokeAttestationIx,
+  type SegmentInput,
   setAllianceParamsIx,
   setAlliancePausedIx,
   setClawbackCapIx,
   setDailyIssueCapIx,
   setGuardPausedIx,
+  setMerchantGovernanceIx,
   setMerchantOperatorIx,
   setMerchantPausedIx,
+  setMerchantSegmentsIx,
   setOfferSegmentIx,
   setSwapBudgetIx,
   setSwapRateIx,
@@ -90,6 +94,7 @@ import { pdas } from '@/lib/vesta/pda'
 import {
   useAlliances,
   useGuardConfig,
+  useMerchantSegments,
   useMyAchievements,
   useMyCampaigns,
   useMyIssuer,
@@ -148,6 +153,7 @@ export type ConsoleTab =
   | 'offers'
   | 'achievements'
   | 'campaigns'
+  | 'segments'
   | 'alliance'
   | 'token'
   | 'attest'
@@ -159,6 +165,7 @@ export const CONSOLE_TABS: ConsoleTab[] = [
   'offers',
   'achievements',
   'campaigns',
+  'segments',
   'alliance',
   'token',
   'attest',
@@ -185,6 +192,10 @@ const TAB_META: Record<ConsoleTab, { title: string; sub: string }> = {
   campaigns: {
     title: 'Campaigns',
     sub: 'Time-boxed earn boosts — multipliers, flat bonuses, quests. Pause and close live.',
+  },
+  segments: {
+    title: 'Verified segments',
+    sub: 'Define customer segments by an aegis credential — segment-gate offers and boost earn for verified customers.',
   },
   alliance: {
     title: 'Alliance',
@@ -303,6 +314,8 @@ function TabBody({ tab, merchant }: { tab: ConsoleTab; merchant: Merchant }) {
       return <AchievementsTab merchantPda={merchantPda} />
     case 'campaigns':
       return <CampaignsTab merchantPda={merchantPda} />
+    case 'segments':
+      return <SegmentsTab merchant={merchant} merchantPda={merchantPda} />
     case 'alliance':
       return <AllianceTab merchant={merchant} merchantPda={merchantPda} />
     case 'token':
@@ -1082,6 +1095,173 @@ function CampaignsTab({ merchantPda }: { merchantPda: PublicKey }) {
   )
 }
 
+// ── verified segments ─────────────────────────────────────────────────────────
+
+type SegmentDraft = {
+  id: string
+  issuer: string
+  schemaId: number
+  boostPct: string
+  ttlDays: string
+  active: boolean
+}
+
+const SCHEMA_OPTS = [
+  { value: AEGIS_SCHEMA.REGION, label: 'Region' },
+  { value: AEGIS_SCHEMA.KYC_TIER, label: 'KYC tier' },
+  { value: AEGIS_SCHEMA.AGE_BAND, label: 'Age band' },
+]
+
+function SegmentsTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
+  const segsQ = useMerchantSegments(merchant.address)
+  const { run, busyKey } = useSign()
+  const [draft, setDraft] = useState<SegmentDraft[] | null>(null)
+
+  const fromChain = useMemo<SegmentDraft[]>(
+    () =>
+      (segsQ.data?.segments ?? [])
+        .filter((s) => s.active || s.boostBps > 0)
+        .map((s, i) => ({
+          id: `${s.issuer.toBase58()}-${Number(s.schemaId)}-${i}`,
+          issuer: s.issuer.toBase58(),
+          schemaId: Number(s.schemaId),
+          boostPct: (s.boostBps / 100).toString(),
+          ttlDays: (Number(s.ttlSecs) / 86400).toString(),
+          active: s.active,
+        })),
+    [segsQ.data],
+  )
+
+  const rows = draft ?? fromChain
+  const setRows = (next: SegmentDraft[]) => setDraft(next)
+  const patch = (id: string, p: Partial<SegmentDraft>) =>
+    setRows(rows.map((r) => (r.id === id ? { ...r, ...p } : r)))
+  const add = () =>
+    setRows([
+      ...rows,
+      {
+        id: `new-${rows.length}-${Date.now()}`,
+        issuer: '',
+        schemaId: AEGIS_SCHEMA.REGION,
+        boostPct: '10',
+        ttlDays: '30',
+        active: true,
+      },
+    ])
+  const remove = (id: string) => setRows(rows.filter((r) => r.id !== id))
+
+  const valid = rows.every((r) => isPubkey(r.issuer))
+
+  const save = () => {
+    const segments: SegmentInput[] = rows
+      .filter((r) => isPubkey(r.issuer))
+      .map((r) => ({
+        issuer: new PublicKey(r.issuer),
+        schemaId: BigInt(r.schemaId),
+        ttlSecs: BigInt(Math.round((Number(r.ttlDays) || 0) * 86_400)),
+        boostBps: Math.round((Number(r.boostPct) || 0) * 100),
+        active: r.active,
+      }))
+    run('save-segments', 'Save segments', [
+      setMerchantSegmentsIx({ authority: merchant.authority, merchant: merchantPda, segments }),
+    ])
+  }
+
+  return (
+    <Section
+      icon={Users}
+      title="Verified segments"
+      desc="Each segment maps to an aegis credential (issuer + schema). Customers who hold it earn a boost, and you can segment-gate offers to them. Up to 8."
+      right={<SectionMeta>{rows.length}/8</SectionMeta>}
+    >
+      {segsQ.isLoading ? (
+        <Skeleton className="h-48" />
+      ) : (
+        <div className="space-y-4">
+          {rows.map((r, i) => (
+            <div key={r.id} className="rounded-xl border border-border bg-card/50 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="font-mono text-[11px] text-muted-foreground">Segment {i + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => remove(r.id)}
+                  className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-red-500/40 hover:text-red-400"
+                >
+                  Remove
+                </button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FieldRow label="Issuer">
+                  <Input
+                    mono
+                    value={r.issuer}
+                    onChange={(e) => patch(r.id, { issuer: e.target.value })}
+                    placeholder="aegis issuer account"
+                    className={r.issuer === '' || isPubkey(r.issuer) ? '' : 'border-red-500/60'}
+                  />
+                </FieldRow>
+                <FieldRow label="Credential">
+                  <select
+                    value={r.schemaId}
+                    onChange={(e) => patch(r.id, { schemaId: Number(e.target.value) })}
+                    className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
+                  >
+                    {SCHEMA_OPTS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </FieldRow>
+                <FieldRow label="Earn boost %">
+                  <Input
+                    value={r.boostPct}
+                    inputMode="decimal"
+                    onChange={(e) =>
+                      patch(r.id, { boostPct: e.target.value.replace(/[^0-9.]/g, '') })
+                    }
+                  />
+                </FieldRow>
+                <FieldRow label="Cache TTL (days, 0 = default)">
+                  <Input
+                    value={r.ttlDays}
+                    inputMode="numeric"
+                    onChange={(e) =>
+                      patch(r.id, { ttlDays: e.target.value.replace(/[^0-9]/g, '') })
+                    }
+                  />
+                </FieldRow>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <Switch checked={r.active} onChange={(v) => patch(r.id, { active: v })} />
+                <span className="text-muted-foreground text-xs">Active</span>
+              </div>
+            </div>
+          ))}
+          {rows.length === 0 ? (
+            <div className="rounded-xl border border-border border-dashed bg-card/30 px-4 py-6 text-center text-muted-foreground text-sm">
+              No segments yet. Add one to gate offers or boost verified customers — the segment
+              index (1-based) is what an offer's gate references.
+            </div>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={add} disabled={rows.length >= 8}>
+              Add segment
+            </Button>
+            <Button size="sm" disabled={busyKey === 'save-segments' || !valid} onClick={save}>
+              {busyKey === 'save-segments' ? <Loader2 className="size-3.5 animate-spin" /> : null}
+              Save segments
+            </Button>
+            {!valid ? (
+              <span className="text-red-400/90 text-xs">Every segment needs a valid issuer.</span>
+            ) : null}
+          </div>
+        </div>
+      )}
+    </Section>
+  )
+}
+
 // ── alliance ──────────────────────────────────────────────────────────────────
 
 function AllianceTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
@@ -1805,6 +1985,74 @@ function IssuerConsole({
   )
 }
 
+/** Scoped operator roles (set_merchant_governance) — delegate issuing and
+ *  campaign duties without handing over ownership. */
+function ScopedRoles({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
+  const { run, busyKey } = useSign()
+  const [enabled, setEnabled] = useState(false)
+  const [cashier, setCashier] = useState('')
+  const [manager, setManager] = useState('')
+  const ready = (cashier === '' || isPubkey(cashier)) && (manager === '' || isPubkey(manager))
+
+  return (
+    <Section
+      icon={Users}
+      title="Scoped roles"
+      desc="Delegate day-to-day duties without giving up ownership — a cashier may issue points, a campaign manager may run campaigns. Leave a field blank to clear that role. Money movement (clawback, reserves) always stays owner-only."
+    >
+      <div className="max-w-xl">
+        <Group title="Governance">
+          <Row
+            icon={Users}
+            title="Enable scoped roles"
+            desc="When off, only the owner and listed operators can act."
+          >
+            <Switch checked={enabled} onChange={setEnabled} />
+          </Row>
+          <FieldRow label="Cashier (may issue points)">
+            <Input
+              mono
+              value={cashier}
+              onChange={(e) => setCashier(e.target.value)}
+              placeholder="Wallet address"
+              className={cashier === '' || isPubkey(cashier) ? '' : 'border-red-500/60'}
+            />
+          </FieldRow>
+          <FieldRow label="Campaign manager (may run campaigns)">
+            <Input
+              mono
+              value={manager}
+              onChange={(e) => setManager(e.target.value)}
+              placeholder="Wallet address"
+              className={manager === '' || isPubkey(manager) ? '' : 'border-red-500/60'}
+            />
+          </FieldRow>
+          <div className="px-4 pb-4">
+            <Button
+              size="sm"
+              disabled={!ready || busyKey === 'gov'}
+              onClick={() =>
+                run('gov', 'Set scoped roles', [
+                  setMerchantGovernanceIx({
+                    authority: merchant.authority,
+                    merchant: merchantPda,
+                    enabled,
+                    cashier: isPubkey(cashier) ? new PublicKey(cashier) : PublicKey.default,
+                    campaignManager: isPubkey(manager) ? new PublicKey(manager) : PublicKey.default,
+                  }),
+                ])
+              }
+            >
+              {busyKey === 'gov' ? <Loader2 className="size-3.5 animate-spin" /> : null}
+              Save roles
+            </Button>
+          </div>
+        </Group>
+      </div>
+    </Section>
+  )
+}
+
 // ── advanced (operators, clawback, danger) ───────────────────────────────────
 
 function AdvancedTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda: PublicKey }) {
@@ -1874,6 +2122,8 @@ function AdvancedTab({ merchant, merchantPda }: { merchant: Merchant; merchantPd
           </ActionPanel>
         </div>
       </Section>
+
+      <ScopedRoles merchant={merchant} merchantPda={merchantPda} />
 
       <Section
         icon={Undo2}
