@@ -1,7 +1,7 @@
-import { Link } from '@tanstack/react-router'
 import { ArrowRight, Store, Wallet } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { useEnterApp } from '@/components/landing/launch'
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
 import { Button } from '@/components/ui/button'
@@ -51,6 +51,7 @@ function Journey({
 }
 
 export function Steps() {
+  const enterApp = useEnterApp()
   return (
     <section className="border-border/60 border-t">
       <div className="mx-auto w-full max-w-6xl px-4 py-24 md:py-32">
@@ -75,14 +76,13 @@ export function Steps() {
         </div>
 
         <Reveal delay={0.3} className="mt-14 flex flex-wrap gap-3">
-          <Button asChild size="lg" className="group">
-            <Link to="/app">
-              Launch app
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+          <Button size="lg" className="group" onClick={enterApp}>
+            Launch app
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </Button>
-          <Button asChild size="lg" variant="outline" className="border-line-strong">
-            <Link to="/app/console">Open the merchant console</Link>
+          <Button size="lg" variant="outline" className="border-line-strong" onClick={enterApp}>
+            <Store className="size-4" aria-hidden />
+            Open the merchant console
           </Button>
         </Reveal>
       </div>

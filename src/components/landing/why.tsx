@@ -38,6 +38,44 @@ function DecayCurve() {
         viewport={{ once: true }}
         transition={{ duration: 1.6, ease: 'easeOut', delay: 0.15 }}
       />
+      {/* check-in moments: the spikes where a visit outruns the decay */}
+      {[
+        { x: 92, y: 42 },
+        { x: 176, y: 38 },
+        { x: 276, y: 30 },
+      ].map((point, index) => (
+        <g key={point.x}>
+          <motion.circle
+            cx={point.x}
+            cy={point.y}
+            r="3"
+            fill="#f25c1f"
+            initial={reduce ? undefined : { opacity: 0, scale: 0 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 + index * 0.35, duration: 0.3 }}
+          />
+          {reduce ? null : (
+            <motion.circle
+              cx={point.x}
+              cy={point.y}
+              r="3"
+              fill="none"
+              stroke="#f25c1f"
+              strokeWidth="1"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: [0, 0.7, 0], scale: [1, 2.6, 3.2] }}
+              viewport={{ once: false }}
+              transition={{
+                delay: 1 + index * 0.35,
+                duration: 1.8,
+                repeat: Number.POSITIVE_INFINITY,
+                repeatDelay: 1.4,
+              }}
+            />
+          )}
+        </g>
+      ))}
       <text x="8" y="14" className="fill-muted-foreground font-mono text-[9px]">
         value
       </text>
@@ -74,7 +112,18 @@ function SwapOrbit() {
   )
 }
 
+const VERIFY_CHECKS = ['region ∈ EU', 'KYC tier ≥ 2', 'age band 18+'] as const
+
 function AegisVerify() {
+  const reduce = useReducedMotion()
+  // Loop the proof: checks land one by one, the verdict last, then restart.
+  const [phase, setPhase] = useState(reduce ? VERIFY_CHECKS.length + 1 : 0)
+  useEffect(() => {
+    if (reduce) return
+    const id = setInterval(() => setPhase((p) => (p > VERIFY_CHECKS.length + 2 ? 0 : p + 1)), 900)
+    return () => clearInterval(id)
+  }, [reduce])
+
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-card p-6 font-mono text-xs">
       <div
@@ -85,21 +134,41 @@ function AegisVerify() {
         <Eye className="size-3.5 text-flame" aria-hidden /> aegis · verify(subject, policy)
       </p>
       <div className="mt-4 space-y-1.5">
-        <p className="text-foreground/80">
-          region ∈ EU <span className="text-flame-hover">✓</span>
-        </p>
-        <p className="text-foreground/80">
-          KYC tier ≥ 2 <span className="text-flame-hover">✓</span>
-        </p>
-        <p className="text-foreground/80">
-          age band 18+ <span className="text-flame-hover">✓</span>
-        </p>
+        {VERIFY_CHECKS.map((check, index) => {
+          const landed = phase > index
+          return (
+            <motion.p
+              key={check}
+              animate={{ opacity: landed ? 1 : 0.25 }}
+              transition={{ duration: 0.3 }}
+              className="text-foreground/80"
+            >
+              {check}{' '}
+              <AnimatePresence>
+                {landed ? (
+                  <motion.span
+                    initial={reduce ? false : { opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="inline-block text-flame-hover"
+                  >
+                    ✓
+                  </motion.span>
+                ) : null}
+              </AnimatePresence>
+            </motion.p>
+          )
+        })}
       </div>
       <div className="mt-4 border-border/60 border-t pt-3">
-        <p className="text-flame-hover">
+        <motion.p
+          animate={{ opacity: phase > VERIFY_CHECKS.length ? 1 : 0.25 }}
+          transition={{ duration: 0.3 }}
+          className="text-flame-hover"
+        >
           <Check className="mr-1.5 inline size-3.5" aria-hidden />
           verdict: eligible
-        </p>
+        </motion.p>
         <p className="mt-1 flex items-center gap-2 text-muted-foreground">
           <Lock className="size-3.5" aria-hidden /> PII seen on-chain: never
         </p>
@@ -212,11 +281,17 @@ export function Why() {
                   index % 2 === 1 && 'md:[&>*:first-child]:order-2',
                 )}
               >
-                <div>
-                  <h3 className="font-heading font-semibold text-2xl tracking-tight">
+                <div className="relative">
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute -top-10 -left-2 select-none bg-gradient-to-b from-flame/25 to-transparent bg-clip-text font-bold font-heading text-7xl text-transparent md:-top-12 md:text-8xl"
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <h3 className="relative font-heading font-semibold text-2xl tracking-tight">
                     {reason.title}
                   </h3>
-                  <p className="mt-3 max-w-md text-muted-foreground leading-relaxed">
+                  <p className="relative mt-3 max-w-md text-muted-foreground leading-relaxed">
                     {reason.body}
                   </p>
                   {reason.link ? (
@@ -224,7 +299,7 @@ export function Why() {
                       href={reason.link.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="group mt-4 inline-flex items-center gap-1 text-flame text-sm transition-colors hover:text-flame-hover"
+                      className="group relative mt-4 inline-flex items-center gap-1 text-flame text-sm transition-colors hover:text-flame-hover"
                     >
                       {reason.link.label}
                       <ArrowUpRight
@@ -234,7 +309,13 @@ export function Why() {
                     </a>
                   ) : null}
                 </div>
-                <div>{reason.visual}</div>
+                <motion.div
+                  whileHover={{ y: -5 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+                  className="rounded-2xl transition-shadow duration-300 hover:shadow-[0_0_48px_-14px_rgb(242_92_31/0.35)]"
+                >
+                  {reason.visual}
+                </motion.div>
               </div>
             </Reveal>
           ))}

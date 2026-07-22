@@ -5,11 +5,12 @@ import { AppShell } from '@/components/app/shell'
 import { hasValidStoredSession } from '@/lib/auth/session-store'
 
 // Protected route tree: without a valid stored session the app never mounts —
-// the router redirects to the dedicated /auth page before any /app UI loads.
+// the router sends visitors to the landing page with the inline AuthFlow modal
+// auto-opened (one sign-in surface, no dedicated auth screen).
 export const Route = createFileRoute('/app')({
   beforeLoad: () => {
     if (!hasValidStoredSession()) {
-      throw redirect({ to: '/auth' })
+      throw redirect({ to: '/', search: { signin: true } })
     }
   },
   component: AppLayout,

@@ -1,13 +1,20 @@
-import { Link } from '@tanstack/react-router'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
 import { FlameDemo } from '@/components/landing/flame-demo'
+import { useEnterApp } from '@/components/landing/launch'
 import { EASE } from '@/components/landing/reveal'
 import { Button } from '@/components/ui/button'
 
+const PROGRAMS = [
+  { name: 'vesta_core', role: 'economy' },
+  { name: 'argus', role: 'policy' },
+  { name: 'aegis', role: 'identity' },
+] as const
+
 export function Hero() {
   const reduce = useReducedMotion()
+  const enterApp = useEnterApp()
   const enter = (delay: number) => ({
     initial: reduce ? false : { opacity: 0, y: 16 },
     animate: { opacity: 1, y: 0 },
@@ -22,14 +29,24 @@ export function Hero() {
         <div className="-translate-x-1/2 absolute top-[46%] left-1/2 h-[40rem] w-[64rem] rounded-full bg-[radial-gradient(ellipse_at_center,rgb(122_38_4/0.35),transparent_65%)]" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-7 px-4 pt-24 pb-28 text-center md:pt-32">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-7 px-4 pt-20 pb-28 text-center md:pt-28">
         <motion.h1
           {...enter(0.06)}
           className="max-w-3xl text-balance font-heading text-6xl leading-[1.04] tracking-tight md:text-7xl"
         >
           <span className="font-normal text-foreground/90">Loyalty that burns</span>
           <br />
-          <span className="font-bold text-flame">brighter every visit</span>
+          <motion.span
+            className="bg-clip-text font-bold text-transparent"
+            style={{
+              backgroundImage: 'linear-gradient(90deg,#f25c1f,#ffb27a,#f25c1f)',
+              backgroundSize: '200% 100%',
+            }}
+            animate={reduce ? undefined : { backgroundPositionX: ['0%', '200%'] }}
+            transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }}
+          >
+            brighter every visit
+          </motion.span>
         </motion.h1>
 
         <motion.p
@@ -41,33 +58,25 @@ export function Hero() {
           identity — value that behaves like a flame across every brand you tend.
         </motion.p>
 
-        <motion.div
-          {...enter(0.15)}
-          className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-muted-foreground text-xs"
-        >
-          <span className="text-flame">vesta_core</span>
-          <span aria-hidden>·</span>
-          <span>living economy</span>
-          <span aria-hidden className="text-line-strong">
-            /
-          </span>
-          <span className="text-flame">argus</span>
-          <span aria-hidden>·</span>
-          <span>governed transfer policy</span>
-          <span aria-hidden className="text-line-strong">
-            /
-          </span>
-          <span className="text-flame">aegis</span>
-          <span aria-hidden>·</span>
-          <span>private identity &amp; trust</span>
+        <motion.div {...enter(0.15)} className="flex flex-wrap items-center justify-center gap-2">
+          {PROGRAMS.map((program) => (
+            <span
+              key={program.name}
+              className="group inline-flex items-center gap-2 rounded-lg border border-border bg-card/60 px-3 py-1.5 font-mono text-xs backdrop-blur transition-colors hover:border-flame/40"
+            >
+              <span className="text-flame">{program.name}</span>
+              <span aria-hidden className="text-line-strong">
+                ::
+              </span>
+              <span className="text-muted-foreground">{program.role}</span>
+            </span>
+          ))}
         </motion.div>
 
         <motion.div {...enter(0.18)} className="flex flex-wrap items-center justify-center gap-3">
-          <Button asChild size="lg" className="group">
-            <Link to="/app">
-              Launch app
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+          <Button size="lg" className="group" onClick={enterApp}>
+            Launch app
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </Button>
           <Button asChild size="lg" variant="outline" className="group border-line-strong">
             <a

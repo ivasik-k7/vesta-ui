@@ -16,6 +16,10 @@ vi.mock('@solana/wallet-adapter-react', () => ({
     connected: false,
     disconnect: vi.fn(),
     signMessage: undefined,
+    wallets: [],
+    wallet: null,
+    select: vi.fn(),
+    connect: vi.fn(),
   }),
   useConnection: () => ({ connection: {} }),
 }))
@@ -46,11 +50,14 @@ test('landing renders the VESTA hero', async () => {
   expect(screen.getAllByText('vesta_core').length).toBeGreaterThan(0)
 })
 
-test('unauthenticated /app redirects to the dedicated auth page', async () => {
+test('unauthenticated /app lands on the homepage with the inline sign-in flow open', async () => {
   renderAt('/app')
-  // Router beforeLoad redirects to /auth when there is no stored session.
+  // Router beforeLoad redirects to /?signin=1, which auto-opens the one
+  // AuthFlow modal — no separate auth screen.
   expect(await screen.findByRole('heading', { name: /sign in to vesta/i })).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: /connect wallet/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /browse all/i })).toBeInTheDocument()
+  // The landing itself rendered underneath the modal.
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/loyalty that burns/i)
 })
 
 test('merchant directory renders its live-scan header', async () => {
