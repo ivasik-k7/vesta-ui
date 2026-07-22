@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, Eye, Lock, X } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { type ReactNode, useEffect, useState } from 'react'
 
@@ -6,224 +6,324 @@ import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
 import { cn } from '@/lib/utils'
 
-function DecayCurve() {
-  const reduce = useReducedMotion()
+/** Shared terminal-panel chrome — the same visual language as the tx-trace and
+ * system explorer, so the four stories read as one product. */
+function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <svg viewBox="0 0 340 130" className="w-full" role="img" aria-label="Decay curve">
-      <defs>
-        <linearGradient id="curve" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#f25c1f" />
-          <stop offset="1" stopColor="#7a2604" />
-        </linearGradient>
-      </defs>
-      <motion.path
-        d="M8 26 C 60 34, 90 58, 128 76 S 240 108, 332 116"
-        fill="none"
-        stroke="rgb(167 158 150 / 0.35)"
-        strokeWidth="1.5"
-        strokeDasharray="5 5"
-        initial={reduce ? undefined : { pathLength: 0 }}
-        whileInView={{ pathLength: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, ease: 'easeOut' }}
-      />
-      <motion.path
-        d="M8 26 C 40 40, 58 62, 84 70 L 92 42 C 118 52, 142 66, 168 74 L 176 38 C 210 48, 244 58, 268 62 L 276 30 C 300 38, 320 42, 332 44"
-        fill="none"
-        stroke="url(#curve)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        initial={reduce ? undefined : { pathLength: 0 }}
-        whileInView={{ pathLength: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.6, ease: 'easeOut', delay: 0.15 }}
-      />
-      {/* check-in moments: the spikes where a visit outruns the decay */}
-      {[
-        { x: 92, y: 42 },
-        { x: 176, y: 38 },
-        { x: 276, y: 30 },
-      ].map((point, index) => (
-        <g key={point.x}>
-          <motion.circle
-            cx={point.x}
-            cy={point.y}
-            r="3"
-            fill="#f25c1f"
-            initial={reduce ? undefined : { opacity: 0, scale: 0 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.6 + index * 0.35, duration: 0.3 }}
-          />
-          {reduce ? null : (
-            <motion.circle
-              cx={point.x}
-              cy={point.y}
-              r="3"
-              fill="none"
-              stroke="#f25c1f"
-              strokeWidth="1"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: [0, 0.7, 0], scale: [1, 2.6, 3.2] }}
-              viewport={{ once: false }}
-              transition={{
-                delay: 1 + index * 0.35,
-                duration: 1.8,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatDelay: 1.4,
-              }}
-            />
-          )}
-        </g>
-      ))}
-      <text x="8" y="14" className="fill-muted-foreground font-mono text-[9px]">
-        value
-      </text>
-      <text x="304" y="128" className="fill-muted-foreground font-mono text-[9px]">
-        time
-      </text>
-    </svg>
-  )
-}
-
-function SwapOrbit() {
-  const reduce = useReducedMotion()
-  const loop = reduce
-    ? undefined
-    : { repeat: Number.POSITIVE_INFINITY, duration: 3.2, ease: 'easeInOut' as const }
-  return (
-    <div className="relative flex h-32 items-center justify-center" aria-hidden>
-      <div className="absolute h-px w-4/5 bg-gradient-to-r from-transparent via-border to-transparent" />
-      <motion.div
-        animate={reduce ? undefined : { x: [-64, 64, -64] }}
-        transition={loop}
-        className="absolute grid size-14 place-items-center rounded-full border border-flame/40 bg-flame/10 font-mono text-[10px] text-flame"
-      >
-        CAFE
-      </motion.div>
-      <motion.div
-        animate={reduce ? undefined : { x: [64, -64, 64] }}
-        transition={loop}
-        className="absolute grid size-14 place-items-center rounded-full border border-line-strong bg-secondary font-mono text-[10px] text-muted-foreground"
-      >
-        BOOK
-      </motion.div>
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="flex items-center gap-2 border-border/60 border-b px-4 py-2.5 font-mono text-muted-foreground text-xs">
+        <span aria-hidden className="flex gap-1.5">
+          <span className="size-2 rounded-full bg-border" />
+          <span className="size-2 rounded-full bg-border" />
+          <span className="size-2 rounded-full bg-flame/60" />
+        </span>
+        <span className="ml-1">{title}</span>
+      </div>
+      <div className="p-5">{children}</div>
     </div>
   )
 }
 
-const VERIFY_CHECKS = ['region ∈ EU', 'KYC tier ≥ 2', 'age band 18+'] as const
+// ── 01 · a live balance that cools and is rescued by a visit ─────────────────
 
-function AegisVerify() {
+function PulsePanel() {
   const reduce = useReducedMotion()
-  // Loop the proof: checks land one by one, the verdict last, then restart.
-  const [phase, setPhase] = useState(reduce ? VERIFY_CHECKS.length + 1 : 0)
+  const [balance, setBalance] = useState(1_284.5)
+  const [streak, setStreak] = useState(12)
+  const [visited, setVisited] = useState(false)
+
   useEffect(() => {
     if (reduce) return
-    const id = setInterval(() => setPhase((p) => (p > VERIFY_CHECKS.length + 2 ? 0 : p + 1)), 900)
+    let ticks = 0
+    const id = setInterval(() => {
+      ticks += 1
+      if (ticks % 26 === 0) {
+        // a visit lands: streak up, multiplier outruns the burn
+        setVisited(true)
+        setStreak((s) => (s >= 30 ? 12 : s + 1))
+        setBalance((b) => b + 38.2)
+        setTimeout(() => setVisited(false), 1600)
+      } else {
+        setBalance((b) => Math.max(0, b - 0.35))
+      }
+    }, 180)
+    return () => clearInterval(id)
+  }, [reduce])
+
+  const multiplier = (1 + Math.min(streak, 30) * 0.02).toFixed(2)
+
+  return (
+    <Panel title="balance.watch · decay −20%/yr">
+      <div className="flex items-baseline justify-between gap-4">
+        <p
+          className={cn(
+            'font-heading font-semibold text-4xl tabular-nums tracking-tight transition-colors duration-500 md:text-5xl',
+            visited ? 'text-flame' : 'text-foreground/90',
+          )}
+        >
+          {balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </p>
+        <p className="font-mono text-muted-foreground text-xs">pts</p>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between font-mono text-xs">
+        <span className="text-muted-foreground">
+          streak <span className="text-foreground/85 tabular-nums">{streak}d</span> · multiplier{' '}
+          <span className="text-flame tabular-nums">×{multiplier}</span>
+        </span>
+        <AnimatePresence>
+          {visited ? (
+            <motion.span
+              initial={reduce ? false : { opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="text-flame-hover"
+            >
+              ✓ visit — the flame feeds
+            </motion.span>
+          ) : (
+            <motion.span
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-muted-foreground/60"
+            >
+              cooling…
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* the sawtooth: decay bled, visits reclaimed */}
+      <svg viewBox="0 0 340 56" className="mt-4 w-full" role="img" aria-label="Decay curve">
+        <motion.path
+          d="M4 14 C 24 22, 40 30, 62 36 L 68 18 C 96 26, 122 34, 148 40 L 154 20 C 184 28, 214 36, 240 40 L 246 22 C 276 28, 310 32, 336 34"
+          fill="none"
+          stroke="#f25c1f"
+          strokeWidth="2"
+          strokeLinecap="round"
+          initial={reduce ? undefined : { pathLength: 0 }}
+          whileInView={{ pathLength: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.6, ease: 'easeOut' }}
+        />
+      </svg>
+    </Panel>
+  )
+}
+
+// ── 02 · an atomic cross-brand swap, both legs settling together ─────────────
+
+function SwapPanel() {
+  const reduce = useReducedMotion()
+  const [swapped, setSwapped] = useState(false)
+
+  useEffect(() => {
+    if (reduce) {
+      setSwapped(true)
+      return
+    }
+    const id = setInterval(() => setSwapped((s) => !s), 2800)
+    return () => clearInterval(id)
+  }, [reduce])
+
+  const cafe = swapped ? 1_120 : 1_240
+  const book = swapped ? 406 : 310
+
+  return (
+    <Panel title="koinon.swap · one atomic transaction">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        {[
+          { name: 'CAFE', value: cafe, delta: '−120' },
+          null,
+          { name: 'BOOK', value: book, delta: '+96' },
+        ].map((side, index) =>
+          side ? (
+            <div key={side.name} className={index === 2 ? 'text-right' : ''}>
+              <p className="font-mono text-muted-foreground text-xs">{side.name}</p>
+              <p className="mt-1 font-heading font-semibold text-3xl text-foreground/90 tabular-nums">
+                {side.value.toLocaleString('en-US')}
+              </p>
+              <p
+                className={cn(
+                  'mt-1 font-mono text-xs tabular-nums transition-opacity duration-500',
+                  swapped ? 'opacity-100' : 'opacity-0',
+                  side.delta.startsWith('−') ? 'text-muted-foreground' : 'text-flame-hover',
+                )}
+              >
+                {side.delta}
+              </p>
+            </div>
+          ) : (
+            <div key="beam" className="relative h-px w-14 bg-border" aria-hidden>
+              {reduce ? null : (
+                <motion.span
+                  className="absolute top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-flame"
+                  animate={{ left: ['0%', '90%'], opacity: [0, 1, 1, 0] }}
+                  transition={{
+                    duration: 1.1,
+                    repeat: Number.POSITIVE_INFINITY,
+                    repeatDelay: 1.7,
+                    ease: 'easeInOut',
+                  }}
+                />
+              )}
+            </div>
+          ),
+        )}
+      </div>
+
+      <div className="mt-5 border-border/60 border-t pt-3 font-mono text-xs">
+        <p
+          className={cn(
+            'transition-colors duration-500',
+            swapped ? 'text-flame-hover' : 'text-muted-foreground/60',
+          )}
+        >
+          {swapped ? '✓ settled' : '· settling'} — both legs or neither · rate 0.80 · fee 25 bps
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          UI-value denominated — mint age never leaks an edge
+        </p>
+      </div>
+    </Panel>
+  )
+}
+
+// ── 03 · what the merchant learns vs. what stays sealed ─────────────────────
+
+const VERIFY_CHECKS = ['region ∈ EU', 'KYC tier ≥ 2', 'age band 18+'] as const
+const SEALED = [
+  ['name', '▮▮▮▮▮▮▮▮'],
+  ['birthdate', '▮▮▮▮▮▮'],
+  ['address', '▮▮▮▮▮▮▮▮▮▮'],
+  ['document', '▮▮▮▮▮▮▮'],
+] as const
+
+function VerifyPanel() {
+  const reduce = useReducedMotion()
+  const [phase, setPhase] = useState(reduce ? VERIFY_CHECKS.length + 1 : 0)
+
+  useEffect(() => {
+    if (reduce) return
+    const id = setInterval(() => setPhase((p) => (p > VERIFY_CHECKS.length + 2 ? 0 : p + 1)), 850)
     return () => clearInterval(id)
   }, [reduce])
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-card p-6 font-mono text-xs">
-      <div
-        aria-hidden
-        className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent motion-safe:animate-shine"
-      />
-      <p className="flex items-center gap-2 text-muted-foreground">
-        <Eye className="size-3.5 text-flame" aria-hidden /> aegis · verify(subject, policy)
-      </p>
-      <div className="mt-4 space-y-1.5">
-        {VERIFY_CHECKS.map((check, index) => {
-          const landed = phase > index
-          return (
+    <Panel title="aegis.verify · zero PII on-chain">
+      <div className="grid gap-5 font-mono text-xs sm:grid-cols-2">
+        <div>
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
+            the merchant learns
+          </p>
+          <div className="mt-2.5 space-y-1.5">
+            {VERIFY_CHECKS.map((check, index) => {
+              const landed = phase > index
+              return (
+                <motion.p
+                  key={check}
+                  animate={{ opacity: landed ? 1 : 0.3 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-foreground/85"
+                >
+                  {check} {landed ? <span className="text-flame-hover">✓</span> : null}
+                </motion.p>
+              )
+            })}
             <motion.p
-              key={check}
-              animate={{ opacity: landed ? 1 : 0.25 }}
+              animate={{ opacity: phase > VERIFY_CHECKS.length ? 1 : 0.3 }}
               transition={{ duration: 0.3 }}
-              className="text-foreground/80"
+              className="pt-1 text-flame-hover"
             >
-              {check}{' '}
-              <AnimatePresence>
-                {landed ? (
-                  <motion.span
-                    initial={reduce ? false : { opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="inline-block text-flame-hover"
-                  >
-                    ✓
-                  </motion.span>
-                ) : null}
-              </AnimatePresence>
+              → verdict: eligible
             </motion.p>
-          )
-        })}
+          </div>
+        </div>
+
+        <div className="sm:border-border/60 sm:border-l sm:pl-5">
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
+            the chain stores
+          </p>
+          <div className="mt-2.5 space-y-1.5">
+            <p className="text-foreground/85">
+              commitment <span className="text-muted-foreground">0x9f2e…c41a</span>
+            </p>
+            {SEALED.map(([field, redacted]) => (
+              <p key={field} className="text-muted-foreground/60">
+                {field} <span className="select-none text-muted-foreground/30">{redacted}</span>
+              </p>
+            ))}
+            <p className="pt-1 text-muted-foreground">erasable · GDPR art. 17</p>
+          </div>
+        </div>
       </div>
-      <div className="mt-4 border-border/60 border-t pt-3">
-        <motion.p
-          animate={{ opacity: phase > VERIFY_CHECKS.length ? 1 : 0.25 }}
-          transition={{ duration: 0.3 }}
-          className="text-flame-hover"
-        >
-          <Check className="mr-1.5 inline size-3.5" aria-hidden />
-          verdict: eligible
-        </motion.p>
-        <p className="mt-1 flex items-center gap-2 text-muted-foreground">
-          <Lock className="size-3.5" aria-hidden /> PII seen on-chain: never
-        </p>
-      </div>
-    </div>
+    </Panel>
   )
 }
 
-const ARGUS_LOG = [
-  {
-    text: 'transfer → gift(friend, 25)',
-    ok: true,
-    verdict: 'approved · policy v7 · within limits',
-  },
-  { text: 'transfer → dex_pool(dump_all)', ok: false, verdict: 'rejected · not a loyalty flow' },
-  { text: 'transfer → sanctioned_wallet', ok: false, verdict: 'rejected · screening freeze' },
+// ── 04 · the policy engine deciding, live ────────────────────────────────────
+
+const DECISIONS = [
+  { text: 'gift(friend, 25)', ok: true, note: 'within limits' },
+  { text: 'dex_pool(dump_all)', ok: false, note: 'not a loyalty flow' },
+  { text: 'redeem(offer #4)', ok: true, note: 'segment ✓ eu-verified' },
+  { text: 'transfer(sanctioned)', ok: false, note: 'screening freeze' },
+  { text: 'gift(family, 50)', ok: true, note: 'cooldown clear' },
 ] as const
 
-function ArgusFeed() {
-  const [index, setIndex] = useState(0)
+function PolicyPanel() {
+  const reduce = useReducedMotion()
+  const [head, setHead] = useState(2)
+
   useEffect(() => {
-    const id = setInterval(() => setIndex((v) => (v + 1) % ARGUS_LOG.length), 2600)
+    if (reduce) return
+    const id = setInterval(() => setHead((h) => h + 1), 2100)
     return () => clearInterval(id)
-  }, [])
-  const entry = ARGUS_LOG[index] ?? ARGUS_LOG[0]
+  }, [reduce])
+
+  // the last three decisions, newest at the bottom
+  const rows = [2, 1, 0].flatMap((back) => {
+    const index = (((head - back) % DECISIONS.length) + DECISIONS.length) % DECISIONS.length
+    const decision = DECISIONS[index]
+    return decision ? [{ ...decision, key: head - back }] : []
+  })
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 font-mono text-xs">
-      <p className="mb-3 flex items-center gap-2 text-muted-foreground">
-        <Eye className="size-3.5 text-flame" aria-hidden /> argus · every transfer, &lt;3k CU, no
-        CPI
-      </p>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={entry.text}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.3 }}
-          className="space-y-1.5"
-        >
-          <p className="text-foreground/80">{entry.text}</p>
-          <p className={entry.ok ? 'text-flame-hover' : 'text-muted-foreground'}>
-            {entry.ok ? (
-              <Check className="mr-1.5 inline size-3.5" aria-hidden />
-            ) : (
-              <X className="mr-1.5 inline size-3.5" aria-hidden />
-            )}
-            {entry.verdict}
-          </p>
-        </motion.div>
-      </AnimatePresence>
-    </div>
+    <Panel title="argus.execute · policy v7 · epoch 12">
+      <div className="space-y-2 font-mono text-xs">
+        <AnimatePresence initial={false} mode="popLayout">
+          {rows.map((row) => (
+            <motion.div
+              key={row.key}
+              layout
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-baseline justify-between gap-3"
+            >
+              <span className="min-w-0 flex-1 truncate text-foreground/80">
+                transfer → {row.text}
+              </span>
+              <span
+                className={cn('shrink-0', row.ok ? 'text-flame-hover' : 'text-muted-foreground')}
+              >
+                {row.ok ? '✓ allow' : '✕ reject'} · {row.note}
+              </span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      <div className="mt-4 border-border/60 border-t pt-3 font-mono text-muted-foreground text-xs">
+        <p>every decision reason-coded · &lt;3k CU · 0 CPI · fail-closed</p>
+      </div>
+    </Panel>
   )
 }
+
+// ── the section ──────────────────────────────────────────────────────────────
 
 const REASONS: {
   title: string
@@ -234,12 +334,12 @@ const REASONS: {
   {
     title: 'Points with a pulse',
     body: 'Every mint carries a negative interest rate — untended balances cool on-chain, no cron jobs. Streaks mint multipliers that outrun the burn.',
-    visual: <DecayCurve />,
+    visual: <PulsePanel />,
   },
   {
     title: 'Value that crosses brands',
     body: 'Merchants form alliances; customers swap café points for bookstore points atomically, at alliance-governed rates with self-chosen risk budgets.',
-    visual: <SwapOrbit />,
+    visual: <SwapPanel />,
   },
   {
     title: 'Verified, never surveilled',
@@ -248,7 +348,7 @@ const REASONS: {
       label: 'How aegis verifies privately',
       href: 'https://github.com/ivasik-k7/vesta-core/tree/main/docs/specs',
     },
-    visual: <AegisVerify />,
+    visual: <VerifyPanel />,
   },
   {
     title: 'Policy that governs itself',
@@ -257,7 +357,7 @@ const REASONS: {
       label: 'How the policy engine works',
       href: 'https://github.com/ivasik-k7/vesta-core/blob/main/docs/specs/09-argus-policy-vm.md',
     },
-    visual: <ArgusFeed />,
+    visual: <PolicyPanel />,
   },
 ]
 
@@ -309,13 +409,7 @@ export function Why() {
                     </a>
                   ) : null}
                 </div>
-                <motion.div
-                  whileHover={{ y: -5 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-                  className="rounded-2xl transition-shadow duration-300 hover:shadow-[0_0_48px_-14px_rgb(242_92_31/0.35)]"
-                >
-                  {reason.visual}
-                </motion.div>
+                <div>{reason.visual}</div>
               </div>
             </Reveal>
           ))}

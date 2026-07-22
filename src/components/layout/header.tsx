@@ -6,10 +6,7 @@ import { LanguageSwitcher } from '@/components/layout/language-switcher'
 import { ConnectButton } from '@/components/wallet/connect-button'
 import { cn } from '@/lib/utils'
 
-const NAV = [
-  { to: '/app', label: 'App' },
-  { to: '/merchant', label: 'Merchants' },
-] as const
+const NAV = [{ to: '/merchant', label: 'Merchants' }] as const
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false)

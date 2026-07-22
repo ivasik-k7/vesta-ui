@@ -1,10 +1,8 @@
-import { ArrowUpRight } from 'lucide-react'
 import { animate, useInView, useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
 import { Reveal } from '@/components/landing/reveal'
 import { SectionHeader } from '@/components/landing/section-header'
-import { env } from '@/env'
 
 // §1.6 — numbers that matter, all verifiable: the instruction surface, the
 // adversarial test suite, the hot-path compute bound, and the privacy stance.
@@ -13,12 +11,6 @@ const METRICS = [
   { value: 83, suffix: '', label: 'adversarial LiteSVM tests, all green' },
   { value: 3, prefix: '<', suffix: 'k', label: 'CU on the transfer hot path — zero CPI' },
   { value: 0, suffix: '', label: 'bytes of customer PII stored on-chain' },
-] as const
-
-const RECEIPTS = [
-  { name: 'vesta_core', id: env.VITE_VESTA_CORE_PROGRAM_ID },
-  { name: 'argus', id: env.VITE_ARGUS_PROGRAM_ID },
-  { name: 'aegis', id: env.VITE_AEGIS_PROGRAM_ID },
 ] as const
 
 function Counter({
@@ -85,32 +77,6 @@ export function Stats() {
             </Reveal>
           ))}
         </div>
-
-        {/* receipts: the three deployed programs, straight to the explorer */}
-        <Reveal delay={0.2} className="mt-14">
-          <div className="grid gap-2 rounded-2xl border border-border bg-card p-3 sm:grid-cols-3">
-            {RECEIPTS.map((program) => (
-              <a
-                key={program.name}
-                href={`https://explorer.solana.com/address/${program.id}?cluster=devnet`}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-secondary/60"
-              >
-                <span className="font-heading font-semibold text-flame text-sm">
-                  {program.name}
-                </span>
-                <span className="min-w-0 flex-1 truncate font-mono text-muted-foreground text-xs">
-                  {program.id}
-                </span>
-                <ArrowUpRight
-                  className="size-3.5 shrink-0 text-muted-foreground/50 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-flame"
-                  aria-hidden
-                />
-              </a>
-            ))}
-          </div>
-        </Reveal>
       </div>
     </section>
   )

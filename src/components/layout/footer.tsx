@@ -115,6 +115,9 @@ export function Footer() {
 
         <div className="mt-16 flex flex-col items-start justify-between gap-2 border-border border-t pt-6 text-muted-foreground/70 text-xs sm:flex-row sm:items-center">
           <span>© 2026 VESTA · MIT license</span>
+          <span className="font-mono">
+            v{__APP_VERSION__}-{__GIT_HASH__}
+          </span>
           <span>
             built on <span className="font-medium text-flame">Solana</span> · devnet
           </span>

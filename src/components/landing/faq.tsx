@@ -7,7 +7,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 
-// §1.10 — five questions, collapsed by default, honest answers from the spec.
+// §1.10 — honest answers from the spec, indexed like a manual.
 const FAQ = [
   {
     q: 'Why do my points lose value?',
@@ -47,11 +47,22 @@ export function Faq() {
 
         <Reveal delay={0.1} className="mt-10">
           <Accordion type="single" collapsible className="w-full">
-            {FAQ.map((item) => (
-              <AccordionItem key={item.q} value={item.q}>
-                <AccordionTrigger className="text-left">{item.q}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed">
-                  {item.a}
+            {FAQ.map((item, index) => (
+              <AccordionItem key={item.q} value={item.q} className="border-border/60">
+                <AccordionTrigger className="gap-4 py-4 text-base hover:no-underline">
+                  <span className="flex min-w-0 items-baseline gap-4">
+                    <span className="shrink-0 font-mono text-flame text-xs tabular-nums">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="min-w-0 font-heading font-semibold tracking-tight">
+                      {item.q}
+                    </span>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-5">
+                  <p className="border-border/60 border-l pl-[2.05rem] text-muted-foreground leading-relaxed">
+                    {item.a}
+                  </p>
                 </AccordionContent>
               </AccordionItem>
             ))}
