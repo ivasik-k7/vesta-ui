@@ -220,6 +220,26 @@
   .shadow-panel-lg {
     box-shadow: var(--shadow-card-lg);
   }
+
+  /* Indexed-terminal sections: a page wraps its section stack in
+     `.section-scope` to switch on the monospace 01 — / 02 — numbering.
+     CSS counters keep it deterministic (no render-order/StrictMode hazard);
+     sections outside a scope render the same header with no number. */
+  .section-scope {
+    counter-reset: vesta-section;
+  }
+  .section-scope .section-index {
+    counter-increment: vesta-section;
+  }
+  .section-scope .section-index::before {
+    content: counter(vesta-section, decimal-leading-zero) " —";
+    align-self: baseline;
+    flex-shrink: 0;
+    color: var(--flame);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+  }
 }
 @theme {
     /* sicilian orange scale (REFERENCES.md §3.1) — per-theme values live in
