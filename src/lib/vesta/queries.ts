@@ -484,6 +484,64 @@ export function useAttestation(
   })
 }
 
+export interface HeldCredential {
+  issuer: Issuer
+  schemaId: bigint
+  attestation: Attestation
+  valid: boolean
+}
+
+/** Schema ids the deployment attests against (aegis well-known set). */
+const KNOWN_SCHEMAS = [1n, 2n, 3n] as const
+
+/** Every attestation the connected wallet holds, across all issuers and the
+ *  well-known schemas — the customer's private credential wallet. One batched
+ *  read: issuers × schemas via getMultipleAccountsInfo. */
+export function useMyCredentials() {
+  const { connection } = useConnection()
+  const { publicKey } = useWallet()
+  const issuers = useIssuers()
+  return useQuery({
+    queryKey: ['credentials', publicKey?.toBase58(), issuers.data?.length],
+    queryFn: async (): Promise<HeldCredential[]> => {
+      if (!publicKey || !issuers.data) return []
+      const pairs = issuers.data.flatMap((issuer) =>
+        KNOWN_SCHEMAS.map((schemaId) => ({ issuer, schemaId })),
+      )
+      const infos = await getMultipleBatched(
+        connection,
+        pairs.map((p) => pdas.attestation(p.issuer.address, publicKey, p.schemaId)),
+      )
+      const now = Date.now() / 1000
+      const held: HeldCredential[] = []
+      pairs.forEach(({ issuer, schemaId }, i) => {
+        const info = infos[i]
+        if (!info) return
+        let attestation: Attestation
+        try {
+          attestation = decodeAttestation(
+            pdas.attestation(issuer.address, publicKey, schemaId),
+            new Uint8Array(info.data),
+          )
+        } catch {
+          return
+        }
+        const expired = Number(attestation.expiresAt) > 0 && Number(attestation.expiresAt) < now
+        const notYet = Number(attestation.validFrom) > now
+        held.push({
+          issuer,
+          schemaId,
+          attestation,
+          valid: attestation.status === 0 && !expired && !notYet,
+        })
+      })
+      return held
+    },
+    enabled: !!publicKey && !!issuers.data,
+    staleTime: 20_000,
+  })
+}
+
 /** All aegis issuers on the deployment (public registry). */
 export function useIssuers() {
   const { connection } = useConnection()
