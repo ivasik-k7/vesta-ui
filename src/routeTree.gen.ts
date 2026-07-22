@@ -14,12 +14,17 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as MerchantRouteImport } from './routes/merchant'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppAchievementsRouteImport } from './routes/app.achievements'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
+import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppAlliancesRouteImport } from './routes/app.alliances'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppConsoleRouteImport } from './routes/app.console'
 import { Route as AppDiscoverRouteImport } from './routes/app.discover'
+import { Route as AppIssuerRouteImport } from './routes/app.issuer'
 import { Route as AppNetworkRouteImport } from './routes/app.network'
+import { Route as AppRewardsRouteImport } from './routes/app.rewards'
+import { Route as AppSwapRouteImport } from './routes/app.swap'
 import { Route as AppVerifyRouteImport } from './routes/app.verify'
 import { Route as AppWalletRouteImport } from './routes/app.wallet'
 import { Route as AppConsoleTabRouteImport } from './routes/app.console_.$tab'
@@ -51,9 +56,19 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAchievementsRoute = AppAchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppActivityRoute = AppActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAlliancesRoute = AppAlliancesRouteImport.update({
@@ -76,9 +91,24 @@ const AppDiscoverRoute = AppDiscoverRouteImport.update({
   path: '/discover',
   getParentRoute: () => AppRoute,
 } as any)
+const AppIssuerRoute = AppIssuerRouteImport.update({
+  id: '/issuer',
+  path: '/issuer',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNetworkRoute = AppNetworkRouteImport.update({
   id: '/network',
   path: '/network',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRewardsRoute = AppRewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSwapRoute = AppSwapRouteImport.update({
+  id: '/swap',
+  path: '/swap',
   getParentRoute: () => AppRoute,
 } as any)
 const AppVerifyRoute = AppVerifyRouteImport.update({
@@ -112,12 +142,17 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/merchant': typeof MerchantRoute
+  '/app/achievements': typeof AppAchievementsRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
   '/app/discover': typeof AppDiscoverRoute
+  '/app/issuer': typeof AppIssuerRoute
   '/app/network': typeof AppNetworkRoute
+  '/app/rewards': typeof AppRewardsRoute
+  '/app/swap': typeof AppSwapRoute
   '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
@@ -129,12 +164,17 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/merchant': typeof MerchantRoute
+  '/app/achievements': typeof AppAchievementsRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
   '/app/discover': typeof AppDiscoverRoute
+  '/app/issuer': typeof AppIssuerRoute
   '/app/network': typeof AppNetworkRoute
+  '/app/rewards': typeof AppRewardsRoute
+  '/app/swap': typeof AppSwapRoute
   '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app': typeof AppIndexRoute
@@ -148,12 +188,17 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/merchant': typeof MerchantRoute
+  '/app/achievements': typeof AppAchievementsRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/admin': typeof AppAdminRoute
   '/app/alliances': typeof AppAlliancesRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/console': typeof AppConsoleRoute
   '/app/discover': typeof AppDiscoverRoute
+  '/app/issuer': typeof AppIssuerRoute
   '/app/network': typeof AppNetworkRoute
+  '/app/rewards': typeof AppRewardsRoute
+  '/app/swap': typeof AppSwapRoute
   '/app/verify': typeof AppVerifyRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
@@ -168,12 +213,17 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/merchant'
+    | '/app/achievements'
     | '/app/activity'
+    | '/app/admin'
     | '/app/alliances'
     | '/app/analytics'
     | '/app/console'
     | '/app/discover'
+    | '/app/issuer'
     | '/app/network'
+    | '/app/rewards'
+    | '/app/swap'
     | '/app/verify'
     | '/app/wallet'
     | '/app/'
@@ -185,12 +235,17 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/merchant'
+    | '/app/achievements'
     | '/app/activity'
+    | '/app/admin'
     | '/app/alliances'
     | '/app/analytics'
     | '/app/console'
     | '/app/discover'
+    | '/app/issuer'
     | '/app/network'
+    | '/app/rewards'
+    | '/app/swap'
     | '/app/verify'
     | '/app/wallet'
     | '/app'
@@ -203,12 +258,17 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/merchant'
+    | '/app/achievements'
     | '/app/activity'
+    | '/app/admin'
     | '/app/alliances'
     | '/app/analytics'
     | '/app/console'
     | '/app/discover'
+    | '/app/issuer'
     | '/app/network'
+    | '/app/rewards'
+    | '/app/swap'
     | '/app/verify'
     | '/app/wallet'
     | '/app/'
@@ -261,11 +321,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/achievements': {
+      id: '/app/achievements'
+      path: '/achievements'
+      fullPath: '/app/achievements'
+      preLoaderRoute: typeof AppAchievementsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/activity': {
       id: '/app/activity'
       path: '/activity'
       fullPath: '/app/activity'
       preLoaderRoute: typeof AppActivityRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin': {
+      id: '/app/admin'
+      path: '/admin'
+      fullPath: '/app/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/alliances': {
@@ -296,11 +370,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDiscoverRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/issuer': {
+      id: '/app/issuer'
+      path: '/issuer'
+      fullPath: '/app/issuer'
+      preLoaderRoute: typeof AppIssuerRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/network': {
       id: '/app/network'
       path: '/network'
       fullPath: '/app/network'
       preLoaderRoute: typeof AppNetworkRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/rewards': {
+      id: '/app/rewards'
+      path: '/rewards'
+      fullPath: '/app/rewards'
+      preLoaderRoute: typeof AppRewardsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/swap': {
+      id: '/app/swap'
+      path: '/swap'
+      fullPath: '/app/swap'
+      preLoaderRoute: typeof AppSwapRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/verify': {
@@ -342,12 +437,17 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAchievementsRoute: typeof AppAchievementsRoute
   AppActivityRoute: typeof AppActivityRoute
+  AppAdminRoute: typeof AppAdminRoute
   AppAlliancesRoute: typeof AppAlliancesRoute
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppConsoleRoute: typeof AppConsoleRoute
   AppDiscoverRoute: typeof AppDiscoverRoute
+  AppIssuerRoute: typeof AppIssuerRoute
   AppNetworkRoute: typeof AppNetworkRoute
+  AppRewardsRoute: typeof AppRewardsRoute
+  AppSwapRoute: typeof AppSwapRoute
   AppVerifyRoute: typeof AppVerifyRoute
   AppWalletRoute: typeof AppWalletRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -357,12 +457,17 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAchievementsRoute: AppAchievementsRoute,
   AppActivityRoute: AppActivityRoute,
+  AppAdminRoute: AppAdminRoute,
   AppAlliancesRoute: AppAlliancesRoute,
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppConsoleRoute: AppConsoleRoute,
   AppDiscoverRoute: AppDiscoverRoute,
+  AppIssuerRoute: AppIssuerRoute,
   AppNetworkRoute: AppNetworkRoute,
+  AppRewardsRoute: AppRewardsRoute,
+  AppSwapRoute: AppSwapRoute,
   AppVerifyRoute: AppVerifyRoute,
   AppWalletRoute: AppWalletRoute,
   AppIndexRoute: AppIndexRoute,

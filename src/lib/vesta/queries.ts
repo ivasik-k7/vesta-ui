@@ -192,6 +192,29 @@ export function useMyMerchant() {
   })
 }
 
+/** Every Merchant program the connected wallet owns — a wallet may run many,
+ *  keyed by (authority, id). Authority sits at offset 16 (8 disc + 8 id).
+ *  Sorted by id so the workspace switcher is stable. */
+export function useMyMerchants() {
+  const { connection } = useConnection()
+  const { publicKey } = useWallet()
+  return useQuery({
+    queryKey: ['my-merchants', publicKey?.toBase58()],
+    queryFn: async (): Promise<Merchant[]> => {
+      if (!publicKey) return []
+      const accounts = await connection.getProgramAccounts(VESTA_CORE, {
+        filters: [
+          memcmpDiscriminator(DISCRIMINATOR.Merchant),
+          { memcmp: { offset: 16, bytes: publicKey.toBase58() } },
+        ],
+      })
+      return decodeAll(accounts, decodeMerchant).sort((a, b) => Number(a.id - b.id))
+    },
+    enabled: !!publicKey,
+    staleTime: 20_000,
+  })
+}
+
 export interface ActivityEntry {
   signature: string
   slot: number

@@ -12,6 +12,7 @@ import { VestaAuthProvider } from '@/lib/auth/context'
 import '@/lib/i18n'
 import { NotifyProvider } from '@/lib/notify/context'
 import { SettingsProvider } from '@/lib/settings/context'
+import { WorkspaceProvider } from '@/lib/workspace/context'
 import { routeTree } from './routeTree.gen'
 import './index.css'
 
@@ -54,8 +55,10 @@ createRoot(rootElement).render(
         <VestaAuthProvider>
           <QueryClientProvider client={queryClient}>
             <NotifyProvider>
-              <RouterProvider router={router} />
-              <Toaster />
+              <WorkspaceProvider>
+                <RouterProvider router={router} />
+                <Toaster />
+              </WorkspaceProvider>
             </NotifyProvider>
           </QueryClientProvider>
         </VestaAuthProvider>

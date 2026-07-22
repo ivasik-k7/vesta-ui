@@ -1625,7 +1625,7 @@ function PolicyEditor({ mint, guard }: { mint: PublicKey; guard: GuardConfig }) 
 
 // ── attestations (aegis issuer) ──────────────────────────────────────────────
 
-function AttestTab({ authority }: { authority: PublicKey }) {
+export function AttestTab({ authority }: { authority: PublicKey }) {
   const issuer = useMyIssuer()
 
   if (issuer.isLoading) return <Skeleton className="h-40" />
