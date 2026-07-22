@@ -16,7 +16,7 @@ The single biggest gap. The Action Registry + nav now expose every capability th
 ### P1 — Merchant instructions with NO client builder yet (`open`)
 Grouped by the dedicated page they should live on (pages to add under `/app/console/*`):
 
-- **Customers / Segments** (`/app/console/segments`): `set_merchant_segments`, `set_offer_segment` (gate an offer), plus a per-customer `refresh_customer_eligibility` cranker view.
+- **Customers / Segments** (`/app/console/segments`): `set_merchant_segments`, plus a per-customer `refresh_customer_eligibility` cranker view. _(`set_offer_segment` is now `covered` — a per-offer gate selector in the Offers tab, pairing with the customer gated-offer UX against seeded segments.)_
 - **Reserves** (`/app/console/reserves`): `open_reserve`, `fund_reserve`, `withdraw_reserve`, `attest_reserve`.
 - **Compliance** (`/app/console/compliance`): `set_merchant_trust`, `set_merchant_issue_status`, `anchor_merchant_statement`, `set_daily_issue_cap`, `set_merchant_governance`.
 - **Transfer guard, advanced** (extend `/app/console/token` guard section): `add_list_entry`, `remove_list_entry`, `invalidate_capability`, `set_trust_anchor`, `set_degrade_mode`, `bump_screening_epoch`, `purchase_license`, `transfer_guard_authority` / `accept_guard_authority`.

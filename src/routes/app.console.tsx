@@ -76,6 +76,7 @@ import {
   setGuardPausedIx,
   setMerchantOperatorIx,
   setMerchantPausedIx,
+  setOfferSegmentIx,
   setSwapBudgetIx,
   setSwapRateIx,
   setTokenAttributeIx,
@@ -634,20 +635,45 @@ function OffersTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda:
               <Row
                 key={o.address.toBase58()}
                 title={`Offer #${o.id.toString()}`}
-                desc={`${fromRaw(o.pricePoints)} pts · ${o.supplyRemaining} left`}
+                desc={`${fromRaw(o.pricePoints)} pts · ${o.supplyRemaining} left${o.requiredSegment > 0 ? ` · gated: seg ${o.requiredSegment}` : ''}`}
               >
-                <button
-                  type="button"
-                  disabled={busyKey === `offer-${o.id}`}
-                  onClick={() =>
-                    run(`offer-${o.id}`, `Close offer #${o.id}`, [
-                      closeOfferIx(merchant.authority, merchantPda, o.id),
-                    ])
-                  }
-                  className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50"
-                >
-                  {busyKey === `offer-${o.id}` ? '…' : 'Close'}
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <select
+                    value={o.requiredSegment}
+                    disabled={busyKey === `gate-${o.id}`}
+                    onChange={(e) =>
+                      run(`gate-${o.id}`, `Gate offer #${o.id}`, [
+                        setOfferSegmentIx({
+                          authority: merchant.authority,
+                          merchant: merchantPda,
+                          offerId: o.id,
+                          requiredSegment: Number(e.target.value),
+                        }),
+                      ])
+                    }
+                    className="rounded-lg border border-border bg-background/60 px-2 py-1 text-muted-foreground text-xs outline-none transition-colors focus:border-flame/60"
+                    aria-label={`Gate offer #${o.id} to a segment`}
+                  >
+                    <option value={0}>Open</option>
+                    {[1, 2, 3, 4].map((s) => (
+                      <option key={s} value={s}>
+                        Seg {s}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={busyKey === `offer-${o.id}`}
+                    onClick={() =>
+                      run(`offer-${o.id}`, `Close offer #${o.id}`, [
+                        closeOfferIx(merchant.authority, merchantPda, o.id),
+                      ])
+                    }
+                    className="rounded-lg border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50"
+                  >
+                    {busyKey === `offer-${o.id}` ? '…' : 'Close'}
+                  </button>
+                </div>
               </Row>
             ))
           ) : (

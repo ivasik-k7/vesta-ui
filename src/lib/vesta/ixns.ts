@@ -606,6 +606,26 @@ export function closeOfferIx(authority: PublicKey, merchant: PublicKey, offerId:
   })
 }
 
+/** Gate an offer on a verified segment (`may_manage` signs). `requiredSegment`
+ *  is 1-based (segment index + 1); 0 clears the gate. Context: SetOfferSegment
+ *  { authority(s), merchant(ro), offer(mut) }. */
+export function setOfferSegmentIx(params: {
+  authority: PublicKey
+  merchant: PublicKey
+  offerId: bigint
+  requiredSegment: number
+}): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: VESTA_CORE,
+    keys: [
+      m(params.authority, true, false),
+      m(params.merchant, false, false),
+      m(pdas.offer(params.merchant, params.offerId), false, true),
+    ],
+    data: Buffer.concat([disc('set_offer_segment'), Buffer.from([params.requiredSegment & 0xff])]),
+  })
+}
+
 // ── campaigns ─────────────────────────────────────────────────────────────
 
 export function createCampaignIx(params: {
