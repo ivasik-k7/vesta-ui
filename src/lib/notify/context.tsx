@@ -1,3 +1,4 @@
+import { useWallet } from '@solana/wallet-adapter-react'
 import {
   createContext,
   type ReactNode,
@@ -50,8 +51,12 @@ interface NotifyState {
 }
 
 const NotifyContext = createContext<NotifyState | null>(null)
-const STORE_KEY = 'vesta.notifications'
+const STORE_PREFIX = 'vesta.notifications'
 const MAX = 60
+
+// Notifications are private to a wallet — a switched-in account must never
+// see the previous session's activity. Namespace the store by address.
+const storeKey = (address: string | null) => `${STORE_PREFIX}:${address ?? 'anon'}`
 
 let counter = 0
 const nextId = () => {
@@ -59,9 +64,9 @@ const nextId = () => {
   return `n${Date.now().toString(36)}-${counter}`
 }
 
-function load(): AppNotification[] {
+function load(address: string | null): AppNotification[] {
   try {
-    const raw = localStorage.getItem(STORE_KEY)
+    const raw = localStorage.getItem(storeKey(address))
     if (!raw) return []
     const parsed = JSON.parse(raw) as AppNotification[]
     return Array.isArray(parsed) ? parsed.slice(0, MAX) : []
@@ -71,17 +76,39 @@ function load(): AppNotification[] {
 }
 
 export function NotifyProvider({ children }: { children: ReactNode }) {
+  const { publicKey } = useWallet()
+  const address = publicKey?.toBase58() ?? null
   const [toasts, setToasts] = useState<Toast[]>([])
-  const [notifications, setNotifications] = useState<AppNotification[]>(() => load())
+  // Bundle the owning address with its items so the two can never drift: a
+  // persist that runs mid-reswitch sees the old address and skips, and only
+  // writes once the loaded history matches the connected wallet.
+  const [store, setStore] = useState<{ address: string | null; items: AppNotification[] }>(() => ({
+    address,
+    items: load(address),
+  }))
+  const notifications = store.items
+  const setNotifications = useCallback(
+    (update: (prev: AppNotification[]) => AppNotification[]) =>
+      setStore((prev) => ({ address: prev.address, items: update(prev.items) })),
+    [],
+  )
   const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
+  // Re-scope to the active wallet: load its history and drop any stale toasts
+  // left over from the previous session.
   useEffect(() => {
+    setStore((prev) => (prev.address === address ? prev : { address, items: load(address) }))
+    setToasts((prev) => (prev.length === 0 ? prev : []))
+  }, [address])
+
+  useEffect(() => {
+    if (store.address !== address) return // reconcile pending — don't cross-write
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(notifications.slice(0, MAX)))
+      localStorage.setItem(storeKey(address), JSON.stringify(store.items.slice(0, MAX)))
     } catch {
       // storage full / unavailable — non-fatal
     }
-  }, [notifications])
+  }, [store, address])
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
@@ -108,16 +135,19 @@ export function NotifyProvider({ children }: { children: ReactNode }) {
         timers.current.set(id, timer)
       }
     },
-    [dismissToast],
+    [dismissToast, setNotifications],
   )
 
   const markAllSeen = useCallback(() => {
     setNotifications((prev) => prev.map((n) => (n.seen ? n : { ...n, seen: true })))
-  }, [])
-  const removeNotification = useCallback((id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id))
-  }, [])
-  const clearAll = useCallback(() => setNotifications([]), [])
+  }, [setNotifications])
+  const removeNotification = useCallback(
+    (id: string) => {
+      setNotifications((prev) => prev.filter((n) => n.id !== id))
+    },
+    [setNotifications],
+  )
+  const clearAll = useCallback(() => setNotifications(() => []), [setNotifications])
 
   const unread = notifications.reduce((a, n) => a + (n.seen ? 0 : 1), 0)
 

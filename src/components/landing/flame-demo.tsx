@@ -1,5 +1,5 @@
 import { Flame, Plus } from 'lucide-react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion, useInView, useReducedMotion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -11,17 +11,23 @@ const WEEK = [0.55, 0.7, 0.45, 0.8, 0.62, 0.9, 1]
 
 export function FlameDemo() {
   const reduce = useReducedMotion()
+  const rootRef = useRef<HTMLDivElement>(null)
+  // Only cool the flame while the widget is actually on screen — a forever
+  // ticker re-rendering at 10 Hz contends with the compositor and makes the
+  // rest of the page stutter as you scroll past it.
+  const inView = useInView(rootRef)
   const [balance, setBalance] = useState(142.6)
   const [streak, setStreak] = useState(5)
   const [burstKey, setBurstKey] = useState(0)
   const peak = useRef(160)
 
   useEffect(() => {
+    if (!inView) return
     const id = setInterval(() => {
       setBalance((value) => Math.max(value * DEMO_DECAY_PER_TICK, 0))
     }, TICK_MS)
     return () => clearInterval(id)
-  }, [])
+  }, [inView])
 
   const multiplier = useMemo(() => 1 + streak * 0.12, [streak])
   const health = Math.min(balance / peak.current, 1)
@@ -37,7 +43,10 @@ export function FlameDemo() {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-white/[0.05] to-transparent p-6 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] backdrop-blur md:p-8">
+    <div
+      ref={rootRef}
+      className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-white/[0.05] to-transparent p-6 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] backdrop-blur md:p-8"
+    >
       <p className="flex items-center justify-between font-medium text-[13px] text-muted-foreground">
         Live mechanic
         <span className="text-flame/80">token-2022 · interest-bearing</span>

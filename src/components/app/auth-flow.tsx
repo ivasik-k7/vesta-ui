@@ -46,21 +46,19 @@ export function useAuthFlow(): AuthFlowState {
 }
 
 /**
- * Sign out, then continue to another known wallet if one exists (via the switch
- * flow), otherwise return to the landing page.
+ * Full sign-out: clear the session, disconnect the wallet, drop cached
+ * chain data, and return to the landing page. Switching accounts is a
+ * separate, explicit action (see `switchWallet`).
  */
 export function useLogout(): () => void {
-  const { publicKey } = useWallet()
-  const { walletBook, signOut } = useVestaAuth()
-  const { switchWallet } = useAuthFlow()
+  const { signOut } = useVestaAuth()
+  const qc = useQueryClient()
   const navigate = useNavigate()
   return useCallback(() => {
-    const current = publicKey?.toBase58() ?? null
-    const others = walletBook.filter((a) => a !== current)
     signOut()
-    if (others.length > 0) switchWallet()
-    else navigate({ to: '/' })
-  }, [publicKey, walletBook, signOut, switchWallet, navigate])
+    qc.clear()
+    navigate({ to: '/' })
+  }, [signOut, qc, navigate])
 }
 
 function gradient(seed: string): string {

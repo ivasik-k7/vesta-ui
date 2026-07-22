@@ -40,7 +40,7 @@ export function CookieConsent() {
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="fixed bottom-4 left-4 z-50 w-[calc(100vw-2rem)] max-w-[21rem] sm:bottom-6 sm:left-6"
         >
-          <div className="overflow-hidden rounded-2xl border border-line-strong bg-card/95 shadow-2xl shadow-black/40 backdrop-blur">
+          <div className="overflow-hidden rounded-2xl border border-line-strong bg-card shadow-2xl shadow-black/40">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-flame/70 to-transparent"

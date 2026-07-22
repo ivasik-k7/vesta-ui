@@ -45,7 +45,7 @@ export function ChallengeWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-[19rem] overflow-hidden rounded-2xl border border-line-strong bg-card/95 p-5 shadow-2xl shadow-black/40 backdrop-blur"
+            className="relative w-[19rem] overflow-hidden rounded-2xl border border-line-strong bg-card p-5 shadow-2xl shadow-black/40"
           >
             <div
               aria-hidden
@@ -105,7 +105,7 @@ export function ChallengeWidget() {
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
             transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
             whileHover={reduce ? undefined : { y: -2 }}
-            className="group inline-flex items-center gap-2 rounded-full border border-line-strong bg-card/95 py-2 pr-3.5 pl-2.5 shadow-lg shadow-black/30 backdrop-blur transition-colors hover:border-flame/50"
+            className="group inline-flex items-center gap-2 rounded-full border border-line-strong bg-card py-2 pr-3.5 pl-2.5 shadow-lg shadow-black/30 transition-colors hover:border-flame/50"
           >
             <span className="relative grid size-6 place-items-center rounded-full bg-flame/10">
               <Trophy className="size-3.5 text-flame" aria-hidden />
