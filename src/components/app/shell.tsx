@@ -30,6 +30,7 @@ function deriveKind(path: string): WorkspaceKind | null {
     path.startsWith('/app/discover') ||
     path.startsWith('/app/rewards') ||
     path.startsWith('/app/achievements') ||
+    path.startsWith('/app/alliances') ||
     path.startsWith('/app/activity') ||
     path.startsWith('/app/token') ||
     path.startsWith('/app/merchant')

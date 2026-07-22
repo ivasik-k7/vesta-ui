@@ -8,7 +8,6 @@ import {
   Compass,
   Gauge,
   Gift,
-  Globe,
   Handshake,
   KeyRound,
   LayoutDashboard,
@@ -100,6 +99,16 @@ const CUSTOMER: AppAction[] = [
     instruction: 'swap_points',
     nav: true,
     featured: true,
+  },
+  {
+    id: 'customer.alliances',
+    role: 'customer',
+    group: 'Wallet',
+    label: 'Alliances',
+    hint: 'Brands you can swap across',
+    icon: Handshake,
+    route: '/app/alliances',
+    nav: true,
   },
   {
     id: 'customer.activity',
@@ -351,16 +360,6 @@ const ADMIN: AppAction[] = [
 // ── Shared (all workspaces) ────────────────────────────────────────────────────
 
 const SHARED: AppAction[] = [
-  {
-    id: 'shared.network',
-    role: 'shared',
-    group: 'Protocol',
-    label: 'Network',
-    hint: 'Protocol-wide explorer',
-    icon: Globe,
-    route: '/app/network',
-    nav: true,
-  },
   {
     id: 'shared.verify',
     role: 'shared',
