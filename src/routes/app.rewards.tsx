@@ -49,7 +49,7 @@ function RewardsPage() {
           .
         </EmptySlate>
       ) : (
-        <div className="section-scope space-y-10">
+        <div className="space-y-10">
           {items.map((h) => (
             <BrandRewards key={h.merchant.pointMint.toBase58()} holding={h} />
           ))}

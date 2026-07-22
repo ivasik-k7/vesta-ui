@@ -49,7 +49,7 @@ function AchievementsPage() {
           <Skeleton className="h-40" />
         </div>
       ) : journey.data && journey.data.length > 0 ? (
-        <div className="section-scope space-y-10">
+        <div className="space-y-10">
           <Section
             icon={Trophy}
             title="Your tiers"

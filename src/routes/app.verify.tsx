@@ -23,7 +23,7 @@ function VerifyPage() {
         title="Verify"
         sub="Your private credentials and the access they unlock, the issuers who can vouch for you, and the same public attestation reader an argus transfer guard runs at settlement."
       />
-      <div className="section-scope space-y-10">
+      <div className="space-y-10">
         <MyCredentials />
         <IssuerDirectory />
         <Section

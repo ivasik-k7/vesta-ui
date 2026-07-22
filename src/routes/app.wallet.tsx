@@ -57,7 +57,7 @@ function WalletPage() {
           to find brands to earn with.
         </EmptySlate>
       ) : (
-        <div className="section-scope space-y-10">
+        <div className="space-y-10">
           <PortfolioHero items={items} />
 
           {/* 1 — Hold */}

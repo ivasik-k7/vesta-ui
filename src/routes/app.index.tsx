@@ -42,7 +42,7 @@ function Overview() {
       {!publicKey ? (
         <ConnectPrompt message="Connect a devnet wallet to see the network, your points, and your merchant business." />
       ) : (
-        <div className="section-scope space-y-10">
+        <div className="space-y-10">
           <CustomerJourney />
           <MyBusiness />
           <QuickActions />

@@ -96,7 +96,7 @@ function TokenDetail({
   const supply = useMintSupply(merchant.pointMint)
 
   return (
-    <div className="section-scope space-y-10">
+    <div className="space-y-10">
       <PageHeader
         title={merchant.name}
         sub="Everything about this point token — live value, decay, supply, your standing, on-chain history, and the rewards you can claim with it."

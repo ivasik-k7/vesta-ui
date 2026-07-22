@@ -1,12 +1,10 @@
 import type { ComponentType, ReactNode } from 'react'
 
-// Standardized page-section primitive — the "indexed terminal" language:
-// a monospace index (01 —, shown only inside a `.section-scope`), the title,
-// a flame-led hairline rule, then the description and content. Auto-numbering
-// is done with CSS counters (see index.css .section-scope) so it is fully
-// deterministic and needs no per-call index wiring.
+// Standardized page-section primitives for the customer journey. Every section
+// shares the same header anatomy (flame icon tile + uppercase label + optional
+// meta on the right), the same rhythm, and the same empty-state treatment.
 
-/** A page section: indexed terminal header + content. */
+/** A page section: uniform header + content. */
 export function Section({
   icon: Icon,
   title,
@@ -22,31 +20,29 @@ export function Section({
 }) {
   return (
     <section className="fade-in-0 slide-in-from-bottom-2 animate-in">
-      <div className="flex items-baseline gap-2.5">
-        <span className="section-index flex min-w-0 items-center gap-2">
-          <Icon className="size-3.5 shrink-0 translate-y-px text-flame/70" aria-hidden />
-          <h2 className="truncate font-semibold text-[11px] uppercase tracking-[0.18em]">
-            {title}
-          </h2>
+      <div className="mb-1 flex items-center gap-2.5">
+        <span className="grid size-6 shrink-0 place-items-center rounded-lg border border-flame/20 bg-flame/10 text-flame">
+          <Icon className="size-3.5" aria-hidden />
         </span>
-        {right ? <div className="ml-auto shrink-0">{right}</div> : null}
+        <h2 className="font-semibold text-[11px] text-muted-foreground uppercase tracking-[0.16em]">
+          {title}
+        </h2>
+        {right ? <div className="ml-auto">{right}</div> : null}
       </div>
-      <div
-        aria-hidden
-        className="mt-2 h-px w-full bg-gradient-to-r from-flame/55 via-border to-transparent"
-      />
       {desc ? (
-        <p className="mt-2.5 max-w-2xl text-muted-foreground/70 text-xs leading-relaxed">{desc}</p>
-      ) : null}
-      <div className="mt-3.5">{children}</div>
+        <p className="mb-3 pl-[34px] text-muted-foreground/70 text-xs leading-relaxed">{desc}</p>
+      ) : (
+        <div className="mb-3" />
+      )}
+      {children}
     </section>
   )
 }
 
-/** Plain tabular meta for a section header's right slot — no chrome. */
+/** Small tabular meta chip for a section header's right slot. */
 export function SectionMeta({ children }: { children: ReactNode }) {
   return (
-    <span className="font-mono text-[11px] text-muted-foreground/80 uppercase tracking-[0.1em] tabular-nums">
+    <span className="rounded-full border border-border bg-background/40 px-2.5 py-0.5 text-[11px] text-muted-foreground tabular-nums">
       {children}
     </span>
   )

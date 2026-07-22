@@ -78,7 +78,7 @@ function Detail({ merchant, holding }: { merchant: Merchant; holding: Holding | 
   const { format } = useMoney()
   const supply = useMintSupply(merchant.pointMint)
   return (
-    <div className="section-scope space-y-10">
+    <div className="space-y-10">
       <PageHeader
         title={merchant.name}
         sub="A full look at this merchant — their point token, supply, live offers, running campaigns, on-chain history, and how you can earn and spend here."
