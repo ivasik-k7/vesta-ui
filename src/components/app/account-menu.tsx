@@ -31,16 +31,13 @@ import { ConnectButton } from '@/components/wallet/connect-button'
 import { useVestaAuth } from '@/lib/auth/context'
 import { LANGUAGES } from '@/lib/i18n'
 import { type Theme, useSettings } from '@/lib/settings/context'
+import { identityGradient } from '@/lib/ui/gradient'
 import { useConfig, useMyIssuer, useMyMerchant, useSolBalance } from '@/lib/vesta/queries'
 import { useWalletAlias } from '@/lib/wallet/aliases'
 
 const short = (k: string) => `${k.slice(0, 4)}…${k.slice(-4)}`
 
-function gradient(seed: string) {
-  let h = 0
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) % 360
-  return `conic-gradient(from 140deg, hsl(${h} 80% 55%), hsl(${(h + 60) % 360} 75% 45%), hsl(${h} 80% 55%))`
-}
+const gradient = identityGradient
 
 /** Header account hub: avatar trigger → compact dropdown whose actions open the
  *  full account overlay on top of the current page. */

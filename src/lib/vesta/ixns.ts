@@ -383,6 +383,12 @@ export function setClawbackCapIx(authority: PublicKey, merchant: PublicKey, cap:
   return ownerOnly('set_clawback_cap', authority, merchant, [u64(cap)])
 }
 
+/** Set the merchant's daily issuance cap in raw units (owner signs). Same
+ *  MerchantOwnerOnly context as set_clawback_cap. */
+export function setDailyIssueCapIx(authority: PublicKey, merchant: PublicKey, cap: bigint) {
+  return ownerOnly('set_daily_issue_cap', authority, merchant, [u64(cap)])
+}
+
 /** Admin verifies (or unverifies) a merchant (config admin signs). */
 export function verifyMerchantIx(
   admin: PublicKey,

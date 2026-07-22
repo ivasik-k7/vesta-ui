@@ -4,6 +4,7 @@ import { BadgeCheck, Check, ChevronsUpDown, Gauge, Plus, Store, User } from 'luc
 import { useEffect, useRef, useState } from 'react'
 
 import { useCreateMerchant } from '@/components/app/create-merchant'
+import { identityGradient as glyph } from '@/lib/ui/gradient'
 import { useWorkspace, type Workspace, type WorkspaceKind } from '@/lib/workspace/context'
 
 const KIND_ICON: Record<WorkspaceKind, LucideIcon> = {
@@ -18,12 +19,6 @@ const KIND_WORD: Record<WorkspaceKind, string> = {
   merchant: 'Merchant',
   issuer: 'Issuer',
   admin: 'Admin',
-}
-
-function glyph(seed: string): string {
-  let h = 0
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) % 360
-  return `conic-gradient(from 140deg, hsl(${h} 78% 52%), hsl(${(h + 60) % 360} 72% 46%), hsl(${h} 78% 52%))`
 }
 
 /** Solflare-style context switcher: the active role/brand identity, expanding

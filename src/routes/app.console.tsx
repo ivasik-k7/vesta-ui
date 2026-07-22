@@ -72,6 +72,7 @@ import {
   setAllianceParamsIx,
   setAlliancePausedIx,
   setClawbackCapIx,
+  setDailyIssueCapIx,
   setGuardPausedIx,
   setMerchantOperatorIx,
   setMerchantPausedIx,
@@ -95,6 +96,7 @@ import {
   useOffers,
 } from '@/lib/vesta/queries'
 import { sendIxns } from '@/lib/vesta/tx'
+import { useWorkspace } from '@/lib/workspace/context'
 
 export const Route = createFileRoute('/app/console')({
   component: () => <ConsoleView tab="overview" />,
@@ -196,8 +198,8 @@ const TAB_META: Record<ConsoleTab, { title: string; sub: string }> = {
     sub: 'Vouch for wallets as an aegis issuer — argus guards can gate transfers on your word.',
   },
   advanced: {
-    title: 'Advanced',
-    sub: 'Operators, clawback, and the irreversible stuff.',
+    title: 'Team & controls',
+    sub: 'Operators, issuance & clawback limits, and the irreversible stuff.',
   },
 }
 
@@ -205,20 +207,26 @@ const TAB_META: Record<ConsoleTab, { title: string; sub: string }> = {
 export function ConsoleView({ tab }: { tab: ConsoleTab }) {
   const { publicKey } = useWallet()
   const myMerchant = useMyMerchant()
+  const { activeMerchant, isLoading: wsLoading } = useWorkspace()
   const meta = TAB_META[tab]
+
+  // Prefer the workspace's selected merchant (a wallet may own several); fall
+  // back to the primary (id 0) so a direct /app/console link still resolves.
+  const merchant = activeMerchant ?? myMerchant.data ?? null
+  const loading = wsLoading || myMerchant.isLoading
 
   return (
     <div>
       <PageHeader title={meta.title} sub={meta.sub} />
       {!publicKey ? (
         <ConnectPrompt message="Connect a devnet wallet to register a merchant or manage yours." />
-      ) : myMerchant.isLoading ? (
+      ) : loading ? (
         <div className="space-y-4">
           <Skeleton className="h-24" />
           <Skeleton className="h-64" />
         </div>
-      ) : myMerchant.data ? (
-        <TabBody tab={tab} merchant={myMerchant.data} />
+      ) : merchant ? (
+        <TabBody tab={tab} merchant={merchant} />
       ) : (
         <RegisterMerchant />
       )}
@@ -279,7 +287,9 @@ function RegisterMerchant() {
 
 function TabBody({ tab, merchant }: { tab: ConsoleTab; merchant: Merchant }) {
   const authority = merchant.authority
-  const merchantPda = pdas.merchant(authority, 0n)
+  // Derive from the merchant's own id so a wallet's non-primary brands resolve
+  // to the correct PDA (not always id 0).
+  const merchantPda = pdas.merchant(authority, merchant.id)
 
   switch (tab) {
     case 'overview':
@@ -1776,6 +1786,7 @@ function AdvancedTab({ merchant, merchantPda }: { merchant: Merchant; merchantPd
   const { publicKey } = useWallet()
   const [operator, setOperator] = useState('')
   const [cap, setCap] = useState(fromRaw(merchant.clawbackDailyCapRaw))
+  const [issueCap, setIssueCap] = useState('')
   const [clawCustomer, setClawCustomer] = useState('')
   const [clawAmount, setClawAmount] = useState('')
   const clawRaw = raw(clawAmount)
@@ -1892,6 +1903,31 @@ function AdvancedTab({ merchant, merchantPda }: { merchant: Merchant; merchantPd
                     publicKey &&
                     run('cap', 'Set clawback cap', [
                       setClawbackCapIx(publicKey, merchantPda, raw(cap)),
+                    ])
+                  }
+                >
+                  Save
+                </Button>
+              </div>
+            </FieldRow>
+            <FieldRow
+              label="Daily issue cap (0 = unlimited)"
+              desc="A ceiling on how many points you can mint per day — a public guardrail on issuance."
+            >
+              <div className="flex gap-2">
+                <Input
+                  value={issueCap}
+                  inputMode="decimal"
+                  onChange={(e) => setIssueCap(e.target.value.replace(/[^0-9.]/g, ''))}
+                />
+                <Button
+                  size="sm"
+                  className="shrink-0"
+                  disabled={busyKey === 'icap' || !publicKey}
+                  onClick={() =>
+                    publicKey &&
+                    run('icap', 'Set daily issue cap', [
+                      setDailyIssueCapIx(publicKey, merchantPda, raw(issueCap)),
                     ])
                   }
                 >

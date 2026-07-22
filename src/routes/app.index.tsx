@@ -7,7 +7,6 @@ import {
   Award,
   BadgeCheck,
   CircleDot,
-  Compass,
   Flame,
   Gift,
   Repeat,
@@ -22,6 +21,7 @@ import { fmtCount, fmtPoints, Metric } from '@/components/app/metric'
 import { EmptySlate, Section } from '@/components/app/section'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { Skeleton } from '@/components/ui/skeleton'
+import { featuredActionsFor } from '@/lib/nav/actions'
 import type { Merchant } from '@/lib/vesta/decode'
 import { useActivity, useMyMerchant, useNetworkStats } from '@/lib/vesta/queries'
 import { explorerTx } from '@/lib/vesta/tx'
@@ -264,23 +264,13 @@ function MiniStat({
 // ── quick actions ─────────────────────────────────────────────────────────────
 
 function QuickActions() {
+  const actions = featuredActionsFor('customer')
   return (
     <Section icon={ArrowRight} title="Quick actions" desc="Jump straight into the common flows.">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <ActionTile
-          to="/app/wallet"
-          icon={Gift}
-          title="Gift & swap"
-          sub="Move points, guarded live"
-        />
-        <ActionTile to="/app/wallet" icon={Ticket} title="Redeem" sub="Burn points for rewards" />
-        <ActionTile
-          to="/app/console"
-          icon={Store}
-          title="Merchant console"
-          sub="Run your program"
-        />
-        <ActionTile to="/app/discover" icon={Compass} title="Discover" sub="Browse every brand" />
+        {actions.map((a) => (
+          <ActionTile key={a.id} to={a.route} icon={a.icon} title={a.label} sub={a.hint ?? ''} />
+        ))}
       </div>
     </Section>
   )
