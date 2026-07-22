@@ -241,5 +241,17 @@
       "collapse": "收起",
       "dismiss": "关闭"
     }
+  },
+  "consent": {
+    "header": "同意 · analytics",
+    "title": "最少量的 Cookie",
+    "body": "我们希望使用分析 Cookie 来了解访客如何使用 VESTA。在你同意之前不会存储任何内容——拒绝也不影响任何功能。",
+    "accept": "接受分析",
+    "decline": "拒绝"
+  },
+  "notFound": {
+    "title": "这条路径已熄灭",
+    "body": "无法从这些 seeds 推导出任何账户——你要找的页面不存在。",
+    "home": "返回首页"
   }
 }

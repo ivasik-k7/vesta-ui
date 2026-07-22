@@ -65,3 +65,10 @@ test('merchant directory renders its live-scan header', async () => {
   expect(await screen.findByText(/every merchant/i)).toBeInTheDocument()
   expect(screen.getByText(/read from the chain/i)).toBeInTheDocument()
 })
+
+test('unknown paths render the branded 404', async () => {
+  renderAt('/definitely/not/a/route')
+  expect(await screen.findByText('404')).toBeInTheDocument()
+  expect(screen.getByText(/AccountNotFound/i)).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: /burned out/i })).toBeInTheDocument()
+})

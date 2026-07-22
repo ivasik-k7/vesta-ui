@@ -241,5 +241,17 @@
       "collapse": "Zwiń",
       "dismiss": "Zamknij"
     }
+  },
+  "consent": {
+    "header": "zgoda · analytics",
+    "title": "Cookies, minimalnie",
+    "body": "Chcielibyśmy używać cookies analitycznych, by zrozumieć, jak odwiedzający korzystają z VESTA. Nic nie jest zapisywane bez Twojej zgody — odmowa niczego nie ogranicza.",
+    "accept": "Akceptuj analytics",
+    "decline": "Odrzuć"
+  },
+  "notFound": {
+    "title": "Ta ścieżka wygasła",
+    "body": "Z tych seeds nie da się wyprowadzić żadnego konta — strona, której szukasz, nie istnieje.",
+    "home": "Wróć na stronę główną"
   }
 }

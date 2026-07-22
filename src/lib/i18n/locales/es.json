@@ -241,5 +241,17 @@
       "collapse": "Contraer",
       "dismiss": "Descartar"
     }
+  },
+  "consent": {
+    "header": "consentimiento · analytics",
+    "title": "Cookies, las mínimas",
+    "body": "Nos gustaría usar cookies de análisis para entender cómo se usa VESTA. No se guarda nada hasta que aceptes — rechazar no limita ninguna función.",
+    "accept": "Aceptar analytics",
+    "decline": "Rechazar"
+  },
+  "notFound": {
+    "title": "Este camino se apagó",
+    "body": "No se puede derivar ninguna cuenta de estas seeds — la página que buscas no existe.",
+    "home": "Volver al inicio"
   }
 }

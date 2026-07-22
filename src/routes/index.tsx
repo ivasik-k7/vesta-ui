@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useAuthFlow } from '@/components/app/auth-flow'
 import { Bento } from '@/components/landing/bento'
 import { ChallengeWidget } from '@/components/landing/challenge-widget'
+import { CookieConsent } from '@/components/landing/cookie-consent'
 // import { Ecosystem } from '@/components/landing/ecosystem'
 import { Enterprise } from '@/components/landing/enterprise'
 import { Faq } from '@/components/landing/faq'
@@ -58,6 +59,7 @@ function LandingPage() {
       <Faq />
       <Follow />
       <ChallengeWidget />
+      <CookieConsent />
     </main>
   )
 }

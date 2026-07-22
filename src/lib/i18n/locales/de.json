@@ -241,5 +241,17 @@
       "collapse": "Einklappen",
       "dismiss": "Ausblenden"
     }
+  },
+  "consent": {
+    "header": "einwilligung · analytics",
+    "title": "Cookies, minimal",
+    "body": "Wir würden gerne Analyse-Cookies setzen, um zu verstehen, wie VESTA genutzt wird. Ohne Zustimmung wird nichts gespeichert — Ablehnen schränkt nichts ein.",
+    "accept": "Analytics akzeptieren",
+    "decline": "Ablehnen"
+  },
+  "notFound": {
+    "title": "Dieser Pfad ist erloschen",
+    "body": "Aus diesen Seeds lässt sich kein Account ableiten — die gesuchte Seite existiert nicht.",
+    "home": "Zurück zur Startseite"
   }
 }

@@ -3,9 +3,11 @@ import { createRootRoute, Outlet, useRouterState } from '@tanstack/react-router'
 import { AuthFlowProvider } from '@/components/app/auth-flow'
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
+import { NotFound } from '@/components/layout/not-found'
 
 export const Route = createRootRoute({
   component: RootLayout,
+  notFoundComponent: NotFound,
 })
 
 function RootLayout() {

@@ -241,5 +241,17 @@
       "collapse": "Collapse",
       "dismiss": "Dismiss"
     }
+  },
+  "consent": {
+    "header": "consent · analytics",
+    "title": "Cookies, minimally",
+    "body": "We'd like to set analytics cookies to understand how visitors use VESTA. Nothing is stored until you agree — declining keeps everything fully functional.",
+    "accept": "Accept analytics",
+    "decline": "Decline"
+  },
+  "notFound": {
+    "title": "This path burned out",
+    "body": "No account can be derived from these seeds — the page you're looking for doesn't exist.",
+    "home": "Back to the homepage"
   }
 }
