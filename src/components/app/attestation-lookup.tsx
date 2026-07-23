@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 
 import { EmptySlate } from '@/components/app/section'
 import { DataRow, FieldRow, Group, Input } from '@/components/app/settings-kit'
+import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Attestation, Issuer } from '@/lib/vesta/decode'
 import { useAttestation, useIssuers } from '@/lib/vesta/queries'
@@ -38,18 +39,17 @@ export function AttestationLookup() {
       >
         <FieldRow label="Issuer">
           {issuers.data && issuers.data.length > 0 ? (
-            <select
+            <Select
               value={issuerStr}
-              onChange={(e) => setIssuerStr(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
-            >
-              <option value="">Select an issuer…</option>
-              {issuers.data.map((iss: Issuer) => (
-                <option key={iss.address.toBase58()} value={iss.address.toBase58()}>
-                  {iss.name || 'Issuer'} — {iss.address.toBase58().slice(0, 6)}…
-                </option>
-              ))}
-            </select>
+              onChange={setIssuerStr}
+              placeholder="Select an issuer…"
+              aria-label="Issuer"
+              options={issuers.data.map((iss: Issuer) => ({
+                value: iss.address.toBase58(),
+                label: iss.name || 'Issuer',
+                hint: `${iss.address.toBase58().slice(0, 8)}…`,
+              }))}
+            />
           ) : (
             <Input
               mono

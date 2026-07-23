@@ -33,7 +33,7 @@ import {
 } from '@/components/app/action-panel'
 import { fmtCount, fmtPoints, Metric } from '@/components/app/metric'
 import { Section, SectionMeta } from '@/components/app/section'
-import { DataRow, FieldRow, Group, Input, Row, Switch } from '@/components/app/settings-kit'
+import { DataRow, FieldRow, Group, Input, Row, Select, Switch } from '@/components/app/settings-kit'
 import { ShareButton } from '@/components/app/share-button'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
 import { Button } from '@/components/ui/button'
@@ -459,17 +459,12 @@ function OverviewTab({ merchant, merchantPda }: { merchant: Merchant; merchantPd
 
           <Group title="Brand profile" desc="Surfaced in Discover and the public profile.">
             <FieldRow label="Category">
-              <select
+              <Select
                 value={category}
-                onChange={(e) => setCategory(Number(e.target.value))}
-                className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setCategory}
+                options={CATEGORIES}
+                aria-label="Category"
+              />
             </FieldRow>
             <FieldRow label="Metadata URI">
               <Input
@@ -651,29 +646,29 @@ function OffersTab({ merchant, merchantPda }: { merchant: Merchant; merchantPda:
                 desc={`${fromRaw(o.pricePoints)} pts · ${o.supplyRemaining} left${o.requiredSegment > 0 ? ` · gated: seg ${o.requiredSegment}` : ''}`}
               >
                 <div className="flex items-center gap-1.5">
-                  <select
+                  <Select
+                    className="w-24"
                     value={o.requiredSegment}
                     disabled={busyKey === `gate-${o.id}`}
-                    onChange={(e) =>
+                    aria-label={`Gate offer #${o.id} to a segment`}
+                    options={[
+                      { value: 0, label: 'Open' },
+                      { value: 1, label: 'Seg 1' },
+                      { value: 2, label: 'Seg 2' },
+                      { value: 3, label: 'Seg 3' },
+                      { value: 4, label: 'Seg 4' },
+                    ]}
+                    onChange={(v) =>
                       run(`gate-${o.id}`, `Gate offer #${o.id}`, [
                         setOfferSegmentIx({
                           authority: merchant.authority,
                           merchant: merchantPda,
                           offerId: o.id,
-                          requiredSegment: Number(e.target.value),
+                          requiredSegment: v,
                         }),
                       ])
                     }
-                    className="rounded-lg border border-border bg-background/60 px-2 py-1 text-muted-foreground text-xs outline-none transition-colors focus:border-flame/60"
-                    aria-label={`Gate offer #${o.id} to a segment`}
-                  >
-                    <option value={0}>Open</option>
-                    {[1, 2, 3, 4].map((s) => (
-                      <option key={s} value={s}>
-                        Seg {s}
-                      </option>
-                    ))}
-                  </select>
+                  />
                   <button
                     type="button"
                     disabled={busyKey === `offer-${o.id}`}
@@ -1201,17 +1196,12 @@ function SegmentsTab({ merchant, merchantPda }: { merchant: Merchant; merchantPd
                   />
                 </FieldRow>
                 <FieldRow label="Credential">
-                  <select
+                  <Select
                     value={r.schemaId}
-                    onChange={(e) => patch(r.id, { schemaId: Number(e.target.value) })}
-                    className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
-                  >
-                    {SCHEMA_OPTS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => patch(r.id, { schemaId: v })}
+                    options={SCHEMA_OPTS}
+                    aria-label="Credential schema"
+                  />
                 </FieldRow>
                 <FieldRow label="Earn boost %">
                   <Input

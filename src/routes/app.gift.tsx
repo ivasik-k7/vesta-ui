@@ -6,6 +6,8 @@ import { useState } from 'react'
 import { GiftFlow } from '@/components/app/flows'
 import { EmptySlate, Section } from '@/components/app/section'
 import { ConnectPrompt, PageHeader } from '@/components/app/shell'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHoldings } from '@/lib/vesta/queries'
 
@@ -54,22 +56,14 @@ function GiftPage() {
           desc="Pick which brand's points to send, then a recipient and amount."
         >
           <div className="max-w-xl space-y-4">
-            <label className="block">
-              <span className="font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
-                Brand
-              </span>
-              <select
+            <Field label="Brand">
+              <Select
                 value={idx}
-                onChange={(e) => setIdx(Number(e.target.value))}
-                className="mt-1.5 w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
-              >
-                {items.map((h, i) => (
-                  <option key={h.merchant.pointMint.toBase58()} value={i}>
-                    {h.merchant.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+                onChange={setIdx}
+                options={items.map((h, i) => ({ value: i, label: h.merchant.name }))}
+                aria-label="Brand"
+              />
+            </Field>
             {holding ? (
               <GiftFlow key={holding.merchant.pointMint.toBase58()} holding={holding} />
             ) : null}

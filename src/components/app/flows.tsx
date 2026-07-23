@@ -4,6 +4,8 @@ import { BadgeCheck, Lock } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { ActionPanel, AddressField, AmountField, isPubkey } from '@/components/app/action-panel'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import { AEGIS_SCHEMA, DECIMALS } from '@/lib/vesta/constants'
 import type { CustomerEligibility, MerchantSegments, Offer } from '@/lib/vesta/decode'
 import { giftIxns, redeemOfferIx, swapPointsIx } from '@/lib/vesta/ixns'
@@ -204,21 +206,13 @@ function MerchantSelect({
   onChange: (v: number) => void
 }) {
   return (
-    <label className="block">
-      <span className="font-medium font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.12em]">
-        {label}
-      </span>
-      <select
+    <Field label={label}>
+      <Select
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-1.5 w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
-      >
-        {holdings.map((h, i) => (
-          <option key={h.merchant.address.toBase58()} value={i}>
-            {h.merchant.name}
-          </option>
-        ))}
-      </select>
-    </label>
+        onChange={onChange}
+        options={holdings.map((h, i) => ({ value: i, label: h.merchant.name }))}
+        aria-label={label}
+      />
+    </Field>
   )
 }

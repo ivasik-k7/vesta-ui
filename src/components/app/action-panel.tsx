@@ -5,6 +5,7 @@ import { ArrowUpRight, Loader2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Select } from '@/components/ui/select'
 import { humanizeError, useNotify } from '@/lib/notify/context'
 import { explorerTx, sendIxns } from '@/lib/vesta/tx'
 
@@ -209,24 +210,16 @@ export function SelectField<T extends string | number>({
   options: { value: T; label: string }[]
 }) {
   return (
-    <label className="block">
+    <div className="block">
       <span className={LABEL}>{label}</span>
-      <select
+      <Select
+        className="mt-1.5"
         value={value}
-        onChange={(e) => {
-          const raw = e.target.value
-          const match = options.find((o) => String(o.value) === raw)
-          if (match) onChange(match.value)
-        }}
-        className={`mt-1.5 border-border ${INPUT}`}
-      >
-        {options.map((o) => (
-          <option key={String(o.value)} value={String(o.value)}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        onChange={onChange}
+        options={options}
+        aria-label={label}
+      />
+    </div>
   )
 }
 

@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next'
 import { useAccountOverlay } from '@/components/app/account-overlay'
 import { useAuthFlow, useLogout } from '@/components/app/auth-flow'
 import { useMoney } from '@/components/app/money'
+import { Switch } from '@/components/ui/switch'
 import { ConnectButton } from '@/components/wallet/connect-button'
 import { useVestaAuth } from '@/lib/auth/context'
 import { LANGUAGES } from '@/lib/i18n'
@@ -320,10 +321,10 @@ function QuickSettings() {
   return (
     <div className="space-y-2.5 border-border/60 border-b px-4 py-3">
       <QuickRow icon={hideBalances ? EyeOff : Eye} label="Hide balances">
-        <MiniSwitch checked={hideBalances} onChange={setHideBalances} />
+        <Switch size="sm" checked={hideBalances} onChange={setHideBalances} />
       </QuickRow>
       <QuickRow icon={Hash} label="Round figures">
-        <MiniSwitch checked={compact} onChange={setCompact} />
+        <Switch size="sm" checked={compact} onChange={setCompact} />
       </QuickRow>
       <QuickRow label="Theme">
         <div className="inline-flex rounded-lg border border-border p-0.5">
@@ -367,22 +368,6 @@ function QuickRow({
       <span className="flex-1 text-muted-foreground text-xs">{label}</span>
       {children}
     </div>
-  )
-}
-
-function MiniSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? 'bg-flame' : 'bg-secondary'}`}
-    >
-      <span
-        className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`}
-      />
-    </button>
   )
 }
 

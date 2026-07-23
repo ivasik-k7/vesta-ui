@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { fmtCount, fmtPoints } from '@/components/app/metric'
 import { EmptySlate, Section, SectionMeta } from '@/components/app/section'
 import { PageHeader } from '@/components/app/shell'
+import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Merchant } from '@/lib/vesta/decode'
 import { type Holding, useHoldings, useMerchants } from '@/lib/vesta/queries'
@@ -114,18 +115,13 @@ function DiscoverPage() {
               className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground/50"
             />
           </div>
-          <select
+          <Select
+            className="w-full shrink-0 sm:w-44"
             value={sort}
-            onChange={(e) => setSort(e.target.value as SortBy)}
-            className="shrink-0 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-colors focus:border-flame/60"
+            onChange={setSort}
+            options={SORTS}
             aria-label="Sort"
-          >
-            {SORTS.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">

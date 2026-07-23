@@ -148,78 +148,9 @@ export function FieldRow({
   )
 }
 
-/** Tactile pill toggle: flame track + glow when on, springy knob. */
-export function Switch({
-  checked,
-  onChange,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full ring-1 ring-inset transition-colors duration-200 ${
-        checked
-          ? 'bg-flame ring-flame/40 shadow-[0_0_14px_-3px_var(--color-flame)]'
-          : 'bg-secondary ring-border'
-      }`}
-    >
-      <span
-        className={`inline-block size-4 rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-transform duration-200 ease-out ${
-          checked ? 'translate-x-6' : 'translate-x-1'
-        }`}
-      />
-    </button>
-  )
-}
-
-/** Compact segmented control with a glowing active pill. */
-export function Segmented<T extends string | number>({
-  value,
-  onChange,
-  options,
-}: {
-  value: T
-  onChange: (v: T) => void
-  options: { value: T; label?: string; icon?: ComponentType<{ className?: string }> }[]
-}) {
-  return (
-    <div className="inline-flex rounded-xl border border-border bg-background/40 p-1">
-      {options.map((o) => (
-        <button
-          key={String(o.value)}
-          type="button"
-          onClick={() => onChange(o.value)}
-          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-all duration-200 ${
-            value === o.value
-              ? 'bg-flame text-primary-foreground shadow-[0_0_12px_-4px_var(--color-flame)]'
-              : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
-          }`}
-        >
-          {o.icon ? <o.icon className="size-3.5" aria-hidden /> : null}
-          {o.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-/** Standard input styled for the kit — inset dark field, flame focus ring. */
-export function Input({
-  mono,
-  className,
-  ...rest
-}: React.InputHTMLAttributes<HTMLInputElement> & { mono?: boolean }) {
-  return (
-    <input
-      {...rest}
-      className={`w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm shadow-inner outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted-foreground/50 focus:border-flame/60 focus:shadow-[0_0_0_3px_color-mix(in_oklch,var(--color-flame)_15%,transparent)] ${
-        mono ? 'font-mono' : ''
-      } ${className ?? ''}`}
-    />
-  )
-}
+export { Input } from '@/components/ui/field'
+export { Segmented } from '@/components/ui/segmented'
+export { Select } from '@/components/ui/select'
+// Interactive controls are standardized in the shared UI kit; re-exported here
+// so existing `@/components/app/settings-kit` imports keep working.
+export { Switch } from '@/components/ui/switch'

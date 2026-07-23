@@ -15,14 +15,6 @@ const REPO_URL = 'https://github.com/ivasik-k7/vesta-core'
 export const HEADER_ACTION =
   'grid size-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-flame/40 hover:text-flame'
 
-/** Landing-section anchors (resolved on the home route via `to="/" hash=…`). */
-const ANCHORS = [
-  { hash: 'why', key: 'landing.nav.why' },
-  { hash: 'how', key: 'landing.nav.how' },
-  { hash: 'features', key: 'landing.nav.features' },
-  { hash: 'faq', key: 'landing.nav.faq' },
-] as const
-
 export function Header() {
   const { t } = useTranslation()
   const enterApp = useEnterApp()
@@ -81,19 +73,19 @@ export function Header() {
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
-            {ANCHORS.map((a) => (
+            {/* {ANCHORS.map((a) => (
               <NavLink key={a.hash} hash={a.hash}>
                 {t(a.key)}
               </NavLink>
-            ))}
+            ))} */}
             <NavLink to="/merchant">{t('landing.nav.merchants')}</NavLink>
           </div>
         </div>
 
         {/* Standardized action row */}
         <div className="flex shrink-0 items-center gap-2">
-          <Devnet />
-          <span aria-hidden className="hidden h-5 w-px bg-border lg:block" />
+          {/* <Devnet /> */}
+          {/* <span aria-hidden className="hidden h-5 w-px bg-border lg:block" /> */}
           <a
             href={REPO_URL}
             target="_blank"
@@ -123,7 +115,7 @@ export function Header() {
       {open ? (
         <div className="md:hidden">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-1 px-4 pb-4">
-            {ANCHORS.map((a) => (
+            {/* {ANCHORS.map((a) => (
               <Link
                 key={a.hash}
                 to="/"
@@ -133,7 +125,7 @@ export function Header() {
               >
                 {t(a.key)}
               </Link>
-            ))}
+            ))} */}
             <Link
               to="/merchant"
               onClick={() => setOpen(false)}
@@ -198,19 +190,6 @@ function NavLink({
       {children}
       {underline}
     </Link>
-  )
-}
-
-/** Minimal network status — a live dot + mono label, not an action. */
-function Devnet() {
-  return (
-    <span className="hidden items-center gap-1.5 font-mono text-[11px] text-muted-foreground lg:inline-flex">
-      <span className="relative flex size-1.5">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-flame/60" />
-        <span className="relative inline-flex size-1.5 rounded-full bg-flame" />
-      </span>
-      devnet
-    </span>
   )
 }
 
