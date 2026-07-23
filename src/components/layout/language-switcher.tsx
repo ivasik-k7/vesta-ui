@@ -25,14 +25,14 @@ export function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
         aria-label="Change language"
+        title={current?.label}
+        className="grid size-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-flame/40 hover:text-flame"
       >
         <Globe className="size-4" aria-hidden />
-        <span className="hidden sm:inline">{current?.label}</span>
       </button>
       {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+        <div className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-xl border border-border bg-popover shadow-panel-lg">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}

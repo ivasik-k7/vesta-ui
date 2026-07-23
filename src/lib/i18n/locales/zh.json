@@ -240,6 +240,14 @@
       "cta": "查看挑战赛",
       "collapse": "收起",
       "dismiss": "关闭"
+    },
+    "nav": {
+      "why": "为什么选 VESTA",
+      "how": "工作原理",
+      "features": "功能",
+      "faq": "常见问题",
+      "merchants": "商户",
+      "launch": "启动应用"
     }
   },
   "consent": {

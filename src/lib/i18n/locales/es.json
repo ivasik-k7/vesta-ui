@@ -240,6 +240,14 @@
       "cta": "Ver el desafío",
       "collapse": "Contraer",
       "dismiss": "Descartar"
+    },
+    "nav": {
+      "why": "Por qué VESTA",
+      "how": "Cómo funciona",
+      "features": "Funciones",
+      "faq": "FAQ",
+      "merchants": "Comercios",
+      "launch": "Abrir la app"
     }
   },
   "consent": {

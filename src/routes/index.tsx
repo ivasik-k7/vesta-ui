@@ -49,14 +49,22 @@ function LandingPage() {
     <main>
       <Hero />
       <BrandQuote />
-      <Why />
+      <div id="why" className="scroll-mt-20">
+        <Why />
+      </div>
       {/* <Ecosystem /> */}
-      <Flow />
+      <div id="how" className="scroll-mt-20">
+        <Flow />
+      </div>
       <Stats />
       {/* <Enterprise /> */}
-      <Bento />
+      <div id="features" className="scroll-mt-20">
+        <Bento />
+      </div>
       <Steps />
-      <Faq />
+      <div id="faq" className="scroll-mt-20">
+        <Faq />
+      </div>
       <Follow />
       <ChallengeWidget />
       <CookieConsent />

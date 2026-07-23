@@ -240,6 +240,14 @@
       "cta": "Zobacz wyzwanie",
       "collapse": "Zwiń",
       "dismiss": "Zamknij"
+    },
+    "nav": {
+      "why": "Dlaczego VESTA",
+      "how": "Jak to działa",
+      "features": "Funkcje",
+      "faq": "FAQ",
+      "merchants": "Sprzedawcy",
+      "launch": "Uruchom aplikację"
     }
   },
   "consent": {
